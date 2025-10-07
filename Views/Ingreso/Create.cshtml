@@ -1,0 +1,144 @@
+﻿@model AutoSys.Models.Ingreso
+@{
+    ViewData["Title"] = "Registrar Nuevo Ingreso";
+}
+
+
+<div class="mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-car-side me-2"></i> <!--Icono de auto -->
+                        Registrar Ingreso de Vehículo
+                    </h2>
+                    <p class="mb-0 opacity-75">Complete los datos para crear un nueo ingreso de vehiculo.</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+
+                    <!-- MENSAJE DE ÉXITO-->
+                    @if (TempData["SuccessMessage"] != null)
+                    {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        <i class="fas fa-check-circle me-2"></i>
+                        <strong>¡Éxito!</strong> @TempData["SuccessMessage"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    }
+
+                    <!-- ERRORES DE VALIDACIÓN -->
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                    <div class="alert alert-danger" role="alert">
+                        <h4 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            Por favor, corrija los siguientes errores:
+                        </h4>
+                        <hr>
+                        <ul class="mb-0">
+                            @foreach (var entry in ViewData.ModelState.Values.Where(v => v.Errors.Count > 0))
+                                {
+                                    foreach (var error in entry.Errors)
+                                    {
+                            <li>@error.ErrorMessage</li>
+                                    }
+                                }
+                        </ul>
+                    </div>
+                    }
+
+                    <form asp-action="Create" enctype="multipart/form-data" method="post" id="ingresoForm">
+
+                        <!-- CAMPO VEHÍCULO -->
+                        <div class="mb-4">
+                            <label asp-for="VehiculoId" class="form-label fs-5">Vehículo</label>
+                            <select asp-for="VehiculoId" class="form-select form-select-lg" asp-items="@(new SelectList(ViewBag.Vehiculos, "Id", "Descripcion"))">
+                                <option value="" selected>-- Seleccione un vehículo --</option>
+                            </select>
+                            <span asp-validation-for="VehiculoId" class="text-danger mt-1 d-block"></span>
+                        </div>
+
+                        <!-- CAMPO DIAGNÓSTICO -->
+                        <div class="mb-4">
+                            <label asp-for="Diagnostico" class="form-label fs-5">Diagnóstico Inicial</label>
+                            <textarea asp-for="Diagnostico" class="form-control" rows="4" placeholder="Describa el problema o la solicitud del cliente..."></textarea>
+                            <span asp-validation-for="Diagnostico" class="text-danger mt-1 d-block"></span>
+                        </div>
+
+                        <!-- CAMPO FOTO -->
+                        <div class="mb-4">
+                            <label for="customFile" class="form-label fs-5">Foto del vehículo (opcional)</label>
+                            <input type="file" name="Foto" class="form-control" id="customFile" accept="image/*" onchange="previewImage(event)">
+
+                            @if (ViewBag.FotoTempPath != null)
+                            {
+                                <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
+                                <div class="mt-3">
+                                    <img id="imagePreview" src="@ViewBag.FotoTempPath" alt="Vista previa de la imagen" class="img-fluid rounded" style="max-height: 250px;" />
+                                </div>
+                            }
+
+                            else
+                            {
+                                <img id="imagePreview" src="#" alt="Vista previa de la imagen" class="img-fluid rounded mt-3" style="display: none; max-height: 250px;" />
+                            }
+                        </div>
+
+                        <!-- BOTÓN DE ENVÍO -->
+                        <div class="d-grid gap-2 mt-5">
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-save me-2"></i>
+                                Registrar Ingreso
+                            </button>
+                        </div>
+                        <!-- BOTÓN DE VER TODOS LOS INGRESOS -->
+                        <div class="d-grid mt-3">
+                            <a href="@Url.Action("Index", "Ingreso")" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-list me-2"></i> Ver todos los ingresos
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{
+        await Html.PartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // Mostrar preview cuando el usuario selecciona una imagen nueva
+        function previewImage(event) {
+            const imagePreview = document.getElementById('imagePreview');
+            const file = event.target.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    imagePreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            } else {
+                imagePreview.src = '#';
+                imagePreview.style.display = 'none';
+            }
+        }
+
+        // Mostrar preview al cargar la página si ya hay una imagen (para caso "Editar")
+        window.addEventListener("load", function () {
+            const imagePreview = document.getElementById('imagePreview');
+            if (imagePreview && imagePreview.src && !imagePreview.src.endsWith('#')) {
+                imagePreview.style.display = 'block';
+            }
+        });
+    </script>
+}

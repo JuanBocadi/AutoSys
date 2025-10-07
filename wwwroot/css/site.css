@@ -1,0 +1,101 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+  margin-bottom: 60px;
+}
+
+
+/* FORMULARIO DE INGRESO */
+:root {
+    --bs-primary: #0d6efd; /* Azul primario de Bootstrap */
+    --bs-primary-rgb: 13, 110, 253;
+    --bs-light: #f8f9fa;
+    --bs-dark: #212529;
+    --bs-body-bg: #f0f2f5; /* Un gris muy claro para el fondo */
+}
+
+body {
+    background-color: var(--bs-body-bg);
+}
+
+/* Estilo de la tarjeta del formulario */
+.card {
+    transition: all 0.3s ease-in-out;
+}
+
+    .card:hover {
+        box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1) !important;
+        transform: translateY(-3px);
+    }
+
+.card-header {
+    border-bottom: 0;
+}
+
+    .card-header h2 {
+        font-weight: 300; /* Fuente más ligera para el título */
+    }
+
+/* Estilos para los campos del formulario */
+.form-label {
+    font-weight: 600;
+    color: #495057;
+}
+
+.form-control, .form-select {
+    padding: 0.75rem 1.1rem;
+    font-size: 1rem;
+    transition: all 0.2s ease-in-out;
+    border-radius: 0.375rem; /* Bordes redondeados */
+}
+
+    .form-control:focus, .form-select:focus {
+        border-color: var(--bs-primary);
+        box-shadow: 0 0 0 0.25rem rgba(var(--bs-primary-rgb), 0.25);
+    }
+
+/* Mejora para el campo de subida de archivo */
+#customFile {
+    cursor: pointer;
+}
+
+/* Estilos para el botón principal */
+.btn-primary {
+    padding: 0.8rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    transition: all 0.3s ease;
+}
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.35);
+    }
+
+/* ajuste para los mensajes de validación */
+.text-danger {
+    font-size: 0.875em;
+}
+
+/* Estilos para los iconos de adentro de los elementos */
+.btn i, .alert i, .card-header i {
+    vertical-align: middle;
+}

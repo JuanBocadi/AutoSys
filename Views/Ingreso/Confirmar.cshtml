@@ -1,0 +1,64 @@
+﻿@model AutoSys.Models.Ingreso
+@{
+    ViewData["Title"] = "Confirmar Ingreso";
+}
+
+<div class="mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-primary text-white text-center py-4">
+                    <h2 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i> Confirmar Ingreso
+                    </h2>
+                    <p class="mb-0 opacity-75">Revise los datos antes de confirmar.</p>
+                </div>
+
+                <div class="card-body p-4 p-md-5">
+                    <dl class="row">
+                        <dt class="col-sm-4">Cliente</dt>
+                        <dd class="col-sm-8">@Model.Vehiculo?.Cliente?.Nombre @Model.Vehiculo?.Cliente?.Apellido</dd>
+
+                        <dt class="col-sm-4">Vehículo</dt>
+                        <dd class="col-sm-8">@Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo (@Model.Vehiculo?.Patente)</dd>
+
+                        <dt class="col-sm-4">Diagnóstico</dt>
+                        <dd class="col-sm-8">@Model.Diagnostico</dd>
+
+                        @if (ViewBag.FotoTempPath != null)
+                        {
+                            <dt class="col-sm-4">Foto</dt>
+                            <dd class="col-sm-8">
+                                <img src="@ViewBag.FotoTempPath" class="img-fluid rounded" style="max-height: 250px;" />
+                            </dd>
+                        }
+                    </dl>
+
+                    <div class="d-flex justify-content-between mt-4">
+                        <!-- Botón EDITAR (redirige al método EditarDesdeConfirmacion del controlador) --> 
+                        <form asp-action="EditarDesdeConfirmacion" method="post" class="d-inline">
+                            <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" /> <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" /> @if (ViewBag.FotoTempPath != null) {
+                            <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
+                            }
+
+                            <button type="submit" class="btn btn-secondary btn-lg">
+                                <i class="fas fa-arrow-left me-1"></i> Editar
+                            </button>
+                        </form>
+
+                        <!-- Botón CONFIRMAR -->
+                        <form asp-action="Confirmado" method="post" class="d-inline">
+                            <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" />
+                            <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" />
+                            <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
+
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <i class="fas fa-check me-2"></i> Confirmar Ingreso
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

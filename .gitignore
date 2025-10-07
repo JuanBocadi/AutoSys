@@ -1,0 +1,30 @@
+# Visual Studio
+.vs/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Compilación
+bin/
+obj/
+
+# Configuración local
+appsettings.Development.json
+
+# Logs
+*.log
+
+# Paquetes NuGet
+*.nupkg
+packages/
+
+# Rider / JetBrains
+.idea/
+
+# Node / npm (si usas frontend)
+node_modules/
+
+# Publicación / despliegue
+publish/
+wwwroot/lib/

@@ -1,0 +1,92 @@
+﻿@model AutoSys.Models.Ingreso
+@{
+    ViewData["Title"] = "Detalle del Ingreso";
+}
+
+<div class="mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-8 col-xl-7">
+            <div class="card shadow-lg border-0 rounded-lg">
+                <div class="card-header bg-success text-white text-center py-4"> <h2 class="mb-0"> <i class="fas fa-file-alt me-2"></i> Detalle del Ingreso </h2> </div>
+                <div class="card-body p-4 p-md-5">
+                    <dl class="row fs-5">
+                        <dt class="col-sm-5">Cliente</dt>
+                        <dd class="col-sm-7">@Model.Vehiculo?.Cliente?.Nombre @Model.Vehiculo?.Cliente?.Apellido</dd>
+
+                        <dt class="col-sm-5">Vehículo</dt>
+                        <dd class="col-sm-7">@Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo (@Model.Vehiculo?.Patente)</dd>
+
+                        <dt class="col-sm-5">Diagnóstico</dt>
+                        <dd class="col-sm-7">@Model.Diagnostico</dd>
+
+                        <dt class="col-sm-5">Fecha de Ingreso</dt>
+                        <dd class="col-sm-7">@Model.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</dd>
+
+                        <dt class="col-sm-5">Fecha de Egreso</dt>
+                        <dd class="col-sm-7">
+                            @if (Model.FechaEgreso == null)
+                            {
+                                <span class="badge bg-warning text-dark">Aún no egresado</span>
+                            }
+                            else
+                            {
+                                @Model.FechaEgreso?.ToString("dd/MM/yyyy HH:mm")
+                            }
+                        </dd>
+
+                        <dt class="col-sm-5">Estado</dt>
+                        <dd class="col-sm-7">
+                            <form asp-action="ActualizarEstado" asp-controller="Ingreso" method="post" class="d-flex gap-2 align-items-center">
+                                <input type="hidden" name="id" value="@Model.Id" />
+                                <select name="estado" class="form-select form-select-sm w-auto">
+@if (Model.Estado == "En revisión") {
+                                    <option value="En revisión" selected>En revisión</option>
+} else {
+                                    <option value="En revisión">En revisión</option>
+}
+@if (Model.Estado == "En proceso") {
+                                    <option value="En proceso" selected>En proceso</option>
+} else {
+                                    <option value="En proceso">En proceso</option>
+}
+@if (Model.Estado == "Finalizado") {
+                                    <option value="Finalizado" selected>Finalizado</option>
+} else {
+                                    <option value="Finalizado">Finalizado</option>
+}
+@if (Model.Estado == "Entregado") {
+                                    <option value="Entregado" selected>Entregado</option>
+} else {
+                                    <option value="Entregado">Entregado</option>
+}
+                                </select>
+                                <button type="submit" class="btn btn-sm btn-success">
+                                    <i class="fas fa-save me-1"></i>Guardar
+                                </button>
+                            </form>
+                        </dd>
+
+                        @if (!string.IsNullOrEmpty(Model.FotoPath))
+                        {
+                            <dt class="col-sm-5">Foto</dt>
+                            <dd class="col-sm-7">
+                                <img src="@Model.FotoPath" alt="Foto del vehículo" class="img-fluid rounded shadow" style="max-height: 300px;" />
+                            </dd>
+                        }
+                    </dl>
+
+                    <div class="d-grid mt-4">
+                        <a href="@Url.Action("Create", "Ingreso")" class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-plus me-2"></i>Registrar otro ingreso
+                        </a>
+                    </div>
+                    <div class="d-grid mt-3">
+                        <a href="@Url.Action("Index", "Ingreso")" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-list me-2"></i> Ver todos los ingresos
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
