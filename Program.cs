@@ -1,53 +1,49 @@
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
+using AutoSys.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// =======================================================
-// CONFIGURACIÓN DE SERVICIOS
-// =======================================================
-
-// Permite usar controladores y vistas Razor
+// Deja usar controladores y vistas Razor
 builder.Services.AddControllersWithViews();
 
-// 1. Configuración del DbContext (conexión a la base de datos)
+// Configuración del DbContext (conexión a la base de datos)
 builder.Services.AddDbContext<AutoSysDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 2. Configurar Identity (usuarios y roles)
+// Configurar Identity (usuarios y roles)
 builder.Services.AddIdentity<IdentityUser, IdentityRole>()
     .AddEntityFrameworkStores<AutoSysDbContext>()
     .AddDefaultTokenProviders();
 
-// NUEVO: Configurar el comportamiento de la cookie de sesión
+// Configurar el comportamiento de la cookie de sesión
 builder.Services.ConfigureApplicationCookie(options =>
 {
-    // Tiempo de vida de la cookie de sesión
     options.ExpireTimeSpan = TimeSpan.FromMinutes(15);
-
-    // Ruta a la que se redirige si el usuario no está logueado
     options.LoginPath = "/Account/Login";
-
-    // Si está en 'true', el tiempo de expiración se renueva con cada petición.
-    // Esto es lo que implementa el "cierre por inactividad".
     options.SlidingExpiration = true; 
 });
 
-// 3. Configurar política de autorización global (requiere usuario logueado por defecto)
+// Configurar política de autorización (usuario logueado por defecto)
 builder.Services.AddAuthorization(options =>
 {
+    options.AddPolicy("PuedeGestionarIngresos", policy => policy.RequireRole("Administrador", "Recepcionista"));
+    options.AddPolicy("PuedeEditarUsuarios", policy => policy.RequireRole("Administrador"));
+    options.AddPolicy("PuedeVerReportes", policy => policy.RequireRole("Administrador"));
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
 });
 
+// Servicios de infraestructura
+builder.Services.AddScoped<INotificationService, NotificationService>();
+builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
+
 var app = builder.Build();
 
-// =======================================================
 // INICIALIZAR BASE DE DATOS Y ROLES/USUARIO ADMIN
-// =======================================================
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -55,31 +51,19 @@ using (var scope = app.Services.CreateScope())
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
 
-    // Aplicar migraciones pendientes
     context.Database.Migrate();
-
-    // Poblar datos base (clientes y vehículos)
     DbInitializer.Seed(context);
-
-    // Poblar datos de Identity (roles + usuario admin)
     await IdentityInitializer.SeedAsync(roleManager, userManager);
 }
 
-// =======================================================
-// CONFIGURACIÓN DEL PIPELINE DE LA APLICACIÓN
-// =======================================================
-
-// Muestra página de error en caso de fallas
+// Muestra página de error en caso de errores
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
 }
 
 app.UseStaticFiles();
-
 app.UseRouting();
-
-// Habilitar autenticación y autorización (¡orden importante!)
 app.UseAuthentication();
 app.UseAuthorization();
 

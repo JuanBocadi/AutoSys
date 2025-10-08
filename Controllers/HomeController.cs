@@ -1,9 +1,7 @@
-// Controllers/HomeController.cs
-
 using System.Diagnostics;
 using AutoSys.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; // AÑADIR ESTE USING
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace AutoSys.Controllers

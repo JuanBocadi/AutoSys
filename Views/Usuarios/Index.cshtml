@@ -1,10 +1,12 @@
 @model List<AutoSys.ViewModels.UsuarioViewModel>
+
 @{
     ViewData["Title"] = "Gestión de Usuarios";
 }
 
 <div class="mt-4">
     <div class="card shadow-lg border-0 rounded-lg">
+        <!-- Encabezado con título y botón de registro -->
         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
             <h2 class="mb-0">
                 <i class="fas fa-user-cog me-2"></i> Usuarios Registrados
@@ -13,6 +15,8 @@
                 <i class="fas fa-user-plus me-2"></i>Registrar Nuevo Usuario
             </a>
         </div>
+
+        <!-- Tabla de usuarios -->
         <div class="card-body p-4">
             <div class="table-responsive">
                 <table class="table table-striped table-hover align-middle">
@@ -30,13 +34,20 @@
                                 <td>@user.Email</td>
                                 <td><span class="badge bg-secondary">@user.Rol</span></td>
                                 <td class="text-center">
+                                    <!-- Botón para ver detalles del usuario -->
                                     <button class="btn btn-outline-primary btn-sm"
                                             data-bs-toggle="modal"
                                             data-bs-target="#userModal"
                                             data-userid="@user.Id">
                                         <i class="fas fa-eye me-1"></i> Ver Detalles
                                     </button>
-                                    <form asp-action="Delete" asp-controller="Usuarios" method="post" class="d-inline" onsubmit="return confirm('¿Seguro que desea eliminar este usuario?');">
+
+                                    <!-- Formulario para eliminar usuario -->
+                                    <form asp-action="Delete"
+                                          asp-controller="Usuarios"
+                                          method="post"
+                                          class="d-inline"
+                                          onsubmit="return confirm('¿Seguro que desea eliminar este usuario?');">
                                         <input type="hidden" name="id" value="@user.Id" />
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
                                             <i class="fas fa-trash-alt me-1"></i> Eliminar
@@ -52,18 +63,19 @@
     </div>
 </div>
 
-<!-- =============================================== -->
-<!-- MODAL (POPUP) PARA DETALLES DE USUARIO          -->
-<!-- =============================================== -->
+<!-- Modal para mostrar los detalles del usuario -->
 <div class="modal fade" id="userModal" tabindex="-1" aria-labelledby="userModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="userModalLabel"><i class="fas fa-user-circle me-2"></i>Detalles del Usuario</h5>
+                <h5 class="modal-title" id="userModalLabel">
+                    <i class="fas fa-user-circle me-2"></i>Detalles del Usuario
+                </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
+
             <div class="modal-body">
-                <!-- El contenido se cargará aquí con JavaScript -->
+                <!-- Contenedor donde se cargan los datos del usuario -->
                 <div id="modal-content-placeholder" class="text-center">
                     <div class="spinner-border text-primary" role="status">
                         <span class="visually-hidden">Cargando...</span>
@@ -71,6 +83,7 @@
                     <p class="mt-2">Cargando información...</p>
                 </div>
             </div>
+
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
             </div>
@@ -78,44 +91,49 @@
     </div>
 </div>
 
-
 @section Scripts {
 <script>
     $(document).ready(function () {
-        // Obtenemos la referencia al modal
+        // Referencia al modal
         var userModal = document.getElementById('userModal');
 
-        // Escuchamos el evento que se dispara JUSTO ANTES de que el modal se muestre
+        // Evento que se ejecuta antes de mostrar el modal
         userModal.addEventListener('show.bs.modal', function (event) {
-            
-            // Identificamos el botón que activó el modal
+            // Botón que activó el modal
             var button = event.relatedTarget;
-            
-            // Extraemos el ID del usuario del atributo data-userid del botón
+            // ID del usuario
             var userId = button.getAttribute('data-userid');
-
+            // Contenedor del contenido del modal
             var modalBody = $('#modal-content-placeholder');
-            
-            // Mostramos el spinner de "Cargando..." mientras hacemos la petición
-            modalBody.html('<div class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2">Cargando información...</p></div>');
 
-            // Hacemos una llamada AJAX para obtener los detalles del usuario
+            // Mostrar spinner mientras se carga
+            modalBody.html(
+                '<div class="text-center">' +
+                    '<div class="spinner-border text-primary" role="status">' +
+                        '<span class="visually-hidden">Cargando...</span>' +
+                    '</div>' +
+                    '<p class="mt-2">Cargando información...</p>' +
+                '</div>'
+            );
+
+            // Petición para obtener los datos del usuario
             $.ajax({
                 url: '/Usuarios/GetUserDetails?id=' + userId,
                 type: 'GET',
                 success: function (data) {
-                    // Si la llamada es exitosa, construimos el HTML con los datos
-                    var content = '<dl class="row">' +
-                                  '<dt class="col-sm-3">Email</dt>' +
-                                  '<dd class="col-sm-9">' + data.email + '</dd>' +
-                                  '<dt class="col-sm-3">Rol</dt>' +
-                                  '<dd class="col-sm-9"><span class="badge bg-primary">' + data.rol + '</span></dd>' +
-                                  '</dl>';
-                    // Reemplazamos el spinner con el contenido final
+                    // Construir contenido con los datos recibidos
+                    var content =
+                        '<dl class="row">' +
+                            '<dt class="col-sm-3">Email</dt>' +
+                            '<dd class="col-sm-9">' + data.email + '</dd>' +
+                            '<dt class="col-sm-3">Rol</dt>' +
+                            '<dd class="col-sm-9"><span class="badge bg-primary">' + data.rol + '</span></dd>' +
+                        '</dl>';
+
                     modalBody.html(content);
                 },
                 error: function () {
-                    // Si hay un error, mostramos un mensaje
+                    // Mostrar mensaje en caso de error
                     modalBody.html('<div class="alert alert-danger">No se pudo cargar la información del usuario.</div>');
                 }
             });

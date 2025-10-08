@@ -9,11 +9,14 @@ namespace AutoSys.Models
         public DateTime FechaIngreso { get; set; } = DateTime.Now;
 
         [Required(ErrorMessage = "Debe ingresar un diagnóstico.")]
-        [Column("DiagnosticoInicial")] // Alinea el nombre de columna con el esquema esperado
+        [Column("DiagnosticoInicial")]
+        [StringLength(2000)]
         public string Diagnostico { get; set; } = string.Empty;
 
+        [StringLength(512)]
         public string? FotoPath { get; set; }
         public DateTime? FechaEgreso { get; set; }
+        [Required, StringLength(50)]
         public string Estado { get; set; } = "En revisión";
 
         [Required(ErrorMessage = "Debe seleccionar un vehículo.")]

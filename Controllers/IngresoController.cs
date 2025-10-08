@@ -2,12 +2,12 @@
 using AutoSys.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.AspNetCore.Authorization; // AÑADIR ESTE USING
+using Microsoft.AspNetCore.Authorization;
 using System;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")] // <-- AÑADIR ESTA LÍNEA
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
     public class IngresoController : Controller
     {
         private readonly AutoSysDbContext _context;
@@ -101,7 +101,7 @@ namespace AutoSys.Controllers
         {
             ingreso.FechaIngreso = DateTime.Now;
             ingreso.FechaEgreso = null;
-            // Estado por defecto si no vino seteado (backward compatible)
+            // Estado por defecto si no vino seteado
             if (string.IsNullOrWhiteSpace(ingreso.Estado))
             {
                 ingreso.Estado = "En revisión";
@@ -125,7 +125,7 @@ namespace AutoSys.Controllers
             _context.Ingresos.Add(ingreso);
             await _context.SaveChangesAsync();
 
-            // Nuevo: registrar también la foto en la tabla FotosVehiculo si existe
+            // registrar también la foto en la tabla FotosVehiculo si existe
             if (!string.IsNullOrEmpty(ingreso.FotoPath))
             {
                 var foto = new FotoVehiculo
@@ -182,18 +182,28 @@ namespace AutoSys.Controllers
         }
 
         // Muestra todos los ingresos ordenados por fecha
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
         {
-            var ingresos = await _context.Ingresos
+            if (page < 1) page = 1;
+            if (pageSize < 1 || pageSize > 100) pageSize = 20;
+
+            var query = _context.Ingresos
+                .AsNoTracking()
                 .Include(i => i.Vehiculo!)
                 .ThenInclude(v => v.Cliente)
-                .OrderByDescending(i => i.FechaIngreso)
-                .ToListAsync();
+                .OrderByDescending(i => i.FechaIngreso);
 
-            return View(ingresos);
+            var total = await query.CountAsync();
+            var items = await query.Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
+
+            ViewBag.Page = page;
+            ViewBag.PageSize = pageSize;
+            ViewBag.Total = total;
+
+            return View(items);
         }
 
-        // Acción para editar desde la vista de confirmación (regresa a Create con los datos precargados)
+        // Acción para editar desde la vista de confirmación
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditarDesdeConfirmacion(int VehiculoId, string Diagnostico, string? FotoTempPath)

@@ -78,8 +78,8 @@ namespace AutoSys.Controllers
             return View();
         }
 
-        [HttpPost] // <-- Cambiado a [HttpPost] para mayor seguridad
-        [ValidateAntiForgeryToken] // <-- Añadido para protección CSRF
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Logout()
         {
             await _signInManager.SignOutAsync();

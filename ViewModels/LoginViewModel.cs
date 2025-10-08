@@ -1,5 +1,3 @@
-// ViewModels/LoginViewModel.cs
-
 using System.ComponentModel.DataAnnotations;
 
 namespace AutoSys.ViewModels

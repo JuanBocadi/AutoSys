@@ -14,13 +14,13 @@ namespace AutoSys.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
 
-        // Inyectamos el UserManager para poder consultar los usuarios
+        // UserManager para poder consultar los usuarios
         public UsuariosController(UserManager<IdentityUser> userManager)
         {
             _userManager = userManager;
         }
 
-        // MODIFICADO: Esta acción ahora prepara y muestra la lista de usuarios
+        // Esta acción prepara y muestra la lista de usuarios
         public async Task<IActionResult> Index()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -33,14 +33,14 @@ namespace AutoSys.Controllers
                 {
                     Id = user.Id,
                     Email = user.Email ?? string.Empty,
-                    Rol = roles.FirstOrDefault() ?? "Sin rol" // Mostramos el primer rol, o un texto por defecto
+                    Rol = roles.FirstOrDefault() ?? "Sin rol" // Mostramos el primer rol, o texto por defecto
                 });
             }
 
             return View(userViewModels);
         }
 
-        // NUEVO: Esta acción devuelve los datos de un usuario en formato JSON para el popup
+        // devuelve los datos de un usuario en formato JSON para el popup
         [HttpGet]
         public async Task<IActionResult> GetUserDetails(string id)
         {

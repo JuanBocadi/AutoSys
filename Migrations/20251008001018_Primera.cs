@@ -56,11 +56,11 @@ namespace AutoSys.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Nombre = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Apellido = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Telefono = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    DNI = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Email = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    Nombre = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Apellido = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Telefono = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
+                    DNI = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Email = table.Column<string>(type: "nvarchar(256)", maxLength: 256, nullable: true),
                     FechaRegistro = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -180,9 +180,9 @@ namespace AutoSys.Migrations
                 {
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Patente = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Marca = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Modelo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Patente = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Marca = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
+                    Modelo = table.Column<string>(type: "nvarchar(100)", maxLength: 100, nullable: false),
                     ClienteId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -203,10 +203,10 @@ namespace AutoSys.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     FechaIngreso = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    DiagnosticoInicial = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FotoPath = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DiagnosticoInicial = table.Column<string>(type: "nvarchar(2000)", maxLength: 2000, nullable: false),
+                    FotoPath = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: true),
                     FechaEgreso = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    Estado = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Estado = table.Column<string>(type: "nvarchar(50)", maxLength: 50, nullable: false),
                     VehiculoId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -217,7 +217,7 @@ namespace AutoSys.Migrations
                         column: x => x.VehiculoId,
                         principalTable: "Vehiculos",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -227,8 +227,8 @@ namespace AutoSys.Migrations
                     Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
                     IngresoId = table.Column<int>(type: "int", nullable: false),
-                    Tipo = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    RutaArchivo = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Tipo = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    RutaArchivo = table.Column<string>(type: "nvarchar(512)", maxLength: 512, nullable: false),
                     FechaCarga = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
@@ -282,19 +282,39 @@ namespace AutoSys.Migrations
                 filter: "[NormalizedUserName] IS NOT NULL");
 
             migrationBuilder.CreateIndex(
+                name: "IX_Clientes_DNI",
+                table: "Clientes",
+                column: "DNI",
+                unique: true,
+                filter: "[DNI] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Clientes_Email",
+                table: "Clientes",
+                column: "Email",
+                unique: true,
+                filter: "[Email] IS NOT NULL");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_FotosVehiculo_IngresoId",
                 table: "FotosVehiculo",
                 column: "IngresoId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Ingresos_VehiculoId",
+                name: "IX_Ingresos_VehiculoId_FechaIngreso",
                 table: "Ingresos",
-                column: "VehiculoId");
+                columns: new[] { "VehiculoId", "FechaIngreso" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Vehiculos_ClienteId",
                 table: "Vehiculos",
                 column: "ClienteId");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Vehiculos_Patente",
+                table: "Vehiculos",
+                column: "Patente",
+                unique: true);
         }
 
         /// <inheritdoc />
