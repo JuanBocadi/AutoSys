@@ -1,0 +1,146 @@
+@model IEnumerable<AutoSys.Models.Factura>
+@{
+    ViewData["Title"] = "Facturación por Período";
+    var desde = (DateTime)ViewBag.Desde;
+    var hasta = (DateTime)ViewBag.Hasta;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h2><i class="fas fa-money-bill-wave me-2"></i>Reporte: Facturación por Período</h2>
+        </div>
+        <div class="card-body">
+            <!-- Filtro de fechas -->
+            <form method="get" asp-action="FacturacionPorPeriodo" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Desde</label>
+                        <input type="date" name="desde" class="form-control" 
+                               value="@desde.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Hasta</label>
+                        <input type="date" name="hasta" class="form-control" 
+                               value="@hasta.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-success w-100">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary">@ViewBag.TotalFacturas</h3>
+                            <p class="mb-0">Total Facturas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success">@ViewBag.TotalPagadas</h3>
+                            <p class="mb-0">Pagadas</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-info">
+                        <div class="card-body text-center">
+                            <h3 class="text-info">$@ViewBag.TotalRecaudado.ToString("N2")</h3>
+                            <p class="mb-0">Recaudado</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning">$@ViewBag.TotalPendiente.ToString("N2")</h3>
+                            <p class="mb-0">Pendiente</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de facturas -->
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Número</th>
+                                <th>Fecha</th>
+                                <th>Cliente</th>
+                                <th>Estado</th>
+                                <th>Método Pago</th>
+                                <th class="text-end">Subtotal</th>
+                                <th class="text-end">IVA</th>
+                                <th class="text-end">Total</th>
+                                <th class="text-center">Items</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var factura in Model)
+                            {
+                                <tr>
+                                    <td><strong>@factura.NumeroFactura</strong></td>
+                                    <td>@factura.FechaEmision.ToString("dd/MM/yyyy")</td>
+                                    <td>@factura.Cliente?.Nombre @factura.Cliente?.Apellido</td>
+                                    <td>
+                                        @if (factura.Estado == "Pagada")
+                                        {
+                                            <span class="badge bg-success">@factura.Estado</span>
+                                        }
+                                        else if (factura.Estado == "Pendiente")
+                                        {
+                                            <span class="badge bg-warning text-dark">@factura.Estado</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge bg-danger">@factura.Estado</span>
+                                        }
+                                    </td>
+                                    <td>@(factura.MetodoPago ?? "-")</td>
+                                    <td class="text-end">$@factura.Subtotal.ToString("N2")</td>
+                                    <td class="text-end">$@factura.IVA.ToString("N2")</td>
+                                    <td class="text-end"><strong>$@factura.Total.ToString("N2")</strong></td>
+                                    <td class="text-center">@factura.Detalles.Count</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot class="table-light">
+                            <tr>
+                                <td colspan="7" class="text-end"><strong>TOTALES:</strong></td>
+                                <td class="text-end">
+                                    <strong>$@Model.Sum(f => f.Total).ToString("N2")</strong>
+                                </td>
+                                <td></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay facturas en el período seleccionado.
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

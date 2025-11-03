@@ -1,0 +1,136 @@
+@model IEnumerable<AutoSys.Models.Ingreso>
+@{
+    ViewData["Title"] = "Ingresos por Período";
+    var desde = (DateTime)ViewBag.Desde;
+    var hasta = (DateTime)ViewBag.Hasta;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-primary text-white">
+            <h2><i class="fas fa-calendar-week me-2"></i>Reporte: Ingresos por Período</h2>
+        </div>
+        <div class="card-body">
+            <!-- Filtro de fechas -->
+            <form method="get" asp-action="IngresosPorPeriodo" class="mb-4">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label">Desde</label>
+                        <input type="date" name="desde" class="form-control" 
+                               value="@desde.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Hasta</label>
+                        <input type="date" name="hasta" class="form-control" 
+                               value="@hasta.ToString("yyyy-MM-dd")" required />
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="fas fa-search me-1"></i>Filtrar
+                        </button>
+                    </div>
+                </div>
+            </form>
+
+            <!-- Estadísticas -->
+            <div class="row mb-4">
+                <div class="col-md-4">
+                    <div class="card border-primary">
+                        <div class="card-body text-center">
+                            <h3 class="text-primary">@ViewBag.TotalIngresos</h3>
+                            <p class="mb-0">Total Ingresos</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-warning">
+                        <div class="card-body text-center">
+                            <h3 class="text-warning">@ViewBag.EnProceso</h3>
+                            <p class="mb-0">En Proceso</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="card border-success">
+                        <div class="card-body text-center">
+                            <h3 class="text-success">@ViewBag.Finalizados</h3>
+                            <p class="mb-0">Finalizados</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tabla de ingresos -->
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Fecha Ingreso</th>
+                                <th>Cliente</th>
+                                <th>Vehículo</th>
+                                <th>Diagnóstico</th>
+                                <th>Estado</th>
+                                <th>Fecha Egreso</th>
+                                <th class="text-center">Días</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ingreso in Model)
+                            {
+                                <tr>
+                                    <td>@ingreso.FechaIngreso.ToString("dd/MM/yyyy")</td>
+                                    <td>@ingreso.Vehiculo?.Cliente?.Nombre @ingreso.Vehiculo?.Cliente?.Apellido</td>
+                                    <td>@ingreso.Vehiculo?.Patente - @ingreso.Vehiculo?.Marca @ingreso.Vehiculo?.Modelo</td>
+                                    <td>
+                                        @if (ingreso.Diagnostico.Length > 50)
+                                        {
+                                            <span title="@ingreso.Diagnostico">
+                                                @ingreso.Diagnostico.Substring(0, 50)...
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @ingreso.Diagnostico
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-@ingreso.ColorSemaforo">
+                                            @ingreso.Estado
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (ingreso.FechaEgreso.HasValue)
+                                        {
+                                            @ingreso.FechaEgreso.Value.ToString("dd/MM/yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center">@ingreso.DiasEnTaller</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-info text-center">
+                    <i class="fas fa-info-circle me-2"></i>
+                    No hay ingresos en el período seleccionado.
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

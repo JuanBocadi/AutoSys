@@ -1,0 +1,189 @@
+@model AutoSys.Models.Factura
+@{
+    ViewData["Title"] = "Nueva Factura";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-success text-white">
+            <h2><i class="fas fa-plus me-2"></i>Nueva Factura</h2>
+        </div>
+        <div class="card-body">
+            <form asp-action="Create" method="post" id="facturaForm">
+                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="NumeroFactura" class="form-label"></label>
+                        <input asp-for="NumeroFactura" class="form-control" readonly />
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label asp-for="IngresoId" class="form-label">Ingreso/Reparación</label>
+                        <select asp-for="IngresoId" class="form-select" asp-items="ViewBag.Ingresos" required>
+                            <option value="">Seleccione un ingreso...</option>
+                        </select>
+                        <span asp-validation-for="IngresoId" class="text-danger"></span>
+                    </div>
+                </div>
+
+                <h4 class="mt-4 mb-3">Detalles de la Factura</h4>
+                <div id="detallesContainer">
+                    <!-- Detalle 1 -->
+                    <div class="detalle-item card mb-3">
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-4 mb-2">
+                                    <label>Descripción</label>
+                                    <input type="text" name="detalles[0].Descripcion" 
+                                           class="form-control" required 
+                                           placeholder="Ej: Cambio de aceite">
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <label>Tipo</label>
+                                    <select name="detalles[0].Tipo" class="form-select">
+                                        <option value="Servicio">Servicio</option>
+                                        <option value="Repuesto">Repuesto</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <label>Cantidad</label>
+                                    <input type="number" name="detalles[0].Cantidad" 
+                                           class="form-control cantidad" min="1" value="1" required>
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <label>Precio Unit.</label>
+                                    <input type="number" name="detalles[0].PrecioUnitario" 
+                                           class="form-control precio" step="0.01" min="0" required>
+                                </div>
+                                <div class="col-md-2 mb-2">
+                                    <label>Subtotal</label>
+                                    <input type="number" name="detalles[0].Subtotal" 
+                                           class="form-control subtotal" readonly value="0">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="button" class="btn btn-outline-primary mb-3" id="agregarDetalle">
+                    <i class="fas fa-plus me-1"></i>Agregar Línea
+                </button>
+
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8"></div>
+                            <div class="col-md-4">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>Subtotal:</strong>
+                                    <span id="subtotalTotal">$0.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <strong>IVA (21%):</strong>
+                                    <span id="ivaTotal">$0.00</span>
+                                </div>
+                                <hr>
+                                <div class="d-flex justify-content-between">
+                                    <h4>Total:</h4>
+                                    <h4 class="text-success" id="totalFinal">$0.00</h4>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <label asp-for="MetodoPago" class="form-label"></label>
+                        <select asp-for="MetodoPago" class="form-select">
+                            <option value="">Seleccione...</option>
+                            <option value="Efectivo">Efectivo</option>
+                            <option value="Tarjeta">Tarjeta</option>
+                            <option value="Transferencia">Transferencia</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label asp-for="Estado" class="form-label"></label>
+                        <select asp-for="Estado" class="form-select">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="Pagada">Pagada</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label asp-for="Observaciones" class="form-label"></label>
+                    <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-save me-1"></i>Crear Factura
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        let detalleCount = 1;
+
+        // Agregar nueva línea de detalle
+        document.getElementById('agregarDetalle').addEventListener('click', function() {
+            const container = document.getElementById('detallesContainer');
+            const newDetalle = document.querySelector('.detalle-item').cloneNode(true);
+            
+            // Actualizar índices
+            newDetalle.querySelectorAll('input, select').forEach(input => {
+                const name = input.getAttribute('name');
+                if (name) {
+                    input.setAttribute('name', name.replace('[0]', `[${detalleCount}]`));
+                    if (input.type !== 'select-one' && input.type !== 'hidden') {
+                        input.value = input.classList.contains('cantidad') ? 1 : '';
+                    }
+                }
+            });
+            
+            container.appendChild(newDetalle);
+            detalleCount++;
+            calcularTotales();
+        });
+
+        // Calcular subtotales y total
+        function calcularTotales() {
+            let subtotal = 0;
+            
+            document.querySelectorAll('.detalle-item').forEach(detalle => {
+                const cantidad = parseFloat(detalle.querySelector('.cantidad').value) || 0;
+                const precio = parseFloat(detalle.querySelector('.precio').value) || 0;
+                const subtotalItem = cantidad * precio;
+                
+                detalle.querySelector('.subtotal').value = subtotalItem.toFixed(2);
+                subtotal += subtotalItem;
+            });
+            
+            const iva = subtotal * 0.21;
+            const total = subtotal + iva;
+            
+            document.getElementById('subtotalTotal').textContent = '$' + subtotal.toFixed(2);
+            document.getElementById('ivaTotal').textContent = '$' + iva.toFixed(2);
+            document.getElementById('totalFinal').textContent = '$' + total.toFixed(2);
+        }
+
+        // Event listeners para recalcular
+        document.addEventListener('input', function(e) {
+            if (e.target.classList.contains('cantidad') || e.target.classList.contains('precio')) {
+                calcularTotales();
+            }
+        });
+
+        // Calcular inicial
+        calcularTotales();
+    </script>
+}

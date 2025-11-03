@@ -1,8 +1,215 @@
 @{
-    ViewData["Title"] = "Gestión de Clientes";
+    ViewData["Title"] = "Dashboard de Reportes";
 }
 
-<div class="text-center mt-5">
-    <h1 class="display-4"><i class="fas fa-chart-line me-3"></i>Módulo de Reportes</h1>
-    <p class="lead mt-3">Esta sección se encuentra en construcción.</p>
+<div class="mt-4">
+    <div class="card shadow-lg border-0 rounded-lg mb-4">
+        <div class="card-header bg-primary text-white py-3">
+            <h2 class="mb-0"><i class="fas fa-chart-line me-2"></i>Dashboard de Reportes y Estadísticas</h2>
+        </div>
+    </div>
+
+    <!-- Estadísticas Generales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-3x text-primary mb-2"></i>
+                    <h3 class="text-primary">@ViewBag.TotalClientes</h3>
+                    <p class="mb-0">Total Clientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-car fa-3x text-info mb-2"></i>
+                    <h3 class="text-info">@ViewBag.TotalVehiculos</h3>
+                    <p class="mb-0">Total Vehículos</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-wrench fa-3x text-warning mb-2"></i>
+                    <h3 class="text-warning">@ViewBag.IngresosEnTaller</h3>
+                    <p class="mb-0">En Taller</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-clipboard-list fa-3x text-success mb-2"></i>
+                    <h3 class="text-success">@ViewBag.TotalIngresos</h3>
+                    <p class="mb-0">Total Ingresos</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estadísticas de Facturación -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-file-invoice-dollar fa-3x text-success mb-2"></i>
+                    <h3 class="text-success">@ViewBag.TotalFacturas</h3>
+                    <p class="mb-0">Total Facturas</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-clock fa-3x text-warning mb-2"></i>
+                    <h3 class="text-warning">@ViewBag.FacturasPendientes</h3>
+                    <p class="mb-0">Facturas Pendientes</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-info shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-dollar-sign fa-3x text-info mb-2"></i>
+                    <h3 class="text-info">$@ViewBag.TotalRecaudado.ToString("N0")</h3>
+                    <p class="mb-0">Total Recaudado</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-secondary shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-calculator fa-3x text-secondary mb-2"></i>
+                    <h3 class="text-secondary">$@ViewBag.PromedioFactura.ToString("N0")</h3>
+                    <p class="mb-0">Promedio por Factura</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alertas -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-danger">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Stock Crítico
+                    </h5>
+                    <h2 class="text-danger">@ViewBag.StockCritico</h2>
+                    <p class="mb-0">Items con stock bajo mínimo</p>
+                    <a asp-controller="Stock" asp-action="Index" class="btn btn-danger btn-sm mt-2">
+                        Ver Inventario
+                    </a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body">
+                    <h5 class="text-primary">
+                        <i class="fas fa-calendar-alt me-2"></i>Ingresos del Mes
+                    </h5>
+                    <h2 class="text-primary">@ViewBag.IngresosMesActual</h2>
+                    <p class="mb-0">Nuevos ingresos en @DateTime.Now.ToString("MMMM yyyy")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Reportes Disponibles -->
+    <div class="card shadow-lg">
+        <div class="card-header bg-secondary text-white py-3">
+            <h3 class="mb-0"><i class="fas fa-file-alt me-2"></i>Reportes Disponibles</h3>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-calendar-week me-2 text-primary"></i>
+                                Ingresos por Período
+                            </h5>
+                            <p class="card-text">
+                                Consulta los ingresos registrados en un rango de fechas específico.
+                            </p>
+                            <a asp-action="IngresosPorPeriodo" class="btn btn-primary">
+                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-money-bill-wave me-2 text-success"></i>
+                                Facturación por Período
+                            </h5>
+                            <p class="card-text">
+                                Análisis de facturación, recaudación y pagos pendientes.
+                            </p>
+                            <a asp-action="FacturacionPorPeriodo" class="btn btn-success">
+                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-user-friends me-2 text-info"></i>
+                                Clientes Más Activos
+                            </h5>
+                            <p class="card-text">
+                                Ranking de clientes con mayor frecuencia de visitas.
+                            </p>
+                            <a asp-action="ClientesActivos" class="btn btn-info">
+                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-boxes me-2 text-danger"></i>
+                                Stock Bajo y Crítico
+                            </h5>
+                            <p class="card-text">
+                                Items con stock por debajo del nivel mínimo requerido.
+                            </p>
+                            <a asp-action="StockBajo" class="btn btn-danger">
+                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="fas fa-clock me-2 text-warning"></i>
+                                Tiempos de Reparación
+                            </h5>
+                            <p class="card-text">
+                                Análisis de tiempos promedio de reparación y estadísticas.
+                            </p>
+                            <a asp-action="TiemposReparacion" class="btn btn-warning">
+                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

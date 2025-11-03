@@ -15,6 +15,8 @@ namespace AutoSys.Data
         public DbSet<Ingreso> Ingresos { get; set; }
         public DbSet<FotoVehiculo> FotosVehiculo { get; set; }
         public DbSet<Stock> Stock { get; set; }
+        public DbSet<Factura> Facturas { get; set; }
+        public DbSet<DetalleFactura> DetallesFactura { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -84,6 +86,43 @@ namespace AutoSys.Data
                 entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18,2)");
 
                 entity.HasIndex(e => e.Nombre).IsUnique();
+            });
+
+            // Facturas
+            modelBuilder.Entity<Factura>(entity =>
+            {
+                entity.Property(e => e.NumeroFactura).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.MetodoPago).HasMaxLength(20);
+                entity.Property(e => e.Estado).HasMaxLength(20).IsRequired();
+                entity.Property(e => e.Subtotal).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.IVA).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Total).HasColumnType("decimal(18,2)");
+
+                entity.HasIndex(e => e.NumeroFactura).IsUnique();
+
+                entity.HasOne(f => f.Ingreso)
+                    .WithMany()
+                    .HasForeignKey(f => f.IngresoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(f => f.Cliente)
+                    .WithMany()
+                    .HasForeignKey(f => f.ClienteId)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // DetallesFactura
+            modelBuilder.Entity<DetalleFactura>(entity =>
+            {
+                entity.Property(e => e.Descripcion).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Tipo).HasMaxLength(20);
+                entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18,2)");
+                entity.Property(e => e.Subtotal).HasColumnType("decimal(18,2)");
+
+                entity.HasOne(d => d.Factura)
+                    .WithMany(f => f.Detalles)
+                    .HasForeignKey(d => d.FacturaId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
         }
     }

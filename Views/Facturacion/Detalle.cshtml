@@ -1,0 +1,152 @@
+@model AutoSys.Models.Factura
+@{
+    ViewData["Title"] = $"Factura {Model.NumeroFactura}";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-info text-white d-flex justify-content-between align-items-center">
+            <h2 class="mb-0"><i class="fas fa-file-invoice me-2"></i>Detalle de Factura</h2>
+            <div>
+                <a asp-action="Imprimir" asp-route-id="@Model.Id" class="btn btn-light" target="_blank">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Información de la factura -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h4>Factura: @Model.NumeroFactura</h4>
+                    <p class="mb-1"><strong>Fecha:</strong> @Model.FechaEmision.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p class="mb-1">
+                        <strong>Estado:</strong>
+                        @if (Model.Estado == "Pagada")
+                        {
+                            <span class="badge bg-success">@Model.Estado</span>
+                        }
+                        else if (Model.Estado == "Pendiente")
+                        {
+                            <span class="badge bg-warning text-dark">@Model.Estado</span>
+                        }
+                        else
+                        {
+                            <span class="badge bg-danger">@Model.Estado</span>
+                        }
+                    </p>
+                    @if (!string.IsNullOrEmpty(Model.MetodoPago))
+                    {
+                        <p class="mb-1"><strong>Método de Pago:</strong> @Model.MetodoPago</p>
+                    }
+                </div>
+                <div class="col-md-6">
+                    <h5>Cliente</h5>
+                    <p class="mb-1"><strong>@Model.Cliente?.Nombre @Model.Cliente?.Apellido</strong></p>
+                    <p class="mb-1">DNI: @Model.Cliente?.DNI</p>
+                    <p class="mb-1">Tel: @Model.Cliente?.Telefono</p>
+                    
+                    @if (Model.Ingreso != null)
+                    {
+                        <h5 class="mt-3">Vehículo</h5>
+                        <p class="mb-1">
+                            <strong>@Model.Ingreso.Vehiculo?.Marca @Model.Ingreso.Vehiculo?.Modelo</strong>
+                        </p>
+                        <p class="mb-1">Patente: @Model.Ingreso.Vehiculo?.Patente</p>
+                    }
+                </div>
+            </div>
+
+            <!-- Detalles de la factura -->
+            <h4 class="mb-3">Detalles</h4>
+            <div class="table-responsive mb-4">
+                <table class="table table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Descripción</th>
+                            <th>Tipo</th>
+                            <th class="text-center">Cantidad</th>
+                            <th class="text-end">Precio Unit.</th>
+                            <th class="text-end">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var detalle in Model.Detalles)
+                        {
+                            <tr>
+                                <td>@detalle.Descripcion</td>
+                                <td>
+                                    <span class="badge bg-@(detalle.Tipo == "Servicio" ? "primary" : "secondary")">
+                                        @detalle.Tipo
+                                    </span>
+                                </td>
+                                <td class="text-center">@detalle.Cantidad</td>
+                                <td class="text-end">$@detalle.PrecioUnitario.ToString("N2")</td>
+                                <td class="text-end">$@detalle.Subtotal.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                            <td class="text-end"><strong>$@Model.Subtotal.ToString("N2")</strong></td>
+                        </tr>
+                        <tr>
+                            <td colspan="4" class="text-end"><strong>IVA (21%):</strong></td>
+                            <td class="text-end"><strong>$@Model.IVA.ToString("N2")</strong></td>
+                        </tr>
+                        <tr class="table-success">
+                            <td colspan="4" class="text-end"><h5 class="mb-0">TOTAL:</h5></td>
+                            <td class="text-end"><h5 class="mb-0">$@Model.Total.ToString("N2")</h5></td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+
+            @if (!string.IsNullOrEmpty(Model.Observaciones))
+            {
+                <div class="alert alert-info">
+                    <strong>Observaciones:</strong> @Model.Observaciones
+                </div>
+            }
+
+            <!-- Cambiar estado -->
+            @if (Model.Estado != "Pagada" && Model.Estado != "Anulada")
+            {
+                <div class="card bg-light mb-3">
+                    <div class="card-body">
+                        <h5>Cambiar Estado</h5>
+                        <form asp-action="CambiarEstado" method="post" class="row g-3">
+                            <input type="hidden" name="id" value="@Model.Id" />
+                            <div class="col-md-4">
+                                <select name="estado" class="form-select" required>
+                                    <option value="Pendiente">Pendiente</option>
+                                    <option value="Pagada">Pagada</option>
+                                    <option value="Anulada">Anulada</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <select name="metodoPago" class="form-select">
+                                    <option value="">Método de pago...</option>
+                                    <option value="Efectivo">Efectivo</option>
+                                    <option value="Tarjeta">Tarjeta</option>
+                                    <option value="Transferencia">Transferencia</option>
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">
+                                    <i class="fas fa-sync me-1"></i>Actualizar Estado
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Listado
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,5 +1,6 @@
 ﻿using AutoSys.Models;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace AutoSys.Data
 {
@@ -166,6 +167,61 @@ namespace AutoSys.Data
 
                 context.Stock.AddRange(stock1, stock2, stock3, stock4, stock5, stock6, stock7);
                 context.SaveChanges();
+            }
+
+            // Seed de Facturas de ejemplo (solo si hay ingresos entregados)
+            if (!context.Facturas.Any() && context.Ingresos.Any(i => i.Estado == "Entregado"))
+            {
+                var ingresoEntregado = context.Ingresos
+                    .Include(i => i.Vehiculo!)
+                        .ThenInclude(v => v.Cliente)
+                    .FirstOrDefault(i => i.Estado == "Entregado");
+
+                if (ingresoEntregado != null)
+                {
+                    var factura1 = new Factura
+                    {
+                        NumeroFactura = "F-" + DateTime.Now.ToString("yyyyMM") + "-0001",
+                        FechaEmision = DateTime.Now.AddDays(-2),
+                        IngresoId = ingresoEntregado.Id,
+                        ClienteId = ingresoEntregado.Vehiculo!.ClienteId,
+                        MetodoPago = "Efectivo",
+                        Estado = "Pagada",
+                        Subtotal = 850.00m,
+                        IVA = 178.50m,
+                        Total = 1028.50m,
+                        Observaciones = "Pago completo al contado"
+                    };
+
+                    context.Facturas.Add(factura1);
+                    context.SaveChanges();
+
+                    // Agregar detalles
+                    var detalles = new List<DetalleFactura>
+                    {
+                        new DetalleFactura
+                        {
+                            FacturaId = factura1.Id,
+                            Descripcion = "Cambio de neumáticos (juego completo)",
+                            Tipo = "Repuesto",
+                            Cantidad = 4,
+                            PrecioUnitario = 150.00m,
+                            Subtotal = 600.00m
+                        },
+                        new DetalleFactura
+                        {
+                            FacturaId = factura1.Id,
+                            Descripcion = "Alineación y balanceo",
+                            Tipo = "Servicio",
+                            Cantidad = 1,
+                            PrecioUnitario = 250.00m,
+                            Subtotal = 250.00m
+                        }
+                    };
+
+                    context.DetallesFactura.AddRange(detalles);
+                    context.SaveChanges();
+                }
             }
         }
     }

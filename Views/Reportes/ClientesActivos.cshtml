@@ -1,0 +1,95 @@
+@{
+    ViewData["Title"] = "Clientes Más Activos";
+    var clientes = ViewBag.ClientesConEstadisticas as IEnumerable<dynamic>;
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg">
+        <div class="card-header bg-info text-white">
+            <h2><i class="fas fa-user-friends me-2"></i>Reporte: Clientes Más Activos</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Ranking de los 20 clientes con mayor cantidad de ingresos/reparaciones.
+            </div>
+
+            @if (clientes != null && clientes.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-dark">
+                            <tr>
+                                <th class="text-center">#</th>
+                                <th>Cliente</th>
+                                <th>DNI</th>
+                                <th>Teléfono</th>
+                                <th class="text-center">Vehículos</th>
+                                <th class="text-center">Total Ingresos</th>
+                                <th>Último Ingreso</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{
+                                int posicion = 1;
+                            }
+                            @foreach (var item in clientes)
+                            {
+                                <tr>
+                                    <td class="text-center">
+                                        @if (posicion <= 3)
+                                        {
+                                            <span class="badge bg-@(posicion == 1 ? "warning" : posicion == 2 ? "secondary" : "info")">
+                                                @posicion
+                                            </span>
+                                        }
+                                        else
+                                        {
+                                            @posicion
+                                        }
+                                    </td>
+                                    <td>
+                                        <strong>@item.Cliente.Nombre @item.Cliente.Apellido</strong>
+                                    </td>
+                                    <td>@(item.Cliente.DNI ?? "-")</td>
+                                    <td>@(item.Cliente.Telefono ?? "-")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-primary">@item.TotalVehiculos</span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-success">@item.TotalIngresos</span>
+                                    </td>
+                                    <td>
+                                        @if (item.UltimoIngreso != null)
+                                        {
+                                            DateTime ultimoIngreso = item.UltimoIngreso;
+                                            @ultimoIngreso.ToString("dd/MM/yyyy")
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                </tr>
+                                posicion++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No hay datos de clientes disponibles.
+                </div>
+            }
+
+            <div class="mt-4">
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

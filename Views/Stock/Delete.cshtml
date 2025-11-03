@@ -1,0 +1,66 @@
+@model AutoSys.Models.Stock
+@{
+    ViewData["Title"] = "Eliminar Item";
+}
+
+<div class="container mt-4">
+    <div class="card shadow-lg border-danger">
+        <div class="card-header bg-danger text-white">
+            <h2><i class="fas fa-trash me-2"></i>Eliminar Item del Inventario</h2>
+        </div>
+        <div class="card-body">
+            <div class="alert alert-danger">
+                <h4 class="alert-heading">
+                    <i class="fas fa-exclamation-triangle me-2"></i>¿Está seguro que desea eliminar este item?
+                </h4>
+                <p class="mb-0">Esta acción no se puede deshacer.</p>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0">Información del Item</h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-3">Nombre:</dt>
+                        <dd class="col-sm-9"><strong>@Model.Nombre</strong></dd>
+
+                        <dt class="col-sm-3">Descripción:</dt>
+                        <dd class="col-sm-9">@(Model.Descripcion ?? "-")</dd>
+
+                        <dt class="col-sm-3">Cantidad Actual:</dt>
+                        <dd class="col-sm-9">
+                            <strong>@Model.Cantidad @Model.Unidad</strong>
+                        </dd>
+
+                        <dt class="col-sm-3">Stock Mínimo:</dt>
+                        <dd class="col-sm-9">@Model.StockMinimo @Model.Unidad</dd>
+
+                        <dt class="col-sm-3">Precio Unitario:</dt>
+                        <dd class="col-sm-9">$@Model.PrecioUnitario.ToString("N2")</dd>
+
+                        <dt class="col-sm-3">Nivel:</dt>
+                        <dd class="col-sm-9">
+                            <span class="badge bg-@Model.ColorSemaforo">@Model.NivelStock</span>
+                        </dd>
+
+                        <dt class="col-sm-3">Última Actualización:</dt>
+                        <dd class="col-sm-9">@Model.FechaActualizacion.ToString("dd/MM/yyyy HH:mm")</dd>
+                    </dl>
+                </div>
+            </div>
+
+            <form asp-action="Delete" method="post">
+                <input type="hidden" asp-for="Id" />
+                <div class="d-flex justify-content-between">
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash me-1"></i>Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
