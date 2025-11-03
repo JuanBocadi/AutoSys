@@ -1,4 +1,13 @@
-﻿<!DOCTYPE html>
+﻿@inject Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> UserManager
+@{
+    string currentUsername = "";
+    if (User.Identity != null && User.Identity.IsAuthenticated)
+    {
+        var currentUser = await UserManager.GetUserAsync(User);
+        currentUsername = currentUser?.UserName ?? User.Identity.Name ?? "";
+    }
+}
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
@@ -94,7 +103,7 @@
                             <i class="fas fa-user"></i>
                         </div>
                         <div class="user-info">
-                            <p class="user-name">@User.Identity.Name</p>
+                            <p class="user-name">@currentUsername</p>
                             <p class="user-role">@(User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecánico")</p>
                         </div>
                         <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">

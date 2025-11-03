@@ -22,6 +22,7 @@
                 <table class="table table-striped table-hover align-middle">
                     <thead class="table-dark">
                         <tr>
+                            <th>Nombre de Usuario</th>
                             <th>Correo Electrónico</th>
                             <th>Rol</th>
                             <th class="text-center">Acciones</th>
@@ -31,6 +32,7 @@
                         @foreach (var user in Model)
                         {
                             <tr>
+                                <td><strong>@user.UserName</strong></td>
                                 <td>@user.Email</td>
                                 <td><span class="badge bg-secondary">@user.Rol</span></td>
                                 <td class="text-center">

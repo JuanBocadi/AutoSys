@@ -462,11 +462,11 @@ html, body {
 }
 
 .sidebar-footer {
-    padding: var(--spacing-md);
+    padding: var(--spacing-lg);
     border-top: 1px solid var(--border-color);
     background-color: var(--sidebar-hover);
-    margin: var(--spacing-md);
-    border-radius: var(--radius-lg);
+    margin: 0;
+    border-radius: 0;
 }
 
 .user-profile {

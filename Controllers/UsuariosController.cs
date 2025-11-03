@@ -32,6 +32,7 @@ namespace AutoSys.Controllers
                 userViewModels.Add(new UsuarioViewModel
                 {
                     Id = user.Id,
+                    UserName = user.UserName ?? string.Empty,
                     Email = user.Email ?? string.Empty,
                     Rol = roles.FirstOrDefault() ?? "Sin rol" // Mostramos el primer rol, o texto por defecto
                 });
@@ -59,6 +60,7 @@ namespace AutoSys.Controllers
             var userDetails = new UsuarioViewModel
             {
                 Id = user.Id,
+                UserName = user.UserName ?? string.Empty,
                 Email = user.Email ?? string.Empty,
                 Rol = roles.FirstOrDefault() ?? "Sin rol"
             };

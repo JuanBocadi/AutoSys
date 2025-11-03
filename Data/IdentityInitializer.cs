@@ -19,16 +19,63 @@ namespace AutoSys.Data
                 }
             }
 
-            // Crear usuario administrador si no existe
+            // Crear o actualizar usuario administrador
             string adminEmail = "admin@autosys.com";
+            string adminUsername = "admin";
             string adminPassword = "Admin123!";
 
-            var adminUser = await userManager.FindByEmailAsync(adminEmail);
+            // Buscar si existe un admin con el email como username (sistema antiguo)
+            var oldAdminUser = await userManager.FindByNameAsync(adminEmail);
+            if (oldAdminUser != null && oldAdminUser.UserName != adminUsername)
+            {
+                // Actualizar el username del admin antiguo
+                Console.WriteLine($"🔄 Actualizando usuario admin de '{oldAdminUser.UserName}' a '{adminUsername}'...");
+                oldAdminUser.UserName = adminUsername;
+                oldAdminUser.NormalizedUserName = adminUsername.ToUpper();
+                var updateResult = await userManager.UpdateAsync(oldAdminUser);
+                if (updateResult.Succeeded)
+                {
+                    Console.WriteLine("✅ Usuario administrador actualizado correctamente.");
+                    Console.WriteLine($"   Nuevo Username: {adminUsername}");
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ Error al actualizar usuario administrador:");
+                    foreach (var error in updateResult.Errors)
+                        Console.WriteLine($"   - {error.Description}");
+                }
+                return;
+            }
+
+            // También buscar por email por si tiene un username diferente
+            var adminByEmail = await userManager.FindByEmailAsync(adminEmail);
+            if (adminByEmail != null && adminByEmail.UserName != adminUsername)
+            {
+                Console.WriteLine($"🔄 Actualizando usuario admin (encontrado por email) de '{adminByEmail.UserName}' a '{adminUsername}'...");
+                adminByEmail.UserName = adminUsername;
+                adminByEmail.NormalizedUserName = adminUsername.ToUpper();
+                var updateResult = await userManager.UpdateAsync(adminByEmail);
+                if (updateResult.Succeeded)
+                {
+                    Console.WriteLine("✅ Usuario administrador actualizado correctamente.");
+                    Console.WriteLine($"   Nuevo Username: {adminUsername}");
+                }
+                else
+                {
+                    Console.WriteLine("⚠️ Error al actualizar usuario administrador:");
+                    foreach (var error in updateResult.Errors)
+                        Console.WriteLine($"   - {error.Description}");
+                }
+                return;
+            }
+
+            // Buscar si ya existe con el nuevo username
+            var adminUser = await userManager.FindByNameAsync(adminUsername);
             if (adminUser == null)
             {
                 var user = new IdentityUser
                 {
-                    UserName = adminEmail,
+                    UserName = adminUsername,
                     Email = adminEmail,
                     EmailConfirmed = true
                 };
@@ -38,6 +85,8 @@ namespace AutoSys.Data
                 {
                     await userManager.AddToRoleAsync(user, "Administrador");
                     Console.WriteLine("✅ Usuario administrador creado correctamente.");
+                    Console.WriteLine($"   Username: {adminUsername}");
+                    Console.WriteLine($"   Password: {adminPassword}");
                 }
                 else
                 {

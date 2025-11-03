@@ -36,7 +36,7 @@ namespace AutoSys.Controllers
         {
             if (ModelState.IsValid)
             {
-                var user = new IdentityUser { UserName = model.Email, Email = model.Email };
+                var user = new IdentityUser { UserName = model.Username, Email = model.Email };
                 var result = await _userManager.CreateAsync(user, model.Password);
 
                 if (result.Succeeded)
@@ -69,12 +69,18 @@ namespace AutoSys.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password)
         {
-            var result = await _signInManager.PasswordSignInAsync(email, password, false, false);
+            // Intentar login con username o email
+            var user = await _userManager.FindByNameAsync(email) ?? await _userManager.FindByEmailAsync(email);
+            
+            if (user != null)
+            {
+                var result = await _signInManager.PasswordSignInAsync(user.UserName!, password, false, false);
+                
+                if (result.Succeeded)
+                    return RedirectToAction("Index", "Home");
+            }
 
-            if (result.Succeeded)
-                return RedirectToAction("Index", "Home");
-
-            ViewBag.Error = "Correo o contraseña incorrectos.";
+            ViewBag.Error = "Usuario o contraseña incorrectos.";
             return View();
         }
 
