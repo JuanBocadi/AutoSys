@@ -26,6 +26,146 @@ namespace AutoSys.Data
 
                 context.Vehiculos.AddRange(vehiculo1, vehiculo2, vehiculo3, vehiculo4, vehiculo5);
                 context.SaveChanges();
+
+                // Seed de Ingresos con diferentes estados para demostrar semaforización
+                // Rojo: En revisión
+                var ingreso1 = new Ingreso
+                {
+                    VehiculoId = vehiculo1.Id,
+                    FechaIngreso = DateTime.Now.AddDays(-1),
+                    Diagnostico = "Revisión general. El cliente reporta ruidos en el motor al acelerar.",
+                    Estado = "En revisión",
+                    FechaEgreso = null
+                };
+
+                // Amarillo: En proceso
+                var ingreso2 = new Ingreso
+                {
+                    VehiculoId = vehiculo4.Id,
+                    FechaIngreso = DateTime.Now.AddDays(-3),
+                    Diagnostico = "Cambio de pastillas de freno y discos. Sistema de frenos desgastado.",
+                    Estado = "En proceso",
+                    FechaEgreso = null
+                };
+
+                var ingreso3 = new Ingreso
+                {
+                    VehiculoId = vehiculo5.Id,
+                    FechaIngreso = DateTime.Now.AddDays(-5),
+                    Diagnostico = "Reparación de sistema eléctrico. Alternador defectuoso.",
+                    Estado = "En reparación",
+                    FechaEgreso = null
+                };
+
+                // Verde: Finalizado pero AÚN en taller (sin fecha de egreso)
+                var ingreso4 = new Ingreso
+                {
+                    VehiculoId = vehiculo3.Id,
+                    FechaIngreso = DateTime.Now.AddDays(-7),
+                    Diagnostico = "Service de 10.000 km. Cambio de aceite, filtros y revisión completa.",
+                    Estado = "Finalizado",
+                    FechaEgreso = null // Aún en taller, esperando ser entregado
+                };
+
+                // Verde: Entregado (fuera del taller con fecha de egreso)
+                var ingreso5 = new Ingreso
+                {
+                    VehiculoId = vehiculo2.Id,
+                    FechaIngreso = DateTime.Now.AddDays(-10),
+                    Diagnostico = "Cambio de neumáticos y alineación. Balanceo de ruedas.",
+                    Estado = "Entregado",
+                    FechaEgreso = DateTime.Now.AddDays(-2) // Ya fue retirado por el cliente
+                };
+
+                context.Ingresos.AddRange(ingreso1, ingreso2, ingreso3, ingreso4, ingreso5);
+                context.SaveChanges();
+            }
+
+            // Seed de Stock con diferentes niveles de semaforización
+            if (!context.Stock.Any())
+            {
+                // Items con stock SUFICIENTE (Verde)
+                var stock1 = new Stock 
+                { 
+                    Nombre = "Aceite 10W40", 
+                    Descripcion = "Aceite para motor sintético 10W40", 
+                    Cantidad = 50, 
+                    StockMinimo = 10, 
+                    Unidad = "Litros",
+                    PrecioUnitario = 12.50m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                var stock2 = new Stock 
+                { 
+                    Nombre = "Filtro de Aceite", 
+                    Descripcion = "Filtro de aceite universal", 
+                    Cantidad = 30, 
+                    StockMinimo = 8, 
+                    Unidad = "Unidades",
+                    PrecioUnitario = 8.00m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                // Items con stock BAJO (Amarillo)
+                var stock3 = new Stock 
+                { 
+                    Nombre = "Pastillas de Freno", 
+                    Descripcion = "Pastillas de freno delanteras cerámicas", 
+                    Cantidad = 12, 
+                    StockMinimo = 10, 
+                    Unidad = "Juegos",
+                    PrecioUnitario = 45.00m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                var stock4 = new Stock 
+                { 
+                    Nombre = "Bujías", 
+                    Descripcion = "Bujías de encendido platino", 
+                    Cantidad = 15, 
+                    StockMinimo = 12, 
+                    Unidad = "Unidades",
+                    PrecioUnitario = 6.50m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                // Items con stock CRÍTICO (Rojo)
+                var stock5 = new Stock 
+                { 
+                    Nombre = "Correa de Distribución", 
+                    Descripcion = "Correa de distribución reforzada", 
+                    Cantidad = 3, 
+                    StockMinimo = 5, 
+                    Unidad = "Unidades",
+                    PrecioUnitario = 85.00m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                var stock6 = new Stock 
+                { 
+                    Nombre = "Refrigerante", 
+                    Descripcion = "Líquido refrigerante concentrado", 
+                    Cantidad = 4, 
+                    StockMinimo = 10, 
+                    Unidad = "Litros",
+                    PrecioUnitario = 15.00m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                var stock7 = new Stock 
+                { 
+                    Nombre = "Batería 12V", 
+                    Descripcion = "Batería 12V 60Ah libre de mantenimiento", 
+                    Cantidad = 2, 
+                    StockMinimo = 4, 
+                    Unidad = "Unidades",
+                    PrecioUnitario = 120.00m,
+                    FechaActualizacion = DateTime.Now 
+                };
+
+                context.Stock.AddRange(stock1, stock2, stock3, stock4, stock5, stock6, stock7);
+                context.SaveChanges();
             }
         }
     }

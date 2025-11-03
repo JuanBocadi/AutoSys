@@ -50,7 +50,7 @@ body {
 }
 
     .card-header h2 {
-        font-weight: 300; /* Fuente m�s ligera para el t�tulo */
+        font-weight: 300; /* Fuente m�s ligera para el t�tulo */
     }
 
 /* Estilos para los campos del formulario */
@@ -76,7 +76,7 @@ body {
     cursor: pointer;
 }
 
-/* Estilos para el bot�n principal */
+/* Estilos para el bot�n principal */
 .btn-primary {
     padding: 0.8rem 1.5rem;
     font-size: 1.1rem;
@@ -90,7 +90,7 @@ body {
         box-shadow: 0 4px 10px rgba(var(--bs-primary-rgb), 0.35);
     }
 
-/* ajuste para los mensajes de validaci�n */
+/* ajuste para los mensajes de validaci�n */
 .text-danger {
     font-size: 0.875em;
 }
@@ -98,4 +98,127 @@ body {
 /* Estilos para los iconos de adentro de los elementos */
 .btn i, .alert i, .card-header i {
     vertical-align: middle;
+}
+
+/* ============================================
+   ESTILOS PARA SEMAFORIZACIÓN DE REPARACIONES
+   ============================================ */
+
+/* Indicadores de semáforo */
+.semaforo-indicator {
+    display: inline-block;
+    font-size: 1.5rem;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+/* Colores del semáforo */
+.semaforo-success {
+    color: #28a745; /* Verde - Todo bien */
+}
+
+.semaforo-warning {
+    color: #ffc107; /* Amarillo - Atención */
+}
+
+.semaforo-danger {
+    color: #dc3545; /* Rojo - Urgente */
+    animation: pulse-urgent 1s ease-in-out infinite;
+}
+
+/* Animación sutil para todos los semáforos */
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.6;
+    }
+}
+
+/* Animación más llamativa para urgentes (rojo) */
+@keyframes pulse-urgent {
+    0%, 100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 0.7;
+        transform: scale(1.1);
+    }
+}
+
+/* Estilos para breadcrumb mejorado */
+.breadcrumb {
+    background-color: #fff;
+    padding: 0.75rem 1rem;
+    border-radius: 0.375rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+    content: "›";
+    font-size: 1.2rem;
+    color: #6c757d;
+}
+
+.breadcrumb-item a {
+    color: #0d6efd;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.breadcrumb-item a:hover {
+    color: #0a58ca;
+    text-decoration: underline;
+}
+
+/* Tarjetas de estadísticas */
+.card.border-primary,
+.card.border-success,
+.card.border-warning,
+.card.border-danger,
+.card.border-info {
+    border-width: 2px !important;
+    transition: all 0.3s ease;
+}
+
+.card.border-primary:hover,
+.card.border-success:hover,
+.card.border-warning:hover,
+.card.border-danger:hover,
+.card.border-info:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Filas de tabla con alerta */
+.table-danger {
+    background-color: rgba(220, 53, 69, 0.1) !important;
+}
+
+/* Badges personalizados para estados */
+.badge {
+    font-size: 0.85rem;
+    padding: 0.4em 0.65em;
+    font-weight: 600;
+}
+
+/* Mejora visual para tablas */
+.table-hover tbody tr:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    cursor: pointer;
+}
+
+/* Estilos para botones en drill-down */
+.btn-sm {
+    padding: 0.375rem 0.75rem;
+    font-size: 0.875rem;
+    border-radius: 0.25rem;
+}
+
+/* Leyenda de semaforización */
+.badge.bg-success,
+.badge.bg-warning,
+.badge.bg-danger {
+    font-size: 0.9rem;
 }

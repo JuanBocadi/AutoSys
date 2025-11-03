@@ -26,5 +26,22 @@ namespace AutoSys.Controllers
                 .ToListAsync();
             return View(vehiculos);
         }
+
+        // DRILL-DOWN: Ver reparaciones de un vehículo específico
+        public async Task<IActionResult> ReparacionesDelVehiculo(int id)
+        {
+            var vehiculo = await _context.Vehiculos
+                .Include(v => v.Cliente)
+                .Include(v => v.Ingresos)
+                .FirstOrDefaultAsync(v => v.Id == id);
+
+            if (vehiculo == null)
+            {
+                TempData["ErrorMessage"] = "Vehículo no encontrado.";
+                return RedirectToAction("Index");
+            }
+
+            return View(vehiculo);
+        }
     }
 }

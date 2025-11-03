@@ -17,16 +17,24 @@
                             <th>Marca</th>
                             <th>Modelo</th>
                             <th>Cliente</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var v in Model)
                         {
                             <tr>
-                                <td>@v.Patente</td>
+                                <td><strong>@v.Patente</strong></td>
                                 <td>@v.Marca</td>
                                 <td>@v.Modelo</td>
                                 <td>@(v.Cliente != null ? ($"{v.Cliente.Nombre} {v.Cliente.Apellido}") : "-")</td>
+                                <td class="text-center">
+                                    <a asp-action="ReparacionesDelVehiculo" asp-route-id="@v.Id" 
+                                       class="btn btn-sm btn-primary"
+                                       title="Ver reparaciones de @v.Patente">
+                                        <i class="fas fa-tools me-1"></i>Ver Reparaciones
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>

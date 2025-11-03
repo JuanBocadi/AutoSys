@@ -20,6 +20,7 @@
                             <th>Email</th>
                             <th>Vehículos</th>
                             <th>Registrado</th>
+                            <th class="text-center">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -42,6 +43,13 @@
                                     }
                                 </td>
                                 <td>@c.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                                <td class="text-center">
+                                    <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" 
+                                       class="btn btn-sm btn-primary" 
+                                       title="Ver vehículos de @c.Nombre @c.Apellido">
+                                        <i class="fas fa-car me-1"></i>Ver Vehículos
+                                    </a>
+                                </td>
                             </tr>
                         }
                     </tbody>

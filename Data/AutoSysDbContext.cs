@@ -14,6 +14,7 @@ namespace AutoSys.Data
         public DbSet<Vehiculo> Vehiculos { get; set; }
         public DbSet<Ingreso> Ingresos { get; set; }
         public DbSet<FotoVehiculo> FotosVehiculo { get; set; }
+        public DbSet<Stock> Stock { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -72,6 +73,17 @@ namespace AutoSys.Data
                     .WithMany(i => i.Fotos!)
                     .HasForeignKey(f => f.IngresoId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Stock
+            modelBuilder.Entity<Stock>(entity =>
+            {
+                entity.Property(e => e.Nombre).HasMaxLength(200).IsRequired();
+                entity.Property(e => e.Descripcion).HasMaxLength(1000);
+                entity.Property(e => e.Unidad).HasMaxLength(50);
+                entity.Property(e => e.PrecioUnitario).HasColumnType("decimal(18,2)");
+
+                entity.HasIndex(e => e.Nombre).IsUnique();
             });
         }
     }

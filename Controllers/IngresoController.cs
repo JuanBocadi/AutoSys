@@ -175,6 +175,13 @@ namespace AutoSys.Controllers
             }
 
             ingreso.Estado = estado;
+            
+            // Si el estado es "Entregado", asignar automáticamente la fecha de egreso
+            if (estado == "Entregado" && !ingreso.FechaEgreso.HasValue)
+            {
+                ingreso.FechaEgreso = DateTime.Now;
+            }
+            
             await _context.SaveChangesAsync();
 
             TempData["SuccessMessage"] = "Estado actualizado correctamente.";

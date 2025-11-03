@@ -1,8 +1,143 @@
+@model IEnumerable<AutoSys.Models.Stock>
 @{
-    ViewData["Title"] = "Gestión de Clientes";
+    ViewData["Title"] = "Gestión de Stock";
 }
 
-<div class="text-center mt-5">
-    <h1 class="display-4"><i class="fas fa-boxes me-3"></i>Módulo de Stock</h1>
-    <p class="lead mt-3">Esta sección se encuentra en construcción.</p>
+<div class="mt-4">
+    <div class="card shadow-lg border-0 rounded-lg mb-4">
+        <div class="card-header bg-dark text-white py-3">
+            <h2 class="mb-0"><i class="fas fa-boxes me-2"></i>Gestión de Stock</h2>
+        </div>
+    </div>
+
+    <!-- Estadísticas principales -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-primary shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-primary">@ViewBag.TotalItems</h3>
+                    <p class="mb-0"><i class="fas fa-boxes me-1"></i>Total Items</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-success shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-success">@ViewBag.ItemsSuficientes</h3>
+                    <p class="mb-0"><i class="fas fa-circle me-1"></i>Suficiente</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-warning shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-warning">@ViewBag.ItemsBajo</h3>
+                    <p class="mb-0"><i class="fas fa-circle me-1"></i>Bajo</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-danger shadow-sm">
+                <div class="card-body text-center">
+                    <h3 class="text-danger">@ViewBag.ItemsCriticos</h3>
+                    <p class="mb-0"><i class="fas fa-circle me-1"></i>Crítico</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leyenda de semaforización -->
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
+            <h5><i class="fas fa-traffic-light me-2"></i>Leyenda de Semaforización</h5>
+            <div class="d-flex gap-3 flex-wrap">
+                <span class="badge bg-success px-3 py-2">
+                    <i class="fas fa-circle me-1"></i>Verde: Suficiente (Cantidad > Mínimo × 2)
+                </span>
+                <span class="badge bg-warning text-dark px-3 py-2">
+                    <i class="fas fa-circle me-1"></i>Amarillo: Bajo (Cantidad entre Mínimo y Mínimo × 2)
+                </span>
+                <span class="badge bg-danger px-3 py-2">
+                    <i class="fas fa-circle me-1"></i>Rojo: Crítico (Cantidad < Mínimo)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de stock -->
+    <div class="card shadow-lg border-0 rounded-lg">
+        <div class="card-header bg-secondary text-white py-3">
+            <h3 class="mb-0"><i class="fas fa-list me-2"></i>Inventario de Stock</h3>
+        </div>
+        <div class="card-body p-4">
+            @if (Model != null && Model.Any())
+            {
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th class="text-center">Cantidad</th>
+                                <th class="text-center">Stock Mínimo</th>
+                                <th>Unidad</th>
+                                <th class="text-end">Precio</th>
+                                <th class="text-center">Nivel</th>
+                                <th class="text-center">Indicador</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr class="@(item.ColorSemaforo == "danger" ? "table-danger" : "")">
+                                    <td><strong>@item.Nombre</strong></td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(item.Descripcion))
+                                        {
+                                            if (item.Descripcion.Length > 50)
+                                            {
+                                                <span title="@item.Descripcion">
+                                                    @item.Descripcion.Substring(0, 50)...
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                @item.Descripcion
+                                            }
+                                        }
+                                        else
+                                        {
+                                            <span class="text-muted">-</span>
+                                        }
+                                    </td>
+                                    <td class="text-center"><strong>@item.Cantidad</strong></td>
+                                    <td class="text-center">@item.StockMinimo</td>
+                                    <td>@(string.IsNullOrEmpty(item.Unidad) ? "-" : item.Unidad)</td>
+                                    <td class="text-end">$@item.PrecioUnitario.ToString("N2")</td>
+                                    <td class="text-center">
+                                        <span class="badge bg-@item.ColorSemaforo">
+                                            @item.NivelStock
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="semaforo-indicator semaforo-@item.ColorSemaforo" 
+                                              title="@item.NivelStock">
+                                            <i class="fas fa-circle fa-2x"></i>
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="alert alert-warning text-center">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    No hay items en el stock.
+                </div>
+            }
+        </div>
+    </div>
 </div>

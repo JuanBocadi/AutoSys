@@ -23,5 +23,65 @@ namespace AutoSys.Models
         public int? VehiculoId { get; set; }
         public Vehiculo? Vehiculo { get; set; }
         public ICollection<FotoVehiculo>? Fotos { get; set; }
+
+        // Propiedades calculadas para semaforización
+        [NotMapped]
+        public int DiasEnTaller
+        {
+            get
+            {
+                var fechaFin = FechaEgreso ?? DateTime.Now;
+                return (fechaFin - FechaIngreso).Days;
+            }
+        }
+
+        [NotMapped]
+        public string ColorSemaforo
+        {
+            get
+            {
+                // Semaforización por estado de la reparación según avance del trabajo
+                // Rojo: En revisión (recién ingresado, aún no comenzó)
+                // Amarillo: En proceso/reparación (trabajo en marcha)
+                // Verde: Finalizado/Entregado (trabajo completado)
+                
+                // Verde: Trabajo completado
+                if (FechaEgreso.HasValue || Estado == "Listo para entrega" || Estado == "Finalizado" || Estado == "Entregado")
+                    return "success"; // Verde - Finalizado/Entregado
+                
+                // Amarillo: Trabajo en marcha
+                if (Estado == "En reparación" || Estado == "En proceso")
+                    return "warning"; // Amarillo - En proceso
+                
+                // Rojo: Recién ingresado o esperando inicio
+                if (Estado == "En revisión")
+                    return "danger"; // Rojo - En revisión
+                
+                // Por defecto, si está esperando repuestos también es rojo (requiere acción)
+                return "danger"; // Rojo - Esperando acción
+            }
+        }
+
+        [NotMapped]
+        public string EstadoDescripcion
+        {
+            get
+            {
+                if (FechaEgreso.HasValue)
+                    return "Entregado";
+                
+                return Estado switch
+                {
+                    "En revisión" => "En Revisión",
+                    "En reparación" => "En Proceso",
+                    "En proceso" => "En Proceso",
+                    "Esperando repuestos" => "En Revisión",
+                    "Listo para entrega" => "Finalizado",
+                    "Finalizado" => "Finalizado",
+                    "Entregado" => "Entregado",
+                    _ => Estado
+                };
+            }
+        }
     }
 }
