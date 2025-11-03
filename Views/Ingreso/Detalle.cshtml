@@ -4,58 +4,59 @@
     ViewData["Title"] = "Detalle del Ingreso";
 }
 
-<div class="mt-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-8 col-xl-7">
-            <div class="card shadow-lg border-0 rounded-lg">
-                <div class="card-header bg-success text-white text-center py-4">
-                    <h2 class="mb-0">
-                        <i class="fas fa-file-alt me-2"></i> Detalle del Ingreso
-                    </h2>
-                </div>
+<div style="max-width: 900px; margin: 0 auto;">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-file-alt" style="color: var(--accent-green);"></i>
+            Detalle del Ingreso
+        </h1>
+        <p class="page-subtitle">Información completa del ingreso del vehículo</p>
+    </div>
 
-                <div class="card-body p-4 p-md-5">
-                    <dl class="row fs-5">
-                        <dt class="col-sm-5">Cliente</dt>
-                        <dd class="col-sm-7">
-                            @Model.Vehiculo?.Cliente?.Nombre @Model.Vehiculo?.Cliente?.Apellido
-                        </dd>
+    <div class="card">
+        <div class="card-body">
+            <dl style="display: grid; grid-template-columns: 200px 1fr; gap: var(--spacing-md); margin-bottom: var(--spacing-lg);">
+                <dt style="font-weight: 600; color: var(--text-primary);">Cliente</dt>
+                <dd style="color: var(--text-primary);">
+                    @Model.Vehiculo?.Cliente?.Nombre @Model.Vehiculo?.Cliente?.Apellido
+                </dd>
 
-                        <dt class="col-sm-5">Vehículo</dt>
-                        <dd class="col-sm-7">
-                            @Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo (@Model.Vehiculo?.Patente)
-                        </dd>
+                <dt style="font-weight: 600; color: var(--text-primary);">Vehículo</dt>
+                <dd style="color: var(--text-primary);">
+                    @Model.Vehiculo?.Marca @Model.Vehiculo?.Modelo (@Model.Vehiculo?.Patente)
+                </dd>
 
-                        <dt class="col-sm-5">Diagnóstico</dt>
-                        <dd class="col-sm-7">
-                            @Model.Diagnostico
-                        </dd>
+                <dt style="font-weight: 600; color: var(--text-primary);">Diagnóstico</dt>
+                <dd style="color: var(--text-primary);">
+                    @Model.Diagnostico
+                </dd>
 
-                        <dt class="col-sm-5">Fecha de Ingreso</dt>
-                        <dd class="col-sm-7">
-                            @Model.FechaIngreso.ToString("dd/MM/yyyy HH:mm")
-                        </dd>
+                <dt style="font-weight: 600; color: var(--text-primary);">Fecha de Ingreso</dt>
+                <dd style="color: var(--text-primary);">
+                    @Model.FechaIngreso.ToString("dd/MM/yyyy HH:mm")
+                </dd>
 
-                        <dt class="col-sm-5">Fecha de Egreso</dt>
-                        <dd class="col-sm-7">
-                            @if (Model.FechaEgreso == null)
-                            {
-                                <span class="badge bg-warning text-dark">Aún no egresado</span>
-                            }
-                            else
-                            {
-                                @Model.FechaEgreso?.ToString("dd/MM/yyyy HH:mm")
-                            }
-                        </dd>
+                <dt style="font-weight: 600; color: var(--text-primary);">Fecha de Egreso</dt>
+                <dd style="color: var(--text-primary);">
+                    @if (Model.FechaEgreso == null)
+                    {
+                        <span class="badge-warning">Aún no egresado</span>
+                    }
+                    else
+                    {
+                        @Model.FechaEgreso?.ToString("dd/MM/yyyy HH:mm")
+                    }
+                </dd>
 
-                        <dt class="col-sm-5">Estado</dt>
-                        <dd class="col-sm-7">
-                            <form asp-action="ActualizarEstado"
-                                  asp-controller="Ingreso"
-                                  method="post"
-                                  class="d-flex gap-2 align-items-center">
-                                <input type="hidden" name="id" value="@Model.Id" />
-                                <select name="estado" class="form-select form-select-sm w-auto">
+                <dt style="font-weight: 600; color: var(--text-primary);">Estado</dt>
+                <dd>
+                    <form asp-action="ActualizarEstado"
+                          asp-controller="Ingreso"
+                          method="post"
+                          style="display: flex; gap: var(--spacing-sm); align-items: center;">
+                        <input type="hidden" name="id" value="@Model.Id" />
+                        <select name="estado" class="form-select" style="width: auto;">
                                     @if (Model.Estado == "En revisión")
                                     {
                                         <option value="En revisión" selected>En revisión</option>
@@ -91,38 +92,33 @@
                                     {
                                         <option value="Entregado">Entregado</option>
                                     }
-                                </select>
+                        </select>
 
-                                <button type="submit" class="btn btn-sm btn-success">
-                                    <i class="fas fa-save me-1"></i>Guardar
-                                </button>
-                            </form>
-                        </dd>
+                        <button type="submit" class="btn btn-success btn-sm">
+                            <i class="fas fa-save" style="margin-right: var(--spacing-xs);"></i>Guardar
+                        </button>
+                    </form>
+                </dd>
 
-                        @if (!string.IsNullOrEmpty(Model.FotoPath))
-                        {
-                            <dt class="col-sm-5">Foto</dt>
-                            <dd class="col-sm-7">
-                                <img src="@Model.FotoPath"
-                                     alt="Foto del vehículo"
-                                     class="img-fluid rounded shadow"
-                                     style="max-height: 300px;" />
-                            </dd>
-                        }
-                    </dl>
+                @if (!string.IsNullOrEmpty(Model.FotoPath))
+                {
+                    <dt style="font-weight: 600; color: var(--text-primary);">Foto</dt>
+                    <dd>
+                        <img src="@Model.FotoPath"
+                             alt="Foto del vehículo"
+                             style="max-width: 100%; height: auto; border-radius: var(--border-radius-md); box-shadow: var(--shadow-md); max-height: 300px;" />
+                    </dd>
+                }
+            </dl>
 
-                    <div class="d-grid mt-4">
-                        <a href="@Url.Action("Create", "Ingreso")" class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-plus me-2"></i>Registrar otro ingreso
-                        </a>
-                    </div>
+            <div style="display: flex; flex-direction: column; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+                <a href="@Url.Action("Create", "Ingreso")" class="btn btn-primary btn-lg">
+                    <i class="fas fa-plus" style="margin-right: var(--spacing-sm);"></i>Registrar otro ingreso
+                </a>
 
-                    <div class="d-grid mt-3">
-                        <a href="@Url.Action("Index", "Ingreso")" class="btn btn-secondary btn-lg">
-                            <i class="fas fa-list me-2"></i> Ver todos los ingresos
-                        </a>
-                    </div>
-                </div>
+                <a href="@Url.Action("Index", "Ingreso")" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-list" style="margin-right: var(--spacing-sm);"></i> Ver todos los ingresos
+                </a>
             </div>
         </div>
     </div>

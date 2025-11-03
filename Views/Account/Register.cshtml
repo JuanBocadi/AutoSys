@@ -3,41 +3,126 @@
     ViewData["Title"] = "Registrar Usuario";
 }
 
-<div class="container mt-4">
-    <h2 class="text-primary mb-3">Registrar nuevo usuario</h2>
-    <hr />
+<div style="max-width: 600px; margin: 0 auto;">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-user-plus" style="color: var(--primary-blue);"></i>
+            Registrar Nuevo Usuario
+        </h1>
+        <p class="page-subtitle">Complete el formulario para crear un nuevo usuario del sistema</p>
+    </div>
 
-    @if (TempData["Success"] != null)
-    {
-        <div class="alert alert-success">@TempData["Success"]</div>
-    }
+    <div class="card">
+        <div class="card-body">
+            @if (TempData["Success"] != null)
+            {
+                <div class="autosys-alert autosys-alert-success" style="margin-bottom: var(--spacing-lg);">
+                    <i class="fas fa-check-circle" style="font-size: 1.25rem;"></i>
+                    <span>@TempData["Success"]</span>
+                    <button type="button" class="alert-close" onclick="this.parentElement.style.display='none'">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            }
 
-    <form asp-action="Register" method="post" class="mt-3">
-        <div asp-validation-summary="All" class="text-danger mb-3"></div>
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div style="background-color: #fee2e2; border: 1px solid var(--accent-red); color: #991b1b; padding: var(--spacing-md); border-radius: var(--border-radius-md); margin-bottom: var(--spacing-lg);">
+                    <h5 style="margin: 0 0 var(--spacing-sm) 0; font-size: 1rem; font-weight: 600;">
+                        <i class="fas fa-exclamation-triangle" style="margin-right: var(--spacing-xs);"></i>
+                        Por favor, corrija los siguientes errores:
+                    </h5>
+                    <ul style="margin: 0; padding-left: var(--spacing-lg);">
+                        @foreach (var entry in ViewData.ModelState.Values.Where(v => v.Errors.Count > 0))
+                        {
+                            foreach (var error in entry.Errors)
+                            {
+                                <li>@error.ErrorMessage</li>
+                            }
+                        }
+                    </ul>
+                </div>
+            }
 
-        <div class="mb-3">
-            <label asp-for="Email" class="form-label"></label>
-            <input asp-for="Email" class="form-control" />
+            <form asp-action="Register" method="post">
+                <div class="form-group">
+                    <label asp-for="Email" class="form-label">
+                        <i class="fas fa-envelope" style="margin-right: var(--spacing-xs); color: var(--text-secondary);"></i>
+                        Correo Electrónico
+                    </label>
+                    <input asp-for="Email" 
+                           class="form-control" 
+                           placeholder="usuario@ejemplo.com"
+                           autofocus />
+                    <span asp-validation-for="Email" class="text-danger" style="font-size: 0.875rem; display: block; margin-top: var(--spacing-xs);"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Password" class="form-label">
+                        <i class="fas fa-lock" style="margin-right: var(--spacing-xs); color: var(--text-secondary);"></i>
+                        Contraseña
+                    </label>
+                    <input asp-for="Password" 
+                           class="form-control" 
+                           placeholder="Mínimo 6 caracteres" />
+                    <span asp-validation-for="Password" class="text-danger" style="font-size: 0.875rem; display: block; margin-top: var(--spacing-xs);"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword" class="form-label">
+                        <i class="fas fa-lock" style="margin-right: var(--spacing-xs); color: var(--text-secondary);"></i>
+                        Confirmar Contraseña
+                    </label>
+                    <input asp-for="ConfirmPassword" 
+                           class="form-control" 
+                           placeholder="Repita la contraseña" />
+                    <span asp-validation-for="ConfirmPassword" class="text-danger" style="font-size: 0.875rem; display: block; margin-top: var(--spacing-xs);"></span>
+                </div>
+
+                <div class="form-group">
+                    <label asp-for="Rol" class="form-label">
+                        <i class="fas fa-user-tag" style="margin-right: var(--spacing-xs); color: var(--text-secondary);"></i>
+                        Rol del Usuario
+                    </label>
+                    <select asp-for="Rol" class="form-select" asp-items="@(new SelectList(ViewBag.Roles))">
+                        <option value="">-- Seleccione un rol --</option>
+                    </select>
+                    <span asp-validation-for="Rol" class="text-danger" style="font-size: 0.875rem; display: block; margin-top: var(--spacing-xs);"></span>
+                    <small style="color: var(--text-secondary); font-size: 0.875rem; display: block; margin-top: var(--spacing-xs);">
+                        <i class="fas fa-info-circle" style="margin-right: var(--spacing-xs);"></i>
+                        Define los permisos del usuario en el sistema
+                    </small>
+                </div>
+
+                <!-- Información de roles -->
+                <div style="background-color: var(--bg-light); border: 1px solid var(--border-color); padding: var(--spacing-md); border-radius: var(--border-radius-md); margin-bottom: var(--spacing-lg);">
+                    <h6 style="font-size: 0.875rem; font-weight: 600; margin-bottom: var(--spacing-sm); color: var(--text-primary);">
+                        <i class="fas fa-shield-alt" style="margin-right: var(--spacing-xs);"></i>
+                        Información sobre Roles:
+                    </h6>
+                    <ul style="margin: 0; padding-left: var(--spacing-lg); font-size: 0.875rem; color: var(--text-secondary);">
+                        <li><strong>Admin:</strong> Acceso completo al sistema</li>
+                        <li><strong>Mecanico:</strong> Gestión de reparaciones y stock</li>
+                        <li><strong>Recepcionista:</strong> Gestión de ingresos y clientes</li>
+                    </ul>
+                </div>
+
+                <div style="display: flex; gap: var(--spacing-md); margin-top: var(--spacing-xl);">
+                    <button type="submit" class="btn btn-primary btn-lg" style="flex: 1;">
+                        <i class="fas fa-save" style="margin-right: var(--spacing-sm);"></i>
+                        Registrar Usuario
+                    </button>
+                    <a asp-controller="Home" asp-action="Index" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-arrow-left" style="margin-right: var(--spacing-sm);"></i>
+                        Volver
+                    </a>
+                </div>
+            </form>
         </div>
-
-        <div class="mb-3">
-            <label asp-for="Password" class="form-label"></label>
-            <input asp-for="Password" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="ConfirmPassword" class="form-label"></label>
-            <input asp-for="ConfirmPassword" class="form-control" />
-        </div>
-
-        <div class="mb-3">
-            <label asp-for="Rol" class="form-label"></label>
-            <select asp-for="Rol" class="form-select" asp-items="@(new SelectList(ViewBag.Roles))">
-                <option value="">-- Seleccione un rol --</option>
-            </select>
-        </div>
-
-        <button type="submit" class="btn btn-primary">Registrar</button>
-        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary ms-2">Volver</a>
-    </form>
+    </div>
 </div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

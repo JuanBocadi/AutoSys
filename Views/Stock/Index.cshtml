@@ -1,228 +1,284 @@
 @model IEnumerable<AutoSys.Models.Stock>
 @{
-    ViewData["Title"] = "Gestión de Stock";
+    ViewData["Title"] = "Stock";
 }
 
-<div class="mt-4">
-    <div class="card shadow-lg border-0 rounded-lg mb-4">
-        <div class="card-header bg-dark text-white py-3">
-            <h2 class="mb-0"><i class="fas fa-boxes me-2"></i>Gestión de Stock</h2>
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-boxes" style="margin-right: 0.5rem; color: #10b981;"></i>
+                Gestión de Stock
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Control de inventario y niveles de stock</p>
         </div>
+        @if (User.IsInRole("Administrador"))
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Agregar Item
+            </a>
+        }
     </div>
+</div>
 
-    <!-- Estadísticas principales -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-primary shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-primary">@ViewBag.TotalItems</h3>
-                    <p class="mb-0"><i class="fas fa-boxes me-1"></i>Total Items</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-success">@ViewBag.ItemsSuficientes</h3>
-                    <p class="mb-0"><i class="fas fa-circle me-1"></i>Suficiente</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-warning shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">@ViewBag.ItemsBajo</h3>
-                    <p class="mb-0"><i class="fas fa-circle me-1"></i>Bajo</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-danger shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-danger">@ViewBag.ItemsCriticos</h3>
-                    <p class="mb-0"><i class="fas fa-circle me-1"></i>Crítico</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Leyenda de semaforización -->
-    <div class="card shadow-sm border-0 mb-4">
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
         <div class="card-body">
-            <h5><i class="fas fa-traffic-light me-2"></i>Leyenda de Semaforización</h5>
-            <div class="d-flex gap-3 flex-wrap">
-                <span class="badge bg-success px-3 py-2">
-                    <i class="fas fa-circle me-1"></i>Verde: Suficiente (Cantidad > Mínimo × 2)
-                </span>
-                <span class="badge bg-warning text-dark px-3 py-2">
-                    <i class="fas fa-circle me-1"></i>Amarillo: Bajo (Cantidad entre Mínimo y Mínimo × 2)
-                </span>
-                <span class="badge bg-danger px-3 py-2">
-                    <i class="fas fa-circle me-1"></i>Rojo: Crítico (Cantidad < Mínimo)
-                </span>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-boxes" style="color: #3b82f6;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Total Items</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.TotalItems</h4>
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Tabla de stock -->
-    <div class="card shadow-lg border-0 rounded-lg">
-        <div class="card-header bg-secondary text-white py-3 d-flex justify-content-between align-items-center">
-            <h3 class="mb-0"><i class="fas fa-list me-2"></i>Inventario de Stock</h3>
-            @if (User.IsInRole("Administrador"))
-            {
-                <a asp-action="Create" class="btn btn-light">
-                    <i class="fas fa-plus me-1"></i>Agregar Item
-                </a>
-            }
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Suficiente</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.ItemsSuficientes</h4>
+                </div>
+            </div>
         </div>
-        <div class="card-body p-4">
-            <!-- Búsqueda -->
-            <form method="get" asp-action="Index" class="mb-3">
-                <div class="input-group">
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-exclamation-circle" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Stock Bajo</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.ItemsBajo</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Crítico</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.ItemsCriticos</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Legend -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 1rem;">
+            <i class="fas fa-traffic-light" style="color: var(--muted-foreground);"></i>
+            <h3 style="font-size: 1rem; font-weight: 600; margin: 0;">Leyenda de Niveles</h3>
+        </div>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+            <span style="color: #15803d; font-weight: 700; padding: 0.5rem 0; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-circle" style="font-size: 0.625rem;"></i> Verde: Suficiente (Cantidad > Mínimo × 2)
+            </span>
+            <span style="color: #b45309; font-weight: 700; padding: 0.5rem 0; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-circle" style="font-size: 0.625rem;"></i> Amarillo: Bajo (Cantidad entre Mínimo y Mínimo × 2)
+            </span>
+            <span style="color: #b91c1c; font-weight: 700; padding: 0.5rem 0; display: inline-flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-circle" style="font-size: 0.625rem;"></i> Rojo: Crítico (Cantidad ≤ Mínimo)
+            </span>
+        </div>
+    </div>
+</div>
+
+<!-- Search Bar -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <form method="get" asp-action="Index">
+            <div style="display: flex; gap: 0.75rem;">
+                <div style="position: relative; flex: 1;">
                     <input type="text" name="buscar" class="form-control" 
                            placeholder="Buscar por nombre o descripción..." 
-                           value="@ViewBag.Buscar">
-                    <button class="btn btn-primary" type="submit">
-                        <i class="fas fa-search me-1"></i>Buscar
-                    </button>
-                    @if (!string.IsNullOrEmpty(ViewBag.Buscar))
-                    {
-                        <a asp-action="Index" class="btn btn-outline-secondary">
-                            <i class="fas fa-times"></i>
-                        </a>
-                    }
+                           value="@ViewBag.Buscar"
+                           style="padding-left: 2.5rem;">
+                    <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
                 </div>
-            </form>
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th class="text-center">Cantidad</th>
-                                <th class="text-center">Stock Mínimo</th>
-                                <th>Unidad</th>
-                                <th class="text-end">Precio</th>
-                                <th class="text-center">Nivel</th>
-                                <th class="text-center">Indicador</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in Model)
-                            {
-                                <tr class="@(item.ColorSemaforo == "danger" ? "table-danger" : "")">
-                                    <td><strong>@item.Nombre</strong></td>
-                                    <td>
-                                        @if (!string.IsNullOrEmpty(item.Descripcion))
-                                        {
-                                            if (item.Descripcion.Length > 50)
-                                            {
-                                                <span title="@item.Descripcion">
-                                                    @item.Descripcion.Substring(0, 50)...
-                                                </span>
-                                            }
-                                            else
-                                            {
-                                                @item.Descripcion
-                                            }
-                                        }
-                                        else
-                                        {
-                                            <span class="text-muted">-</span>
-                                        }
-                                    </td>
-                                    <td class="text-center"><strong>@item.Cantidad</strong></td>
-                                    <td class="text-center">@item.StockMinimo</td>
-                                    <td>@(string.IsNullOrEmpty(item.Unidad) ? "-" : item.Unidad)</td>
-                                    <td class="text-end">$@item.PrecioUnitario.ToString("N2")</td>
-                                    <td class="text-center">
-                                        <span class="badge bg-@item.ColorSemaforo">
-                                            @item.NivelStock
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="semaforo-indicator semaforo-@item.ColorSemaforo" 
-                                              title="@item.NivelStock">
-                                            <i class="fas fa-circle fa-2x"></i>
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="btn-group" role="group">
-                                            <!-- Ajustar stock (todos los roles autorizados) -->
-                                            <button type="button" class="btn btn-sm btn-info" 
-                                                    data-bs-toggle="modal" 
-                                                    data-bs-target="#ajustarModal@(item.Id)">
-                                                <i class="fas fa-exchange-alt"></i>
-                                            </button>
-                                            
-                                            @if (User.IsInRole("Administrador"))
-                                            {
-                                                <!-- Editar -->
-                                                <a asp-action="Edit" asp-route-id="@item.Id" 
-                                                   class="btn btn-sm btn-warning">
-                                                    <i class="fas fa-edit"></i>
-                                                </a>
-                                                <!-- Eliminar -->
-                                                <a asp-action="Delete" asp-route-id="@item.Id" 
-                                                   class="btn btn-sm btn-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </a>
-                                            }
-                                        </div>
+                <button class="btn btn-primary" type="submit">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+                @if (!string.IsNullOrEmpty(ViewBag.Buscar))
+                {
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times"></i> Limpiar
+                    </a>
+                }
+            </div>
+        </form>
+    </div>
+</div>
 
-                                        <!-- Modal para ajustar stock -->
-                                        <div class="modal fade" id="ajustarModal@(item.Id)" tabindex="-1">
-                                            <div class="modal-dialog">
-                                                <div class="modal-content">
-                                                    <form asp-action="AjustarStock" method="post">
-                                                        <input type="hidden" name="id" value="@item.Id" />
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title">Ajustar Stock - @item.Nombre</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            <p>Stock actual: <strong>@item.Cantidad @item.Unidad</strong></p>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Cantidad</label>
-                                                                <input type="number" name="cantidad" class="form-control" 
-                                                                       min="1" required />
-                                                            </div>
-                                                            <div class="mb-3">
-                                                                <label class="form-label">Tipo de Ajuste</label>
-                                                                <select name="tipo" class="form-select" required>
-                                                                    <option value="agregar">Agregar al stock</option>
-                                                                    <option value="quitar">Quitar del stock</option>
-                                                                </select>
-                                                            </div>
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" 
-                                                                    data-bs-dismiss="modal">Cancelar</button>
-                                                            <button type="submit" class="btn btn-primary">
-                                                                Ajustar Stock
-                                                            </button>
-                                                        </div>
-                                                    </form>
-                                                </div>
+<!-- Table Card -->
+<div class="card">
+    <div class="card-body" style="padding: 0;"
+        @if (Model != null && Model.Any())
+        {
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Producto</th>
+                            <th style="text-align: center;">Stock Actual</th>
+                            <th style="text-align: center;">Mínimo</th>
+                            <th style="text-align: center;">Nivel</th>
+                            <th style="text-align: right;">Precio Unit.</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            var iconColor = item.ColorSemaforo == "success" ? "#10b981" : item.ColorSemaforo == "warning" ? "#f59e0b" : "#ef4444";
+                            <tr>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 2.5rem; height: 2.5rem; background: #f4f4f5; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-box" style="color: @iconColor;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600;">@item.Nombre</div>
+                                            <div style="font-size: 0.875rem; color: var(--muted-foreground);">
+                                                @if (!string.IsNullOrEmpty(item.Descripcion))
+                                                {
+                                                    if (item.Descripcion.Length > 60)
+                                                    {
+                                                        <span title="@item.Descripcion">@item.Descripcion.Substring(0, 60)...</span>
+                                                    }
+                                                    else
+                                                    {
+                                                        @item.Descripcion
+                                                    }
+                                                }
+                                                else
+                                                {
+                                                    <span>Sin descripción</span>
+                                                }
                                             </div>
                                         </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-warning text-center">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    No hay items en el stock.
-                </div>
-            }
-        </div>
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div style="display: flex; flex-direction: column; align-items: center;">
+                                        <span style="font-size: 1.25rem; font-weight: 700;">@item.Cantidad</span>
+                                        <span style="font-size: 0.75rem; color: var(--muted-foreground);">@(string.IsNullOrEmpty(item.Unidad) ? "unid." : item.Unidad)</span>
+                                    </div>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="color: #4b5563; font-weight: 600;">@item.StockMinimo</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.25rem;">
+                                        <i class="fas fa-circle semaforo-indicator" style="color: @iconColor; font-size: 1.25rem; animation: pulse 2s infinite;"></i>
+                                        @{
+                                            var nivelColor = item.ColorSemaforo == "success" ? "#15803d" : item.ColorSemaforo == "warning" ? "#b45309" : "#b91c1c";
+                                        }
+                                        <span style="color: @nivelColor; font-weight: 700; font-size: 0.875rem;">
+                                            @item.NivelStock
+                                        </span>
+                                    </div>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span style="font-weight: 600; font-family: monospace;">$@item.PrecioUnitario.ToString("N2")</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                        <button type="button" class="btn btn-sm btn-info" 
+                                                data-bs-toggle="modal" 
+                                                data-bs-target="#ajustarModal@(item.Id)"
+                                                title="Ajustar stock">
+                                            <i class="fas fa-exchange-alt"></i> Ajustar
+                                        </button>
+                                        
+                                        @if (User.IsInRole("Administrador"))
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@item.Id" 
+                                               class="btn btn-sm btn-warning"
+                                               title="Editar">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a asp-action="Delete" asp-route-id="@item.Id" 
+                                               class="btn btn-sm btn-danger"
+                                               title="Eliminar">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        }
+                                    </div>
+
+                                    <!-- Modal para ajustar stock -->
+                                    <div class="modal fade" id="ajustarModal@(item.Id)" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <form asp-action="AjustarStock" method="post">
+                                                    <input type="hidden" name="id" value="@item.Id" />
+                                                    <div class="modal-header">
+                                                        <h5 class="modal-title">
+                                                            <i class="fas fa-exchange-alt" style="margin-right: 0.5rem;"></i>
+                                                            Ajustar Stock - @item.Nombre
+                                                        </h5>
+                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body">
+                                                        <div style="background: #f4f4f5; padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
+                                                            <p style="margin: 0; color: var(--muted-foreground); font-size: 0.875rem;">Stock actual:</p>
+                                                            <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">@item.Cantidad @item.Unidad</p>
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Cantidad</label>
+                                                            <input type="number" name="cantidad" class="form-control" 
+                                                                   min="1" required placeholder="Ingrese la cantidad" />
+                                                        </div>
+                                                        <div class="mb-3">
+                                                            <label class="form-label">Tipo de Ajuste</label>
+                                                            <select name="tipo" class="form-select" required>
+                                                                <option value="agregar">➕ Agregar al stock</option>
+                                                                <option value="quitar">➖ Quitar del stock</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" 
+                                                                data-bs-dismiss="modal">Cancelar</button>
+                                                        <button type="submit" class="btn btn-primary">
+                                                            <i class="fas fa-check"></i> Confirmar Ajuste
+                                                        </button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                <i class="fas fa-boxes" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin: 0;">No hay items en el inventario</p>
+            </div>
+        }
     </div>
 </div>

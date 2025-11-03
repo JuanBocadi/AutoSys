@@ -1,79 +1,231 @@
 ﻿@model List<AutoSys.Models.Ingreso>
 
 @{
-    ViewData["Title"] = "Listado de Ingresos";
+    ViewData["Title"] = "Ingresos";
 }
 
-<div class="mt-4">
-    <div class="card shadow-lg border-0 rounded-lg">
-        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center py-3">
-            <h2 class="mb-0">
-                <i class="fas fa-list me-2"></i> Ingresos Registrados
-            </h2>
-
-            @if (User.IsInRole("Administrador") || User.IsInRole("Recepcionista"))
-            {
-                <a class="btn btn-light" asp-controller="Ingreso" asp-action="Create">
-                    <i class="fas fa-plus-circle me-2"></i>Nuevo Ingreso
-                </a>
-            }
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-clipboard-list" style="margin-right: 0.5rem; color: #3b82f6;"></i>
+                Ingresos de Vehículos
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Gestión de vehículos en el taller</p>
         </div>
+        @if (User.IsInRole("Administrador") || User.IsInRole("Recepcionista"))
+        {
+            <a asp-controller="Ingreso" asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Ingreso
+            </a>
+        }
+    </div>
+</div>
 
-        <div class="card-body p-4">
-            @if (Model.Count == 0)
-            {
-                <div class="alert alert-info text-center">
-                    No hay ingresos registrados aún.
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-search" style="color: #ef4444;"></i>
                 </div>
-            }
-            else
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover align-middle">
-                        <thead class="table-dark text-center">
-                            <tr>
-                                <th>#</th>
-                                <th>Cliente</th>
-                                <th>Vehículo</th>
-                                <th>Fecha Ingreso</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ingreso in Model)
-                            {
-                                <tr>
-                                    <td class="text-center">@ingreso.Id</td>
-                                    <td>@ingreso.Vehiculo?.Cliente?.Nombre @ingreso.Vehiculo?.Cliente?.Apellido</td>
-                                    <td>@ingreso.Vehiculo?.Marca @ingreso.Vehiculo?.Modelo (@ingreso.Vehiculo?.Patente)</td>
-                                    <td>@ingreso.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</td>
-                                    <td class="text-center">
-                                        @{
-                                            var estado = ingreso.Estado ?? "";
-                                            string badgeClass = estado switch
-                                            {
-                                                "En revisión" => "badge bg-warning text-dark",
-                                                "En proceso" => "badge bg-info text-dark",
-                                                "Finalizado" => "badge bg-success",
-                                                "Entregado" => "badge bg-secondary",
-                                                _ => "badge bg-light text-dark"
-                                            };
-                                        }
-                                        <span class="@badgeClass">@estado</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <a class="btn btn-outline-primary btn-sm"
-                                           href="@Url.Action("Detalle", "Ingreso", new { id = ingreso.Id })">
-                                            <i class="fas fa-eye me-1"></i> Ver
-                                        </a>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">En Revisión</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(i => i.Estado == "En revisión")</h4>
                 </div>
-            }
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-cogs" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">En Proceso</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(i => i.Estado == "En proceso" || i.Estado == "En reparación")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Finalizados</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(i => i.Estado == "Finalizado")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #e5e7eb; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-double" style="color: #6b7280;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Entregados</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(i => i.Estado == "Entregado")</h4>
+                </div>
+            </div>
         </div>
     </div>
 </div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <div style="display: flex; gap: 1rem; align-items: center;">
+            <div style="position: relative; flex: 1;">
+                <input type="text" placeholder="Buscar por cliente, vehículo o patente..." class="form-control" style="padding-left: 2.5rem;" id="searchInput">
+                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+            </div>
+            <select class="form-select" style="width: 200px;" id="filterEstado">
+                <option value="">Todos los estados</option>
+                <option value="En revisión">En revisión</option>
+                <option value="En proceso">En proceso</option>
+                <option value="En reparación">En reparación</option>
+                <option value="Finalizado">Finalizado</option>
+                <option value="Entregado">Entregado</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        @if (Model.Count == 0)
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                <i class="fas fa-clipboard-list" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin: 0;">No hay ingresos registrados</p>
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table class="table" id="ingresosTable">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Vehículo</th>
+                            <th>Cliente</th>
+                            <th>Fecha Ingreso</th>
+                            <th>Días en Taller</th>
+                            <th>Estado</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var ingreso in Model)
+                        {
+                            var diasEnTaller = (DateTime.Now - ingreso.FechaIngreso).Days;
+                            <tr data-estado="@ingreso.Estado">
+                                <td>
+                                    <span style="font-weight: 600; font-family: monospace;">#@ingreso.Id.ToString("D4")</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 2.5rem; height: 2.5rem; background: #3b82f6; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-car" style="color: white;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600;">@ingreso.Vehiculo?.Patente</div>
+                                            <div style="font-size: 0.875rem; color: var(--muted-foreground);">
+                                                @ingreso.Vehiculo?.Marca @ingreso.Vehiculo?.Modelo
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>@ingreso.Vehiculo?.Cliente?.Nombre @ingreso.Vehiculo?.Cliente?.Apellido</div>
+                                    <div style="font-size: 0.875rem; color: var(--muted-foreground);">
+                                        <i class="fas fa-phone"></i> @ingreso.Vehiculo?.Cliente?.Telefono
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.875rem;">@ingreso.FechaIngreso.ToString("dd/MM/yyyy")</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted-foreground);">@ingreso.FechaIngreso.ToString("HH:mm")</div>
+                                </td>
+                                <td>
+                                    @{
+                                        var colorDias = diasEnTaller <= 2 ? "var(--success)" : diasEnTaller <= 5 ? "var(--warning)" : "var(--destructive)";
+                                    }
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <i class="fas fa-clock" style="color: @colorDias; font-size: 0.875rem;"></i>
+                                        <span style="font-weight: 600; color: @colorDias;">@diasEnTaller días</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    @{
+                                        var estado = ingreso.Estado ?? "";
+                                        var badgeColor = estado switch
+                                        {
+                                            "En revisión" => "#b91c1c",
+                                            "En proceso" => "#b45309",
+                                            "En reparación" => "#b45309",
+                                            "Finalizado" => "#15803d",
+                                            "Entregado" => "#1e40af",
+                                            _ => "#4b5563"
+                                        };
+                                    }
+                                    <span style="color: @badgeColor; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
+                                        @if (estado == "En revisión") { <i class="fas fa-search"></i> }
+                                        else if (estado == "En proceso") { <i class="fas fa-cogs"></i> }
+                                        else if (estado == "En reparación") { <i class="fas fa-tools"></i> }
+                                        else if (estado == "Finalizado") { <i class="fas fa-check"></i> }
+                                        else if (estado == "Entregado") { <i class="fas fa-check-double"></i> }
+                                        @estado
+                                    </span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <a href="@Url.Action("Detalle", "Ingreso", new { id = ingreso.Id })" class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-eye"></i> Ver Detalle
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Búsqueda y filtrado
+        const searchInput = document.getElementById('searchInput');
+        const filterEstado = document.getElementById('filterEstado');
+        
+        function filterTable() {
+            const searchTerm = searchInput.value.toLowerCase();
+            const estadoFilter = filterEstado.value;
+            const rows = document.querySelectorAll('#ingresosTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const estado = row.getAttribute('data-estado');
+                
+                const matchesSearch = text.includes(searchTerm);
+                const matchesEstado = estadoFilter === '' || estado === estadoFilter;
+                
+                row.style.display = matchesSearch && matchesEstado ? '' : 'none';
+            });
+        }
+        
+        searchInput.addEventListener('keyup', filterTable);
+        filterEstado.addEventListener('change', filterTable);
+    </script>
+}

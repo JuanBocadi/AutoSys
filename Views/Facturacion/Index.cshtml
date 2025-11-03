@@ -3,154 +3,235 @@
     ViewData["Title"] = "Facturación";
 }
 
-<div class="mt-4">
-    <div class="card shadow-lg border-0 rounded-lg mb-4">
-        <div class="card-header bg-success text-white py-3">
-            <h2 class="mb-0"><i class="fas fa-file-invoice-dollar me-2"></i>Gestión de Facturación</h2>
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-file-invoice-dollar" style="margin-right: 0.5rem; color: #10b981;"></i>
+                Facturación
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Gestión de facturas y cobros</p>
         </div>
+        <a asp-action="Create" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Nueva Factura
+        </a>
     </div>
+</div>
 
-    <!-- Estadísticas -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-primary shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-primary">@ViewBag.TotalFacturas</h3>
-                    <p class="mb-0"><i class="fas fa-file-invoice me-1"></i>Total Facturas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-warning shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-warning">@ViewBag.FacturasPendientes</h3>
-                    <p class="mb-0"><i class="fas fa-clock me-1"></i>Pendientes</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-success">@ViewBag.FacturasPagadas</h3>
-                    <p class="mb-0"><i class="fas fa-check-circle me-1"></i>Pagadas</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-info shadow-sm">
-                <div class="card-body text-center">
-                    <h3 class="text-info">$@ViewBag.TotalRecaudado.ToString("N2")</h3>
-                    <p class="mb-0"><i class="fas fa-dollar-sign me-1"></i>Recaudado</p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Filtros y acciones -->
-    <div class="card shadow-sm mb-4">
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
         <div class="card-body">
-            <form method="get" asp-action="Index">
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <input type="text" name="buscar" class="form-control" 
-                               placeholder="Buscar por número o cliente..." 
-                               value="@ViewBag.Buscar">
-                    </div>
-                    <div class="col-md-3">
-                        <select name="estado" class="form-select">
-                            <option value="">Todos los estados</option>
-                            <option value="Pendiente" selected="@(ViewBag.EstadoFiltro == "Pendiente")">Pendientes</option>
-                            <option value="Pagada" selected="@(ViewBag.EstadoFiltro == "Pagada")">Pagadas</option>
-                            <option value="Anulada" selected="@(ViewBag.EstadoFiltro == "Anulada")">Anuladas</option>
-                        </select>
-                    </div>
-                    <div class="col-md-3">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="fas fa-search me-1"></i>Buscar
-                        </button>
-                    </div>
-                    <div class="col-md-2">
-                        <a asp-action="Create" class="btn btn-success w-100">
-                            <i class="fas fa-plus me-1"></i>Nueva Factura
-                        </a>
-                    </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-file-invoice" style="color: #3b82f6;"></i>
                 </div>
-            </form>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Total Facturas</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.TotalFacturas</h4>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Tabla de facturas -->
-    <div class="card shadow-lg">
-        <div class="card-header bg-secondary text-white py-3">
-            <h3 class="mb-0"><i class="fas fa-list me-2"></i>Listado de Facturas</h3>
-        </div>
+    <div class="card">
         <div class="card-body">
-            @if (Model != null && Model.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-striped table-hover">
-                        <thead class="table-dark">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Pendientes</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.FacturasPendientes</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Pagadas</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.FacturasPagadas</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-dollar-sign" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Recaudado</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">$@ViewBag.TotalRecaudado.ToString("N2")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <form method="get" asp-action="Index">
+            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
+                <div style="position: relative;">
+                    <input type="text" name="buscar" class="form-control" 
+                           placeholder="Buscar por número o cliente..." 
+                           value="@ViewBag.Buscar"
+                           style="padding-left: 2.5rem;">
+                    <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+                </div>
+                <select name="estado" class="form-select">
+                    <option value="">Todos los estados</option>
+                    <option value="Pendiente" selected="@(ViewBag.EstadoFiltro == "Pendiente")">Pendientes</option>
+                    <option value="Pagada" selected="@(ViewBag.EstadoFiltro == "Pagada")">Pagadas</option>
+                    <option value="Anulada" selected="@(ViewBag.EstadoFiltro == "Anulada")">Anuladas</option>
+                </select>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search"></i> Buscar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        @if (Model != null && Model.Any())
+        {
+            <div style="overflow-x: auto;">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Número Factura</th>
+                            <th>Cliente</th>
+                            <th>Fecha</th>
+                            <th style="text-align: right;">Subtotal</th>
+                            <th style="text-align: right;">IVA</th>
+                            <th style="text-align: right;">Total</th>
+                            <th>Estado</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var factura in Model)
+                        {
                             <tr>
-                                <th>Número</th>
-                                <th>Fecha</th>
-                                <th>Cliente</th>
-                                <th>Vehículo</th>
-                                <th class="text-end">Total</th>
-                                <th>Estado</th>
-                                <th>Método Pago</th>
-                                <th class="text-center">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var factura in Model)
-                            {
-                                <tr>
-                                    <td><strong>@factura.NumeroFactura</strong></td>
-                                    <td>@factura.FechaEmision.ToString("dd/MM/yyyy")</td>
-                                    <td>@factura.Cliente?.Nombre @factura.Cliente?.Apellido</td>
-                                    <td>@factura.Ingreso?.Vehiculo?.Patente</td>
-                                    <td class="text-end"><strong>$@factura.Total.ToString("N2")</strong></td>
-                                    <td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                        <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-file-invoice" style="color: #10b981;"></i>
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600; font-family: monospace;">@factura.NumeroFactura</div>
+                                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">
+                                                @factura.Ingreso?.Vehiculo?.Patente
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div>
+                                        <div style="font-weight: 600;">@factura.Cliente?.Nombre @factura.Cliente?.Apellido</div>
+                                        <div style="font-size: 0.875rem; color: var(--muted-foreground);">
+                                            @if (!string.IsNullOrEmpty(factura.Cliente?.Telefono))
+                                            {
+                                                <i class="fas fa-phone"></i>
+                                                <span>@factura.Cliente?.Telefono</span>
+                                            }
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="font-size: 0.875rem;">@factura.FechaEmision.ToString("dd/MM/yyyy")</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted-foreground);">@factura.FechaEmision.ToString("HH:mm")</div>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span style="font-family: monospace;">$@factura.Subtotal.ToString("N2")</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span style="font-family: monospace; color: var(--muted-foreground);">$@factura.IVA.ToString("N2")</span>
+                                </td>
+                                <td style="text-align: right;">
+                                    <span style="font-weight: 700; font-size: 1.125rem; font-family: monospace;">$@factura.Total.ToString("N2")</span>
+                                </td>
+                                <td>
+                                    <div style="display: flex; flex-direction: column; gap: 0.25rem;">
                                         @if (factura.Estado == "Pagada")
                                         {
-                                            <span class="badge bg-success">@factura.Estado</span>
+                                            <span style="color: #15803d; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
+                                                <i class="fas fa-check-circle"></i> @factura.Estado
+                                            </span>
                                         }
                                         else if (factura.Estado == "Pendiente")
                                         {
-                                            <span class="badge bg-warning text-dark">@factura.Estado</span>
+                                            <span style="color: #b45309; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
+                                                <i class="fas fa-clock"></i> @factura.Estado
+                                            </span>
                                         }
                                         else
                                         {
-                                            <span class="badge bg-danger">@factura.Estado</span>
+                                            <span style="color: #b91c1c; font-weight: 700; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.875rem;">
+                                                <i class="fas fa-times-circle"></i> @factura.Estado
+                                            </span>
                                         }
-                                    </td>
-                                    <td>@(factura.MetodoPago ?? "-")</td>
-                                    <td class="text-center">
-                                        <div class="btn-group">
-                                            <a asp-action="Detalle" asp-route-id="@factura.Id" 
-                                               class="btn btn-sm btn-info" title="Ver detalle">
-                                                <i class="fas fa-eye"></i>
-                                            </a>
-                                            <a asp-action="Imprimir" asp-route-id="@factura.Id" 
-                                               class="btn btn-sm btn-primary" title="Imprimir" target="_blank">
-                                                <i class="fas fa-print"></i>
-                                            </a>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-info text-center">
-                    <i class="fas fa-info-circle me-2"></i>
-                    No hay facturas registradas. 
-                    <a asp-action="Create" class="alert-link">Crear la primera factura</a>
-                </div>
-            }
-        </div>
+                                        @if (!string.IsNullOrEmpty(factura.MetodoPago))
+                                        {
+                                            <span style="color: #1e40af; font-weight: 600; display: inline-flex; align-items: center; gap: 0.25rem; font-size: 0.75rem;">
+                                                @if (factura.MetodoPago == "Efectivo")
+                                                {
+                                                    <i class="fas fa-money-bill"></i>
+                                                }
+                                                else if (factura.MetodoPago == "Tarjeta")
+                                                {
+                                                    <i class="fas fa-credit-card"></i>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fas fa-exchange-alt"></i>
+                                                }
+                                                @factura.MetodoPago
+                                            </span>
+                                        }
+                                    </div>
+                                </td>
+                                <td style="text-align: right;">
+                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                        <a asp-action="Detalle" asp-route-id="@factura.Id" 
+                                           class="btn btn-sm btn-secondary" title="Ver detalle">
+                                            <i class="fas fa-eye"></i> Ver
+                                        </a>
+                                        <a asp-action="Imprimir" asp-route-id="@factura.Id" 
+                                           class="btn btn-sm btn-primary" title="Imprimir" target="_blank">
+                                            <i class="fas fa-print"></i> Imprimir
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                <i class="fas fa-file-invoice-dollar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin-bottom: 1rem;">No hay facturas registradas</p>
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Crear Primera Factura
+                </a>
+            </div>
+        }
     </div>
 </div>

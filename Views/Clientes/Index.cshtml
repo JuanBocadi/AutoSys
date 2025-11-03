@@ -3,58 +3,164 @@
     ViewData["Title"] = "Clientes";
 }
 
-<div class="mt-4">
-    <div class="card shadow-lg border-0 rounded-lg">
-        <div class="card-header bg-secondary text-white py-3">
-            <h2 class="mb-0"><i class="fas fa-users me-2"></i>Listado de Clientes</h2>
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-users" style="margin-right: 0.5rem; color: #3b82f6;"></i>
+                Clientes
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Gestión de clientes registrados</p>
         </div>
-        <div class="card-body p-4">
-            <div class="table-responsive">
-                <table class="table table-striped table-hover align-middle">
-                    <thead class="table-dark">
-                        <tr>
-                            <th>Nombre</th>
-                            <th>Apellido</th>
-                            <th>Teléfono</th>
-                            <th>DNI</th>
-                            <th>Email</th>
-                            <th>Vehículos</th>
-                            <th>Registrado</th>
-                            <th class="text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var c in Model)
-                        {
-                            <tr>
-                                <td>@c.Nombre</td>
-                                <td>@c.Apellido</td>
-                                <td>@c.Telefono</td>
-                                <td>@(string.IsNullOrEmpty(c.DNI) ? "-" : c.DNI)</td>
-                                <td>@(string.IsNullOrEmpty(c.Email) ? "-" : c.Email)</td>
-                                <td>
-                                    @if (c.Vehiculos != null && c.Vehiculos.Any())
-                                    {
-                                        <span class="badge bg-info text-dark">@c.Vehiculos.Count</span>
-                                    }
-                                    else
-                                    {
-                                        <span class="text-muted">0</span>
-                                    }
-                                </td>
-                                <td>@c.FechaRegistro.ToString("dd/MM/yyyy")</td>
-                                <td class="text-center">
-                                    <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" 
-                                       class="btn btn-sm btn-primary" 
-                                       title="Ver vehículos de @c.Nombre @c.Apellido">
-                                        <i class="fas fa-car me-1"></i>Ver Vehículos
-                                    </a>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+        <div style="display: flex; gap: 0.75rem;">
+            <div style="position: relative;">
+                <input type="text" 
+                       placeholder="Buscar cliente..." 
+                       class="form-control" 
+                       style="padding-left: 2.5rem; width: 300px;"
+                       id="searchInput">
+                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+            </div>
+            <button class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nuevo Cliente
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users" style="color: #3b82f6;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Total Clientes</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count()</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-car" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Con Vehículos</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(c => c.Vehiculos != null && c.Vehiculos.Any())</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-calendar" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Este Mes</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(c => c.FechaRegistro.Month == DateTime.Now.Month)</h4>
+                </div>
             </div>
         </div>
     </div>
 </div>
+
+<!-- Table Card -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <div style="overflow-x: auto;">
+            <table class="table" id="clientesTable">
+                <thead>
+                    <tr>
+                        <th>Cliente</th>
+                        <th>Contacto</th>
+                        <th>DNI</th>
+                        <th>Vehículos</th>
+                        <th>Fecha Registro</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var c in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                    <div style="width: 2.5rem; height: 2.5rem; background: #f4f4f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; color: #71717a;">
+                                        @c.Nombre?.Substring(0, 1).ToUpper()@c.Apellido?.Substring(0, 1).ToUpper()
+                                    </div>
+                                    <div>
+                                        <div style="font-weight: 600;">@c.Nombre @c.Apellido</div>
+                                        <div style="font-size: 0.875rem; color: var(--muted-foreground);">@(string.IsNullOrEmpty(c.Email) ? "Sin email" : c.Email)</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                    <i class="fas fa-phone" style="color: var(--muted-foreground); font-size: 0.875rem;"></i>
+                                    <span>@c.Telefono</span>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary" style="font-family: monospace;">@(string.IsNullOrEmpty(c.DNI) ? "-" : c.DNI)</span>
+                            </td>
+                            <td>
+                                @if (c.Vehiculos != null && c.Vehiculos.Any())
+                                {
+                                    <span class="badge bg-info">
+                                        <i class="fas fa-car"></i> @c.Vehiculos.Count
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--muted-foreground); font-size: 0.875rem;">Sin vehículos</span>
+                                }
+                            </td>
+                            <td>
+                                <div style="font-size: 0.875rem;">@c.FechaRegistro.ToString("dd/MM/yyyy")</div>
+                                <div style="font-size: 0.75rem; color: var(--muted-foreground);">@c.FechaRegistro.ToString("HH:mm")</div>
+                            </td>
+                            <td style="text-align: right;">
+                                <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" class="btn btn-sm btn-secondary">
+                                    <i class="fas fa-car"></i> Ver Vehículos
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        @if (!Model.Any())
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin: 0;">No hay clientes registrados</p>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Búsqueda en tiempo real
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#clientesTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
+}

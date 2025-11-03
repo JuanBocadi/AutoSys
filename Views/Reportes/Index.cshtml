@@ -1,213 +1,279 @@
 @{
-    ViewData["Title"] = "Dashboard de Reportes";
+    ViewData["Title"] = "Reportes";
 }
 
-<div class="mt-4">
-    <div class="card shadow-lg border-0 rounded-lg mb-4">
-        <div class="card-header bg-primary text-white py-3">
-            <h2 class="mb-0"><i class="fas fa-chart-line me-2"></i>Dashboard de Reportes y Estadísticas</h2>
-        </div>
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div>
+        <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+            <i class="fas fa-chart-line" style="margin-right: 0.5rem; color: #3b82f6;"></i>
+            Dashboard de Reportes
+        </h1>
+        <p style="color: var(--muted-foreground); margin: 0;">Estadísticas y análisis del negocio</p>
     </div>
+</div>
 
-    <!-- Estadísticas Generales -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-primary shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-users fa-3x text-primary mb-2"></i>
-                    <h3 class="text-primary">@ViewBag.TotalClientes</h3>
-                    <p class="mb-0">Total Clientes</p>
+<!-- Main Stats Grid -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <!-- Clientes -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Total Clientes</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">@ViewBag.TotalClientes</h3>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-info shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-car fa-3x text-info mb-2"></i>
-                    <h3 class="text-info">@ViewBag.TotalVehiculos</h3>
-                    <p class="mb-0">Total Vehículos</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-warning shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-wrench fa-3x text-warning mb-2"></i>
-                    <h3 class="text-warning">@ViewBag.IngresosEnTaller</h3>
-                    <p class="mb-0">En Taller</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-clipboard-list fa-3x text-success mb-2"></i>
-                    <h3 class="text-success">@ViewBag.TotalIngresos</h3>
-                    <p class="mb-0">Total Ingresos</p>
+                <div style="width: 3rem; height: 3rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-users" style="color: #3b82f6; font-size: 1.5rem;"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Estadísticas de Facturación -->
-    <div class="row mb-4">
-        <div class="col-md-3">
-            <div class="card border-success shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-file-invoice-dollar fa-3x text-success mb-2"></i>
-                    <h3 class="text-success">@ViewBag.TotalFacturas</h3>
-                    <p class="mb-0">Total Facturas</p>
+    <!-- Vehículos -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Total Vehículos</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">@ViewBag.TotalVehiculos</h3>
                 </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-warning shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-clock fa-3x text-warning mb-2"></i>
-                    <h3 class="text-warning">@ViewBag.FacturasPendientes</h3>
-                    <p class="mb-0">Facturas Pendientes</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-info shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-dollar-sign fa-3x text-info mb-2"></i>
-                    <h3 class="text-info">$@ViewBag.TotalRecaudado.ToString("N0")</h3>
-                    <p class="mb-0">Total Recaudado</p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="card border-secondary shadow-sm">
-                <div class="card-body text-center">
-                    <i class="fas fa-calculator fa-3x text-secondary mb-2"></i>
-                    <h3 class="text-secondary">$@ViewBag.PromedioFactura.ToString("N0")</h3>
-                    <p class="mb-0">Promedio por Factura</p>
+                <div style="width: 3rem; height: 3rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-car" style="color: #10b981; font-size: 1.5rem;"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Alertas -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <div class="card border-danger shadow-sm">
-                <div class="card-body">
-                    <h5 class="text-danger">
-                        <i class="fas fa-exclamation-triangle me-2"></i>Stock Crítico
-                    </h5>
-                    <h2 class="text-danger">@ViewBag.StockCritico</h2>
-                    <p class="mb-0">Items con stock bajo mínimo</p>
-                    <a asp-controller="Stock" asp-action="Index" class="btn btn-danger btn-sm mt-2">
-                        Ver Inventario
+    <!-- En Taller -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">En Taller</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">@ViewBag.IngresosEnTaller</h3>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-wrench" style="color: #f59e0b; font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Ingresos -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Total Ingresos</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">@ViewBag.TotalIngresos</h3>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-clipboard-list" style="color: #6366f1; font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Financial Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <!-- Total Facturas -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Total Facturas</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">@ViewBag.TotalFacturas</h3>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-file-invoice-dollar" style="color: #10b981; font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pendientes -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Fact. Pendientes</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">@ViewBag.FacturasPendientes</h3>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-clock" style="color: #f59e0b; font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recaudado -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Recaudado</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">$@ViewBag.TotalRecaudado.ToString("N0")</h3>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-dollar-sign" style="color: #10b981; font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Promedio -->
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Promedio Factura</p>
+                    <h3 style="font-size: 2rem; font-weight: 700; margin: 0;">$@ViewBag.PromedioFactura.ToString("N0")</h3>
+                </div>
+                <div style="width: 3rem; height: 3rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-calculator" style="color: #6366f1; font-size: 1.5rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Alerts -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <!-- Stock Crítico -->
+    <div class="card" style="border-left: 4px solid #ef4444;">
+        <div class="card-body">
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <div style="width: 3rem; height: 3rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-exclamation-triangle" style="color: #ef4444; font-size: 1.5rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem; color: #ef4444;">Stock Crítico</h4>
+                    <p style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #ef4444;">@ViewBag.StockCritico</p>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">Items con stock bajo mínimo</p>
+                    <a asp-controller="Stock" asp-action="Index" class="btn btn-sm btn-danger">
+                        <i class="fas fa-boxes"></i> Ver Inventario
                     </a>
                 </div>
             </div>
         </div>
-        <div class="col-md-6">
-            <div class="card border-primary shadow-sm">
-                <div class="card-body">
-                    <h5 class="text-primary">
-                        <i class="fas fa-calendar-alt me-2"></i>Ingresos del Mes
-                    </h5>
-                    <h2 class="text-primary">@ViewBag.IngresosMesActual</h2>
-                    <p class="mb-0">Nuevos ingresos en @DateTime.Now.ToString("MMMM yyyy")</p>
+    </div>
+
+    <!-- Ingresos del Mes -->
+    <div class="card" style="border-left: 4px solid #3b82f6;">
+        <div class="card-body">
+            <div style="display: flex; align-items: start; gap: 1rem;">
+                <div style="width: 3rem; height: 3rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <i class="fas fa-calendar-alt" style="color: #3b82f6; font-size: 1.5rem;"></i>
+                </div>
+                <div style="flex: 1;">
+                    <h4 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem; color: #3b82f6;">Ingresos del Mes</h4>
+                    <p style="font-size: 2rem; font-weight: 700; margin-bottom: 0.5rem; color: #3b82f6;">@ViewBag.IngresosMesActual</p>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">Nuevos en @DateTime.Now.ToString("MMMM yyyy")</p>
+                    <a asp-controller="Ingreso" asp-action="Index" class="btn btn-sm btn-primary">
+                        <i class="fas fa-clipboard-list"></i> Ver Ingresos
+                    </a>
                 </div>
             </div>
         </div>
     </div>
+</div>
 
-    <!-- Reportes Disponibles -->
-    <div class="card shadow-lg">
-        <div class="card-header bg-secondary text-white py-3">
-            <h3 class="mb-0"><i class="fas fa-file-alt me-2"></i>Reportes Disponibles</h3>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <i class="fas fa-calendar-week me-2 text-primary"></i>
-                                Ingresos por Período
-                            </h5>
-                            <p class="card-text">
-                                Consulta los ingresos registrados en un rango de fechas específico.
-                            </p>
-                            <a asp-action="IngresosPorPeriodo" class="btn btn-primary">
-                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
-                            </a>
-                        </div>
+<!-- Reports Section -->
+<div class="card">
+    <div class="card-header">
+        <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0;">
+            <i class="fas fa-file-chart-line" style="margin-right: 0.5rem;"></i>
+            Reportes Disponibles
+        </h2>
+    </div>
+    <div class="card-body">
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <!-- Ingresos por Período -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-calendar-week" style="color: #3b82f6; font-size: 1.5rem;"></i>
                     </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Ingresos por Período</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Consulta los ingresos registrados en un rango de fechas específico.
+                    </p>
+                    <a asp-action="IngresosPorPeriodo" class="btn btn-primary btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
+            </div>
 
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <i class="fas fa-money-bill-wave me-2 text-success"></i>
-                                Facturación por Período
-                            </h5>
-                            <p class="card-text">
-                                Análisis de facturación, recaudación y pagos pendientes.
-                            </p>
-                            <a asp-action="FacturacionPorPeriodo" class="btn btn-success">
-                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
-                            </a>
-                        </div>
+            <!-- Facturación -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-money-bill-wave" style="color: #10b981; font-size: 1.5rem;"></i>
                     </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Facturación por Período</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Análisis de facturación, recaudación y pagos pendientes.
+                    </p>
+                    <a asp-action="FacturacionPorPeriodo" class="btn btn-success btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
+            </div>
 
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <i class="fas fa-user-friends me-2 text-info"></i>
-                                Clientes Más Activos
-                            </h5>
-                            <p class="card-text">
-                                Ranking de clientes con mayor frecuencia de visitas.
-                            </p>
-                            <a asp-action="ClientesActivos" class="btn btn-info">
-                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
-                            </a>
-                        </div>
+            <!-- Clientes Activos -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-user-friends" style="color: #6366f1; font-size: 1.5rem;"></i>
                     </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Clientes Más Activos</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Ranking de clientes con mayor frecuencia de visitas.
+                    </p>
+                    <a asp-action="ClientesActivos" class="btn btn-info btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
+            </div>
 
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <i class="fas fa-boxes me-2 text-danger"></i>
-                                Stock Bajo y Crítico
-                            </h5>
-                            <p class="card-text">
-                                Items con stock por debajo del nivel mínimo requerido.
-                            </p>
-                            <a asp-action="StockBajo" class="btn btn-danger">
-                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
-                            </a>
-                        </div>
+            <!-- Stock Bajo -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-boxes" style="color: #ef4444; font-size: 1.5rem;"></i>
                     </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Stock Bajo y Crítico</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Items con stock por debajo del nivel mínimo requerido.
+                    </p>
+                    <a asp-action="StockBajo" class="btn btn-danger btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
                 </div>
+            </div>
 
-                <div class="col-md-6 mb-3">
-                    <div class="card h-100">
-                        <div class="card-body">
-                            <h5 class="card-title">
-                                <i class="fas fa-clock me-2 text-warning"></i>
-                                Tiempos de Reparación
-                            </h5>
-                            <p class="card-text">
-                                Análisis de tiempos promedio de reparación y estadísticas.
-                            </p>
-                            <a asp-action="TiemposReparacion" class="btn btn-warning">
-                                <i class="fas fa-arrow-right me-1"></i>Ver Reporte
-                            </a>
-                        </div>
+            <!-- Tiempos de Reparación -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-clock" style="color: #f59e0b; font-size: 1.5rem;"></i>
                     </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Tiempos de Reparación</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Análisis de tiempos promedio de reparación por tipo de servicio.
+                    </p>
+                    <a asp-action="TiemposReparacion" class="btn btn-warning btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Más reportes próximamente -->
+            <div class="card" style="border: 1px dashed var(--border);">
+                <div class="card-body" style="text-align: center; padding: 2rem;">
+                    <i class="fas fa-plus-circle" style="font-size: 3rem; color: var(--muted-foreground); opacity: 0.3; margin-bottom: 1rem;"></i>
+                    <p style="color: var(--muted-foreground); margin: 0;">Más reportes próximamente</p>
                 </div>
             </div>
         </div>
