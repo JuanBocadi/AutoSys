@@ -1089,6 +1089,16 @@ select option {
     height: 1.5rem;
 }
 
+/* Performance utilities */
+img[loading="lazy"] {
+    opacity: 0;
+    transition: opacity 0.3s ease-in;
+}
+
+img[loading="lazy"].loaded {
+    opacity: 1;
+}
+
 /* LOGIN */
 .login-container {
     min-height: 100vh;
@@ -1226,17 +1236,29 @@ select option {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: var(--sidebar-hover);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    background-color: var(--sidebar-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 50%;
+    box-shadow: var(--shadow-md);
     color: var(--text-primary);
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
 }
 
 .theme-toggle-btn:hover {
-    background: var(--primary-blue);
-    color: white;
+    background-color: var(--primary-blue);
+    color: var(--white);
+    border-color: var(--primary-blue);
+    transform: scale(1.1);
+    box-shadow: 0 8px 16px rgba(37, 99, 235, 0.3);
+}
+
+.theme-toggle-btn i {
+    transition: transform 0.3s ease;
+}
+
+.theme-toggle-btn:hover i {
+    transform: rotate(20deg);
 }
 
 /* ========== BREADCRUMBS ========== */
