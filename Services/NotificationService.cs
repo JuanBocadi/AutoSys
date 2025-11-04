@@ -13,7 +13,7 @@ namespace AutoSys.Services
 
         public Task SendAsync(string destination, string subject, string message)
         {
-            // Implementación simple: loguea el envío. Reemplazar por Email/WhatsApp provider.
+            // TODO: Reemplazar por Email/WhatsApp provider
             _logger.LogInformation("Notificación a {Destination}: {Subject} - {Message}", destination, subject, message);
             return Task.CompletedTask;
         }

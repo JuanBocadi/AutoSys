@@ -32,11 +32,17 @@
 // 📖 Ver documentación completa en: GUIA-COMPONENTES-UI.md
 // ========================================================
 
-// ========== THEME MANAGEMENT ==========
-// Inicializar el tema al cargar la página
+// ========== THEME MANAGEMENT WITH DARKREADER ==========
+// Inicializar DarkReader al cargar la página
 (function() {
     const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    if (savedTheme === 'dark' && typeof DarkReader !== 'undefined') {
+        DarkReader.enable({
+            brightness: 100,
+            contrast: 90,
+            sepia: 10
+        });
+    }
 })();
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -96,11 +102,20 @@ document.addEventListener('DOMContentLoaded', function () {
     const themeIconMobile = document.getElementById('themeIconMobile');
     
     function toggleTheme() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const currentTheme = localStorage.getItem('theme') || 'light';
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         
-        // Cambiar el tema
-        document.documentElement.setAttribute('data-theme', newTheme);
+        // Cambiar el tema con DarkReader
+        if (newTheme === 'dark') {
+            DarkReader.enable({
+                brightness: 100,
+                contrast: 90,
+                sepia: 10
+            });
+        } else {
+            DarkReader.disable();
+        }
+        
         localStorage.setItem('theme', newTheme);
         
         // Actualizar ambos botones
@@ -120,7 +135,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
     
     function updateThemeButtons() {
-        const currentTheme = document.documentElement.getAttribute('data-theme');
+        const currentTheme = localStorage.getItem('theme') || 'light';
         const isDark = currentTheme === 'dark';
         const iconClass = isDark ? 'fas fa-sun' : 'fas fa-moon';
         const title = isDark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro';

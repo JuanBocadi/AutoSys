@@ -14,13 +14,11 @@ namespace AutoSys.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
 
-        // UserManager para poder consultar los usuarios
         public UsuariosController(UserManager<IdentityUser> userManager)
         {
             _userManager = userManager;
         }
 
-        // Esta acción prepara y muestra la lista de usuarios
         public async Task<IActionResult> Index()
         {
             var users = await _userManager.Users.ToListAsync();
@@ -41,7 +39,6 @@ namespace AutoSys.Controllers
             return View(userViewModels);
         }
 
-        // devuelve los datos de un usuario en formato JSON para el popup
         [HttpGet]
         public async Task<IActionResult> GetUserDetails(string id)
         {
@@ -68,7 +65,6 @@ namespace AutoSys.Controllers
             return Json(userDetails);
         }
 
-        // Eliminar usuario (solo Administrador)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(string id)
@@ -78,7 +74,6 @@ namespace AutoSys.Controllers
                 return BadRequest();
             }
 
-            // Evitar que el usuario autenticado elimine su propia cuenta
             var currentUser = await _userManager.GetUserAsync(User);
             if (currentUser != null && currentUser.Id == id)
             {

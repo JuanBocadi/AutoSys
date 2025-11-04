@@ -23,13 +23,11 @@ namespace AutoSys.Controllers
         {
             try
             {
-                // Estadísticas del dashboard con manejo de errores
                 ViewBag.TotalClientes = await _context.Clientes.CountAsync();
                 ViewBag.TotalVehiculos = await _context.Vehiculos.CountAsync();
                 ViewBag.IngresosActivos = await _context.Ingresos.CountAsync(i => i.Estado != "Entregado");
                 ViewBag.StockCritico = await _context.Stock.CountAsync(s => s.Cantidad <= s.StockMinimo);
                 
-                // Ingresos recientes
                 var ingresosRecientes = await _context.Ingresos
                     .Include(i => i.Vehiculo)
                         .ThenInclude(v => v!.Cliente)
@@ -39,13 +37,11 @@ namespace AutoSys.Controllers
                 
                 ViewBag.IngresosRecientes = ingresosRecientes;
                 
-                // Estadísticas por estado
                 ViewBag.EnRevision = await _context.Ingresos.CountAsync(i => i.Estado == "En revisión");
                 ViewBag.EnProceso = await _context.Ingresos.CountAsync(i => i.Estado == "En proceso");
                 ViewBag.EnReparacion = await _context.Ingresos.CountAsync(i => i.Estado == "En reparación");
                 ViewBag.Finalizados = await _context.Ingresos.CountAsync(i => i.Estado == "Finalizado");
                 
-                // Datos para gráficos
                 await PrepararDatosGraficosAsync();
                 
                 return View();
@@ -70,7 +66,6 @@ namespace AutoSys.Controllers
         {
             try
             {
-                // Datos para gráfico de facturación mensual (últimos 6 meses)
                 var fechaInicio = DateTime.Now.AddMonths(-6);
                 var facturacionMensual = await _context.Facturas
                     .Where(f => f.FechaEmision >= fechaInicio)
@@ -89,7 +84,6 @@ namespace AutoSys.Controllers
                     .ToList();
                 ViewBag.FacturacionData = facturacionMensual.Select(f => f.Total).ToList();
 
-                // Datos para gráfico de reparaciones por estado
                 ViewBag.ReparacionesData = new List<int>
                 {
                     ViewBag.Finalizados ?? 0,

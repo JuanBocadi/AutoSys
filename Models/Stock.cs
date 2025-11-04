@@ -31,24 +31,18 @@ namespace AutoSys.Models
         
         public DateTime FechaActualizacion { get; set; } = DateTime.Now;
 
-        // Propiedades calculadas para semaforización
         [NotMapped]
         public string ColorSemaforo
         {
             get
             {
-                // Semaforización por nivel de stock
-                // Verde: Suficiente (Cantidad > StockMinimo * 2)
-                // Amarillo: Bajo (Cantidad entre StockMinimo y StockMinimo * 2)
-                // Rojo: Crítico (Cantidad < StockMinimo)
-                
                 if (Cantidad > StockMinimo * 2)
-                    return "success"; // Verde - Suficiente
+                    return "success";
                 
                 if (Cantidad >= StockMinimo && Cantidad <= StockMinimo * 2)
-                    return "warning"; // Amarillo - Bajo
+                    return "warning";
                 
-                return "danger"; // Rojo - Crítico
+                return "danger";
             }
         }
 

@@ -20,7 +20,6 @@ namespace AutoSys.Controllers
             _logger = logger;
         }
 
-        // Listado solo lectura de clientes
         public async Task<IActionResult> Index()
         {
             try
@@ -48,7 +47,6 @@ namespace AutoSys.Controllers
             }
         }
 
-        // GET: Clientes/Create
         public IActionResult Create()
         {
             ViewData["Breadcrumb"] = "Nuevo Cliente";
@@ -57,7 +55,6 @@ namespace AutoSys.Controllers
             return View();
         }
 
-        // POST: Clientes/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Nombre,Apellido,DNI,Telefono,Email")] Cliente cliente)
@@ -92,7 +89,6 @@ namespace AutoSys.Controllers
             return View(cliente);
         }
 
-        // DRILL-DOWN: Ver vehículos de un cliente específico
         public async Task<IActionResult> VehiculosDelCliente(int id)
         {
             try

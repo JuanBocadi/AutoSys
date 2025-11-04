@@ -19,28 +19,26 @@ namespace AutoSys.Controllers
             _env = env;
         }
 
-        // Muestra el formulario inicial para crear un ingreso
         [Authorize(Roles = "Administrador,Recepcionista")]
         public IActionResult Create()
         {
             ViewBag.Vehiculos = _context.Vehiculos
                 .Include(v => v.Cliente)
+                .ToList()
                 .Select(v => new
                 {
                     v.Id,
-                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente.Nombre} {v.Cliente.Apellido})"
+                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
                 })
                 .ToList();
 
             return View();
         }
 
-        // Procesa los datos ingresados en Create y muestra la vista de confirmación
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Ingreso ingreso, IFormFile? Foto, string? FotoTempPath)
         {
-            // Validación de existencia de ingreso activo para el vehículo
             bool ingresoActivo = await _context.Ingresos
                 .AnyAsync(i => i.VehiculoId == ingreso.VehiculoId && i.FechaEgreso == null);
 
@@ -58,10 +56,11 @@ namespace AutoSys.Controllers
             {
                 ViewBag.Vehiculos = _context.Vehiculos
                     .Include(v => v.Cliente)
+                    .ToList()
                     .Select(v => new
                     {
                         v.Id,
-                        Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente.Nombre} {v.Cliente.Apellido})"
+                        Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
                     })
                     .ToList();
 
@@ -73,7 +72,6 @@ namespace AutoSys.Controllers
 
             string? rutaTemp = FotoTempPath;
 
-            // Procesamiento de nueva imagen (si fue cargada)
             if (Foto != null && Foto.Length > 0)
             {
                 string tempFolder = Path.Combine(_env.WebRootPath, "temp");
@@ -94,14 +92,13 @@ namespace AutoSys.Controllers
             return View("Confirmar", ingreso);
         }
 
-        // Confirmación final del ingreso: guarda en base de datos
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Confirmado(Ingreso ingreso, string? FotoTempPath)
         {
             ingreso.FechaIngreso = DateTime.Now;
             ingreso.FechaEgreso = null;
-            // Estado por defecto si no vino seteado
+
             if (string.IsNullOrWhiteSpace(ingreso.Estado))
             {
                 ingreso.Estado = "En revisión";
@@ -125,7 +122,6 @@ namespace AutoSys.Controllers
             _context.Ingresos.Add(ingreso);
             await _context.SaveChangesAsync();
 
-            // registrar también la foto en la tabla FotosVehiculo si existe
             if (!string.IsNullOrEmpty(ingreso.FotoPath))
             {
                 var foto = new FotoVehiculo
@@ -143,7 +139,6 @@ namespace AutoSys.Controllers
             return RedirectToAction("Detalle", new { id = ingreso.Id });
         }
 
-        // Muestra el detalle de un ingreso específico
         public async Task<IActionResult> Detalle(int id)
         {
             var ingreso = await _context.Ingresos
@@ -176,7 +171,6 @@ namespace AutoSys.Controllers
 
             ingreso.Estado = estado;
             
-            // Si el estado es "Entregado", asignar automáticamente la fecha de egreso
             if (estado == "Entregado" && !ingreso.FechaEgreso.HasValue)
             {
                 ingreso.FechaEgreso = DateTime.Now;
@@ -188,7 +182,6 @@ namespace AutoSys.Controllers
             return RedirectToAction("Detalle", new { id });
         }
 
-        // Muestra todos los ingresos ordenados por fecha
         public async Task<IActionResult> Index(int page = 1, int pageSize = 20)
         {
             if (page < 1) page = 1;
@@ -210,7 +203,6 @@ namespace AutoSys.Controllers
             return View(items);
         }
 
-        // Acción para editar desde la vista de confirmación
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult EditarDesdeConfirmacion(int VehiculoId, string Diagnostico, string? FotoTempPath)
@@ -222,10 +214,11 @@ namespace AutoSys.Controllers
             };
             ViewBag.Vehiculos = _context.Vehiculos
                 .Include(v => v.Cliente)
+                .ToList()
                 .Select(v => new
                 {
                     v.Id,
-                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente.Nombre} {v.Cliente.Apellido})"
+                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
                 })
                 .ToList();
 

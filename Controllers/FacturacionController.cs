@@ -17,7 +17,6 @@ namespace AutoSys.Controllers
             _context = context;
         }
 
-        // GET: Facturacion
         public async Task<IActionResult> Index(string buscar = "", string estado = "")
         {
             var query = _context.Facturas
@@ -40,7 +39,6 @@ namespace AutoSys.Controllers
 
             var facturas = await query.OrderByDescending(f => f.FechaEmision).ToListAsync();
 
-            // Estadísticas
             var todasFacturas = await _context.Facturas.ToListAsync();
             ViewBag.TotalFacturas = todasFacturas.Count;
             ViewBag.FacturasPendientes = todasFacturas.Count(f => f.Estado == "Pendiente");
@@ -52,10 +50,8 @@ namespace AutoSys.Controllers
             return View(facturas);
         }
 
-        // GET: Facturacion/Create
         public async Task<IActionResult> Create(int? ingresoId)
         {
-            // Lista de ingresos finalizados sin factura
             var ingresosDisponibles = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                     .ThenInclude(v => v.Cliente)
@@ -87,7 +83,6 @@ namespace AutoSys.Controllers
                 }
             }
 
-            // Generar número de factura automático
             var ultimaFactura = await _context.Facturas
                 .OrderByDescending(f => f.Id)
                 .FirstOrDefaultAsync();
@@ -98,14 +93,12 @@ namespace AutoSys.Controllers
             return View(factura);
         }
 
-        // POST: Facturacion/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(Factura factura, List<DetalleFactura> detalles)
         {
             if (ModelState.IsValid && detalles != null && detalles.Any())
             {
-                // Calcular totales
                 factura.Subtotal = detalles.Sum(d => d.Subtotal);
                 factura.IVA = factura.Subtotal * 0.21m; // 21% IVA
                 factura.Total = factura.Subtotal + factura.IVA;
@@ -114,7 +107,6 @@ namespace AutoSys.Controllers
                 _context.Facturas.Add(factura);
                 await _context.SaveChangesAsync();
 
-                // Agregar detalles
                 foreach (var detalle in detalles)
                 {
                     detalle.FacturaId = factura.Id;
@@ -129,7 +121,6 @@ namespace AutoSys.Controllers
             return View(factura);
         }
 
-        // GET: Facturacion/Detalle/5
         public async Task<IActionResult> Detalle(int? id)
         {
             if (id == null) return NotFound();
@@ -166,7 +157,6 @@ namespace AutoSys.Controllers
             return RedirectToAction(nameof(Detalle), new { id });
         }
 
-        // GET: Facturacion/Imprimir/5
         public async Task<IActionResult> Imprimir(int? id)
         {
             if (id == null) return NotFound();

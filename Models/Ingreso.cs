@@ -26,7 +26,6 @@ namespace AutoSys.Models
         public Vehiculo? Vehiculo { get; set; }
         public ICollection<FotoVehiculo>? Fotos { get; set; }
 
-        // Propiedades calculadas para semaforización
         [NotMapped]
         public int DiasEnTaller
         {
@@ -42,25 +41,16 @@ namespace AutoSys.Models
         {
             get
             {
-                // Semaforización por estado de la reparación según avance del trabajo
-                // Rojo: En revisión (recién ingresado, aún no comenzó)
-                // Amarillo: En proceso/reparación (trabajo en marcha)
-                // Verde: Finalizado/Entregado (trabajo completado)
-                
-                // Verde: Trabajo completado
                 if (FechaEgreso.HasValue || Estado == "Listo para entrega" || Estado == "Finalizado" || Estado == "Entregado")
-                    return "success"; // Verde - Finalizado/Entregado
+                    return "success";
                 
-                // Amarillo: Trabajo en marcha
                 if (Estado == "En reparación" || Estado == "En proceso")
-                    return "warning"; // Amarillo - En proceso
+                    return "warning";
                 
-                // Rojo: Recién ingresado o esperando inicio
                 if (Estado == "En revisión")
-                    return "danger"; // Rojo - En revisión
+                    return "danger";
                 
-                // Por defecto, si está esperando repuestos también es rojo (requiere acción)
-                return "danger"; // Rojo - Esperando acción
+                return "danger";
             }
         }
 

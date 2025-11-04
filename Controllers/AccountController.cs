@@ -69,7 +69,6 @@ namespace AutoSys.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password)
         {
-            // Intentar login con username o email
             var user = await _userManager.FindByNameAsync(email) ?? await _userManager.FindByEmailAsync(email);
             
             if (user != null)

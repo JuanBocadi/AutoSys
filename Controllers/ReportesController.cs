@@ -16,26 +16,21 @@ namespace AutoSys.Controllers
             _context = context;
         }
 
-        // Dashboard principal de reportes
         public async Task<IActionResult> Index()
         {
-            // Reportes generales
             ViewBag.TotalClientes = await _context.Clientes.CountAsync();
             ViewBag.TotalVehiculos = await _context.Vehiculos.CountAsync();
             ViewBag.TotalIngresos = await _context.Ingresos.CountAsync();
             ViewBag.IngresosEnTaller = await _context.Ingresos.CountAsync(i => !i.FechaEgreso.HasValue);
 
-            // Reportes de facturación
             var facturas = await _context.Facturas.ToListAsync();
             ViewBag.TotalFacturas = facturas.Count;
             ViewBag.FacturasPendientes = facturas.Count(f => f.Estado == "Pendiente");
             ViewBag.TotalRecaudado = facturas.Where(f => f.Estado == "Pagada").Sum(f => f.Total);
             ViewBag.PromedioFactura = facturas.Any() ? facturas.Average(f => f.Total) : 0;
 
-            // Stock crítico
             ViewBag.StockCritico = await _context.Stock.CountAsync(s => s.Cantidad < s.StockMinimo);
 
-            // Ingresos del mes actual
             var primerDiaMes = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1);
             ViewBag.IngresosMesActual = await _context.Ingresos
                 .CountAsync(i => i.FechaIngreso >= primerDiaMes);
@@ -43,7 +38,6 @@ namespace AutoSys.Controllers
             return View();
         }
 
-        // Reporte de ingresos por período
         public async Task<IActionResult> IngresosPorPeriodo(DateTime? desde, DateTime? hasta)
         {
             desde ??= DateTime.Now.AddMonths(-1);
@@ -88,7 +82,6 @@ namespace AutoSys.Controllers
             return View(facturas);
         }
 
-        // Reporte de clientes más activos
         public async Task<IActionResult> ClientesActivos()
         {
             var clientes = await _context.Clientes
@@ -113,7 +106,6 @@ namespace AutoSys.Controllers
             return View();
         }
 
-        // Reporte de stock bajo/crítico
         public async Task<IActionResult> StockBajo()
         {
             var items = await _context.Stock
@@ -127,7 +119,6 @@ namespace AutoSys.Controllers
             return View(items);
         }
 
-        // Reporte de tiempo promedio de reparación
         public async Task<IActionResult> TiemposReparacion()
         {
             var ingresosFinalizados = await _context.Ingresos

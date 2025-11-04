@@ -19,7 +19,6 @@ namespace AutoSys.Controllers
             _logger = logger;
         }
 
-        // Vista principal de stock con semaforización
         public async Task<IActionResult> Index(string buscar = "")
         {
             try
@@ -34,7 +33,6 @@ namespace AutoSys.Controllers
 
                 var items = await query.OrderBy(s => s.Nombre).ToListAsync();
 
-                // Estadísticas para el dashboard
                 ViewBag.TotalItems = items.Count;
                 ViewBag.ItemsSuficientes = items.Count(s => s.ColorSemaforo == "success");
                 ViewBag.ItemsBajo = items.Count(s => s.ColorSemaforo == "warning");
@@ -51,14 +49,12 @@ namespace AutoSys.Controllers
             }
         }
 
-        // GET: Stock/Create
         [Authorize(Roles = "Administrador")]
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Stock/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
@@ -75,7 +71,6 @@ namespace AutoSys.Controllers
             return View(stock);
         }
 
-        // GET: Stock/Edit/5
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Edit(int? id)
         {
@@ -87,7 +82,6 @@ namespace AutoSys.Controllers
             return View(stock);
         }
 
-        // POST: Stock/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]
@@ -128,7 +122,6 @@ namespace AutoSys.Controllers
             return View(stock);
         }
 
-        // POST: Stock/AjustarStock
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AjustarStock(int id, int cantidad, string tipo)
@@ -197,7 +190,6 @@ namespace AutoSys.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // GET: Stock/Delete/5
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Delete(int? id)
         {
@@ -209,7 +201,6 @@ namespace AutoSys.Controllers
             return View(stock);
         }
 
-        // POST: Stock/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         [Authorize(Roles = "Administrador")]

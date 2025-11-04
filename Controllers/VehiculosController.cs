@@ -19,7 +19,6 @@ namespace AutoSys.Controllers
             _logger = logger;
         }
 
-        // Listado solo lectura de vehículos
         public async Task<IActionResult> Index()
         {
             var vehiculos = await _context.Vehiculos
@@ -29,7 +28,6 @@ namespace AutoSys.Controllers
             return View(vehiculos);
         }
 
-        // GET: Vehiculos/Create
         public IActionResult Create()
         {
             ViewBag.Clientes = _context.Clientes
@@ -43,7 +41,6 @@ namespace AutoSys.Controllers
             return View();
         }
 
-        // POST: Vehiculos/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("ClienteId,Patente,Marca,Modelo")] Vehiculo vehiculo)
@@ -67,7 +64,6 @@ namespace AutoSys.Controllers
             {
                 if (ModelState.IsValid)
                 {
-                    // Verificar que no exista la patente
                     var existePatente = await _context.Vehiculos
                         .AnyAsync(v => v.Patente == vehiculo.Patente);
                     
@@ -109,7 +105,6 @@ namespace AutoSys.Controllers
             return View(vehiculo);
         }
 
-        // DRILL-DOWN: Ver reparaciones de un vehículo específico
         public async Task<IActionResult> ReparacionesDelVehiculo(int id)
         {
             var vehiculo = await _context.Vehiculos

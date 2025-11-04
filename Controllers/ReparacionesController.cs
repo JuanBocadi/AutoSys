@@ -17,7 +17,6 @@ namespace AutoSys.Controllers
             _context = context;
         }
 
-        // Vista principal de reparaciones con semaforización
         public async Task<IActionResult> Index()
         {
             var reparaciones = await _context.Ingresos
@@ -26,9 +25,7 @@ namespace AutoSys.Controllers
                 .OrderByDescending(i => i.FechaIngreso)
                 .ToListAsync();
 
-            // Estadísticas para el dashboard
             ViewBag.TotalReparaciones = reparaciones.Count;
-            // En Taller: Todos los que NO tienen fecha de egreso (incluye todos los estados sin entrega)
             ViewBag.ReparacionesActivas = reparaciones.Count(r => !r.FechaEgreso.HasValue);
 
             return View(reparaciones);
