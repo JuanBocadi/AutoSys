@@ -1,18 +1,14 @@
 ﻿@{
     ViewData["Title"] = "Dashboard";
-}
-
-@if (TempData["SuccessMessage"] != null)
-{
-    <div class="autosys-alert autosys-alert-success">
-        <i class="fas fa-check-circle"></i>
-        <span>@TempData["SuccessMessage"]</span>
-    </div>
+    ViewData["Breadcrumb"] = "Dashboard Principal";
 }
 
 <!-- Header -->
 <div style="margin-bottom: 2rem;">
-    <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">Dashboard</h1>
+    <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+        <i class="fas fa-tachometer-alt" style="color: var(--primary-blue);"></i> 
+        Dashboard Ejecutivo
+    </h1>
     <p style="color: var(--muted-foreground);">Resumen general del sistema de gestión</p>
 </div>
 
@@ -187,4 +183,195 @@
             </div>
         }
     </div>
-</div>```
+</div>
+
+<!-- Gráficos Interactivos -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-top: 2rem;">
+    <!-- Gráfico de Facturación Mensual -->
+    <div class="card">
+        <div class="card-header">
+            <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-chart-line" style="color: var(--primary-blue);"></i>
+                Facturación Mensual
+            </h2>
+            <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0;">Últimos 6 meses</p>
+        </div>
+        <div class="card-body">
+            <canvas id="facturacionChart" style="max-height: 300px;"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico de Estado de Reparaciones -->
+    <div class="card">
+        <div class="card-header">
+            <h2 style="font-size: 1.25rem; font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-chart-pie" style="color: var(--accent-green);"></i>
+                Estado de Reparaciones
+            </h2>
+            <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0;">Distribución actual</p>
+        </div>
+        <div class="card-body" style="display: flex; justify-content: center; align-items: center;">
+            <canvas id="reparacionesChart" style="max-height: 300px; max-width: 300px;"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Configuración de colores que respeta el tema
+        const getThemeColors = () => {
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                primary: isDarkMode ? '#3b82f6' : '#2563eb',
+                success: isDarkMode ? '#22c55e' : '#16a34a',
+                warning: isDarkMode ? '#fdba74' : '#ea580c',
+                danger: isDarkMode ? '#fca5a5' : '#dc2626',
+                text: isDarkMode ? '#f9fafb' : '#111827',
+                border: isDarkMode ? '#374151' : '#e5e7eb',
+                gridColor: isDarkMode ? '#374151' : '#e5e7eb'
+            };
+        };
+
+        let colors = getThemeColors();
+        
+        // Gráfico de Facturación Mensual
+        const ctxFacturacion = document.getElementById('facturacionChart');
+        if (ctxFacturacion) {
+            const facturacionChart = new Chart(ctxFacturacion, {
+                type: 'bar',
+                data: {
+                    labels: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.MesesLabels ?? new List<string>())),
+                    datasets: [{
+                        label: 'Facturación ($)',
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.FacturacionData ?? new List<decimal>())),
+                        backgroundColor: 'rgba(37, 99, 235, 0.6)',
+                        borderColor: colors.primary,
+                        borderWidth: 2,
+                        borderRadius: 6,
+                        hoverBackgroundColor: 'rgba(37, 99, 235, 0.8)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: colors.text === '#f9fafb' ? '#1f2937' : '#ffffff',
+                            titleColor: colors.text,
+                            bodyColor: colors.text,
+                            borderColor: colors.border,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    return ' $' + context.parsed.y.toLocaleString('es-AR', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: colors.gridColor
+                            },
+                            ticks: {
+                                color: colors.text,
+                                callback: function(value) {
+                                    return '$' + value.toLocaleString('es-AR');
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: colors.text
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Actualizar colores del gráfico al cambiar tema
+            document.addEventListener('themeChanged', () => {
+                colors = getThemeColors();
+                facturacionChart.options.scales.y.grid.color = colors.gridColor;
+                facturacionChart.options.scales.y.ticks.color = colors.text;
+                facturacionChart.options.scales.x.ticks.color = colors.text;
+                facturacionChart.data.datasets[0].borderColor = colors.primary;
+                facturacionChart.update();
+            });
+        }
+
+        // Gráfico de Estado de Reparaciones
+        const ctxReparaciones = document.getElementById('reparacionesChart');
+        if (ctxReparaciones) {
+            const reparacionesChart = new Chart(ctxReparaciones, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Finalizadas', 'En Proceso', 'En Revisión'],
+                    datasets: [{
+                        data: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(ViewBag.ReparacionesData ?? new List<int> {0, 0, 0})),
+                        backgroundColor: [
+                            'rgba(22, 163, 74, 0.8)',
+                            'rgba(234, 88, 12, 0.8)',
+                            'rgba(220, 38, 38, 0.8)'
+                        ],
+                        borderColor: [
+                            colors.success,
+                            colors.warning,
+                            colors.danger
+                        ],
+                        borderWidth: 2,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                color: colors.text,
+                                padding: 15,
+                                font: {
+                                    size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: colors.text === '#f9fafb' ? '#1f2937' : '#ffffff',
+                            titleColor: colors.text,
+                            bodyColor: colors.text,
+                            borderColor: colors.border,
+                            borderWidth: 1,
+                            callbacks: {
+                                label: function(context) {
+                                    const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    const percentage = total > 0 ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                                    return ' ' + context.label + ': ' + context.parsed + ' (' + percentage + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Actualizar colores del gráfico al cambiar tema
+            document.addEventListener('themeChanged', () => {
+                colors = getThemeColors();
+                reparacionesChart.options.plugins.legend.labels.color = colors.text;
+                reparacionesChart.data.datasets[0].borderColor = [colors.success, colors.warning, colors.danger];
+                reparacionesChart.update();
+            });
+        }
+    });
+</script>
+}
+```

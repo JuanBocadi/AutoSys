@@ -1,0 +1,110 @@
+@model AutoSys.Models.Cliente
+@{
+    ViewData["Title"] = "Nuevo Cliente";
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-user-plus" style="margin-right: 0.5rem; color: #3b82f6;"></i>
+                Nuevo Cliente
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Completa los datos del nuevo cliente</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Formulario -->
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post" id="formCliente">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <div class="row g-3">
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label asp-for="Nombre" class="form-label">
+                        <i class="fas fa-user me-1"></i> Nombre
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Ingrese el nombre" required />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <!-- Apellido -->
+                <div class="col-md-6">
+                    <label asp-for="Apellido" class="form-label">
+                        <i class="fas fa-user me-1"></i> Apellido
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Apellido" class="form-control" placeholder="Ingrese el apellido" required />
+                    <span asp-validation-for="Apellido" class="text-danger"></span>
+                </div>
+
+                <!-- DNI -->
+                <div class="col-md-4">
+                    <label asp-for="DNI" class="form-label">
+                        <i class="fas fa-id-card me-1"></i> DNI
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="DNI" class="form-control" placeholder="12345678" maxlength="8" required />
+                    <span asp-validation-for="DNI" class="text-danger"></span>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="col-md-4">
+                    <label asp-for="Telefono" class="form-label">
+                        <i class="fas fa-phone me-1"></i> Teléfono
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Telefono" class="form-control" placeholder="11 1234-5678" required />
+                    <span asp-validation-for="Telefono" class="text-danger"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-4">
+                    <label asp-for="Email" class="form-label">
+                        <i class="fas fa-envelope me-1"></i> Email
+                    </label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="cliente@ejemplo.com" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <a asp-action="Index" class="btn btn-outline">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>Guardar Cliente
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Agregar loading state al guardar
+        document.getElementById('formCliente').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (this.checkValidity()) {
+                AutoSysUI.setButtonLoading(submitBtn, true);
+            }
+        });
+
+        // Formatear DNI (solo números)
+        document.querySelector('input[name="DNI"]').addEventListener('input', function(e) {
+            this.value = this.value.replace(/\D/g, '').substring(0, 8);
+        });
+    </script>
+}

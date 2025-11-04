@@ -1,0 +1,106 @@
+@model AutoSys.Models.Vehiculo
+@{
+    ViewData["Title"] = "Nuevo Vehículo";
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-car" style="margin-right: 0.5rem; color: #10b981;"></i>
+                Nuevo Vehículo
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Completa los datos del nuevo vehículo</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Formulario -->
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <div class="row g-3">
+                <!-- Cliente -->
+                <div class="col-12">
+                    <label asp-for="ClienteId" class="form-label">
+                        <i class="fas fa-user me-1"></i> Cliente
+                        <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="ClienteId" class="form-select" required>
+                        <option value="">-- Seleccione un cliente --</option>
+                        @foreach (var cliente in ViewBag.Clientes)
+                        {
+                            <option value="@cliente.Id">@cliente.Apellido, @cliente.Nombre - DNI: @cliente.DNI</option>
+                        }
+                    </select>
+                    <span asp-validation-for="ClienteId" class="text-danger"></span>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Si el cliente no existe, <a asp-controller="Clientes" asp-action="Create" target="_blank">créalo aquí primero</a>.
+                    </div>
+                </div>
+
+                <!-- Patente -->
+                <div class="col-md-4">
+                    <label asp-for="Patente" class="form-label">
+                        <i class="fas fa-id-badge me-1"></i> Patente
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Patente" 
+                           class="form-control" 
+                           placeholder="Ej: ABC123" 
+                           style="text-transform: uppercase;" 
+                           required 
+                           maxlength="10" />
+                    <span asp-validation-for="Patente" class="text-danger"></span>
+                </div>
+
+                <!-- Marca -->
+                <div class="col-md-4">
+                    <label asp-for="Marca" class="form-label">
+                        <i class="fas fa-copyright me-1"></i> Marca
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Marca" class="form-control" placeholder="Ej: Toyota, Ford, Chevrolet" required />
+                    <span asp-validation-for="Marca" class="text-danger"></span>
+                </div>
+
+                <!-- Modelo -->
+                <div class="col-md-4">
+                    <label asp-for="Modelo" class="form-label">
+                        <i class="fas fa-car-side me-1"></i> Modelo
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Modelo" class="form-control" placeholder="Ej: Corolla, Focus, Cruze" required />
+                    <span asp-validation-for="Modelo" class="text-danger"></span>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <a asp-action="Index" class="btn btn-outline">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save me-2"></i>Guardar Vehículo
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // Solo convertir a mayúsculas - SIN VALIDACIONES COMPLICADAS
+        document.querySelector('input[name="Patente"]').addEventListener('input', function() {
+            this.value = this.value.toUpperCase();
+        });
+    </script>
+}

@@ -13,13 +13,18 @@
             </h1>
             <p style="color: var(--muted-foreground); margin: 0;">Listado de todos los vehículos registrados</p>
         </div>
-        <div style="position: relative;">
-            <input type="text" 
-                   placeholder="Buscar vehículo..." 
-                   class="form-control" 
-                   style="padding-left: 2.5rem; width: 300px;"
-                   id="searchInput">
-            <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+        <div style="display: flex; gap: 0.75rem;">
+            <div style="position: relative;">
+                <input type="text" 
+                       placeholder="Buscar vehículo..." 
+                       class="form-control" 
+                       style="padding-left: 2.5rem; width: 300px;"
+                       id="searchInput">
+                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+            </div>
+            <a asp-action="Create" class="btn btn-success">
+                <i class="fas fa-plus"></i> Nuevo Vehículo
+            </a>
         </div>
     </div>
 </div>
@@ -156,12 +161,10 @@
                 </table>
             </div>
         }
-        else
+        
+        @if (!Model.Any())
         {
-            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
-                <i class="fas fa-car" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                <p style="margin: 0;">No hay vehículos registrados</p>
-            </div>
+            <div id="emptyStateContainer"></div>
         }
     </div>
 </div>
@@ -178,5 +181,25 @@
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
+
+        // Mostrar empty state si no hay vehículos
+        @if (!Model.Any())
+        {
+            <text>
+            const container = document.getElementById('emptyStateContainer');
+            if (container) {
+                const emptyState = AutoSysUI.createEmptyState({
+                    icon: 'fas fa-car',
+                    title: 'No hay vehículos registrados',
+                    description: 'Agrega vehículos para gestionar sus ingresos y reparaciones en el taller',
+                    actionText: 'Agregar Vehículo',
+                    actionCallback: () => {
+                        window.location.href = '@Url.Action("Create", "Vehiculos")';
+                    }
+                });
+                container.appendChild(emptyState);
+            }
+            </text>
+        }
     </script>
 }

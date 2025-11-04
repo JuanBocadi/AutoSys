@@ -13,10 +13,12 @@ namespace AutoSys.Models
         [StringLength(2000)]
         public string Diagnostico { get; set; } = string.Empty;
 
-        [StringLength(512)]
+        [StringLength(512, ErrorMessage = "La ruta de la foto no puede exceder los 512 caracteres.")]
         public string? FotoPath { get; set; }
         public DateTime? FechaEgreso { get; set; }
-        [Required, StringLength(50)]
+        
+        [Required(ErrorMessage = "El estado es obligatorio.")]
+        [StringLength(50, ErrorMessage = "El estado no puede exceder los 50 caracteres.")]
         public string Estado { get; set; } = "En revisión";
 
         [Required(ErrorMessage = "Debe seleccionar un vehículo.")]

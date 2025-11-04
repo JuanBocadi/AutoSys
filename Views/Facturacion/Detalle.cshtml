@@ -23,15 +23,15 @@
                         <strong>Estado:</strong>
                         @if (Model.Estado == "Pagada")
                         {
-                            <span class="badge bg-success">@Model.Estado</span>
+                            <span style="color: #16a34a; font-weight: 700;">@Model.Estado</span>
                         }
                         else if (Model.Estado == "Pendiente")
                         {
-                            <span class="badge bg-warning text-dark">@Model.Estado</span>
+                            <span style="color: #ea580c; font-weight: 700;">@Model.Estado</span>
                         }
                         else
                         {
-                            <span class="badge bg-danger">@Model.Estado</span>
+                            <span style="color: #dc2626; font-weight: 700;">@Model.Estado</span>
                         }
                     </p>
                     @if (!string.IsNullOrEmpty(Model.MetodoPago))

@@ -202,69 +202,37 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                        <button type="button" class="btn btn-sm btn-info" 
-                                                data-bs-toggle="modal" 
-                                                data-bs-target="#ajustarModal@(item.Id)"
+                                        <button type="button" class="btn btn-sm btn-info btn-ajustar-stock" 
+                                                data-stock-id="@item.Id"
+                                                data-stock-nombre="@item.Nombre"
+                                                data-stock-cantidad="@item.Cantidad"
+                                                data-stock-unidad="@item.Unidad"
                                                 title="Ajustar stock">
                                             <i class="fas fa-exchange-alt"></i> Ajustar
                                         </button>
                                         
                                         @if (User.IsInRole("Administrador"))
                                         {
-                                            <a asp-action="Edit" asp-route-id="@item.Id" 
-                                               class="btn btn-sm btn-warning"
-                                               title="Editar">
+                                            <button type="button" class="btn btn-sm btn-warning btn-editar-stock"
+                                                    data-stock-id="@item.Id"
+                                                    data-stock-nombre="@item.Nombre"
+                                                    data-stock-descripcion="@item.Descripcion"
+                                                    data-stock-cantidad="@item.Cantidad"
+                                                    data-stock-minimo="@item.StockMinimo"
+                                                    data-stock-unidad="@item.Unidad"
+                                                    data-stock-precio="@item.PrecioUnitario"
+                                                    title="Editar">
                                                 <i class="fas fa-edit"></i>
-                                            </a>
-                                            <a asp-action="Delete" asp-route-id="@item.Id" 
-                                               class="btn btn-sm btn-danger"
-                                               title="Eliminar">
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-danger btn-eliminar-stock"
+                                                    data-stock-id="@item.Id"
+                                                    data-stock-nombre="@item.Nombre"
+                                                    data-stock-cantidad="@item.Cantidad"
+                                                    data-stock-unidad="@item.Unidad"
+                                                    title="Eliminar">
                                                 <i class="fas fa-trash"></i>
-                                            </a>
+                                            </button>
                                         }
-                                    </div>
-
-                                    <!-- Modal para ajustar stock -->
-                                    <div class="modal fade" id="ajustarModal@(item.Id)" tabindex="-1">
-                                        <div class="modal-dialog">
-                                            <div class="modal-content">
-                                                <form asp-action="AjustarStock" method="post">
-                                                    <input type="hidden" name="id" value="@item.Id" />
-                                                    <div class="modal-header">
-                                                        <h5 class="modal-title">
-                                                            <i class="fas fa-exchange-alt" style="margin-right: 0.5rem;"></i>
-                                                            Ajustar Stock - @item.Nombre
-                                                        </h5>
-                                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                                    </div>
-                                                    <div class="modal-body">
-                                                        <div style="background: #f4f4f5; padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
-                                                            <p style="margin: 0; color: var(--muted-foreground); font-size: 0.875rem;">Stock actual:</p>
-                                                            <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">@item.Cantidad @item.Unidad</p>
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Cantidad</label>
-                                                            <input type="number" name="cantidad" class="form-control" 
-                                                                   min="1" required placeholder="Ingrese la cantidad" />
-                                                        </div>
-                                                        <div class="mb-3">
-                                                            <label class="form-label">Tipo de Ajuste</label>
-                                                            <select name="tipo" class="form-select" required>
-                                                                <option value="agregar">➕ Agregar al stock</option>
-                                                                <option value="quitar">➖ Quitar del stock</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-                                                    <div class="modal-footer">
-                                                        <button type="button" class="btn btn-secondary" 
-                                                                data-bs-dismiss="modal">Cancelar</button>
-                                                        <button type="submit" class="btn btn-primary">
-                                                            <i class="fas fa-check"></i> Confirmar Ajuste
-                                                        </button>
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
                                     </div>
                                 </td>
                             </tr>
@@ -282,3 +250,158 @@
         }
     </div>
 </div>
+
+<!-- Modal único para ajustar stock -->
+<div class="modal fade" id="ajustarStockModal" tabindex="-1" aria-labelledby="ajustarStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formAjustarStock" asp-action="AjustarStock" asp-controller="Stock" method="post">
+                <input type="hidden" id="stockId" name="id" />
+                <div class="modal-header">
+                    <h5 class="modal-title" id="ajustarStockModalLabel">
+                        <i class="fas fa-exchange-alt" style="margin-right: 0.5rem;"></i>
+                        Ajustar Stock - <span id="modalStockNombre"></span>
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #f4f4f5; padding: 1rem; border-radius: var(--radius); margin-bottom: 1rem;">
+                        <p style="margin: 0; color: var(--muted-foreground); font-size: 0.875rem;">Stock actual:</p>
+                        <p style="font-size: 1.5rem; font-weight: 700; margin: 0;">
+                            <span id="modalStockCantidad"></span> <span id="modalStockUnidad"></span>
+                        </p>
+                    </div>
+                    <div class="mb-3">
+                        <label for="stockCantidad" class="form-label">Cantidad</label>
+                        <input type="number" id="stockCantidad" name="cantidad" class="form-control" 
+                               min="1" required placeholder="Ingrese la cantidad" value="1" />
+                    </div>
+                    <div class="mb-3">
+                        <label for="stockTipo" class="form-label">Tipo de Ajuste</label>
+                        <select id="stockTipo" name="tipo" class="form-select" required>
+                            <option value="agregar" selected>➕ Agregar al stock</option>
+                            <option value="quitar">➖ Quitar del stock</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="btnConfirmarAjuste">
+                        <i class="fas fa-check"></i> Confirmar Ajuste
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para editar stock -->
+<div class="modal fade" id="editarStockModal" tabindex="-1" aria-labelledby="editarStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="formEditarStock" asp-action="Edit" asp-controller="Stock" method="post">
+                <input type="hidden" id="editId" name="Id" />
+                <div class="modal-header" style="background: var(--accent-orange); color: white;">
+                    <h5 class="modal-title" id="editarStockModalLabel">
+                        <i class="fas fa-edit" style="margin-right: 0.5rem;"></i>
+                        Editar Item: <span id="editNombre"></span>
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="editNombreInput" class="form-label">Nombre</label>
+                            <input type="text" id="editNombreInput" name="Nombre" class="form-control" required />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="editUnidad" class="form-label">Unidad</label>
+                            <input type="text" id="editUnidad" name="Unidad" class="form-control" placeholder="ej: unid., kg, litros" />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editDescripcion" class="form-label">Descripción</label>
+                        <textarea id="editDescripcion" name="Descripcion" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label for="editCantidad" class="form-label">Cantidad</label>
+                            <input type="number" id="editCantidad" name="Cantidad" class="form-control" min="0" required />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editStockMinimo" class="form-label">Stock Mínimo</label>
+                            <input type="number" id="editStockMinimo" name="StockMinimo" class="form-control" min="1" required />
+                            <small class="form-text text-muted">Cantidad mínima antes de reorden</small>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label for="editPrecio" class="form-label">Precio Unitario</label>
+                            <div class="input-group">
+                                <span class="input-group-text">$</span>
+                                <input type="number" id="editPrecio" name="PrecioUnitario" class="form-control" step="0.01" min="0" required />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="fas fa-save"></i> Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para eliminar stock -->
+<div class="modal fade" id="eliminarStockModal" tabindex="-1" aria-labelledby="eliminarStockModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formEliminarStock" asp-action="Delete" asp-controller="Stock" method="post">
+                <input type="hidden" id="deleteId" name="Id" />
+                <div class="modal-header" style="background: var(--accent-red); color: white;">
+                    <h5 class="modal-title" id="eliminarStockModalLabel">
+                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                        Eliminar Item del Inventario
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <h4 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>¿Está seguro que desea eliminar este item?
+                        </h4>
+                        <p class="mb-0">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Nombre:</dt>
+                                <dd class="col-sm-8"><strong id="deleteNombre"></strong></dd>
+                                
+                                <dt class="col-sm-4">Cantidad Actual:</dt>
+                                <dd class="col-sm-8">
+                                    <strong><span id="deleteCantidad"></span> <span id="deleteUnidad"></span></strong>
+                                </dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger">
+                        <i class="fas fa-trash"></i> Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/stock.js" asp-append-version="true"></script>
+}

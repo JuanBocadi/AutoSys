@@ -7,22 +7,26 @@ namespace AutoSys.Models
     {
         public int Id { get; set; }
         
-        [Required, StringLength(200)]
+        [Required(ErrorMessage = "El nombre es obligatorio.")]
+        [StringLength(200, ErrorMessage = "El nombre no puede exceder los 200 caracteres.")]
         public string Nombre { get; set; } = string.Empty;
         
-        [StringLength(1000)]
+        [StringLength(1000, ErrorMessage = "La descripción no puede exceder los 1000 caracteres.")]
         public string? Descripcion { get; set; }
         
-        [Required]
+        [Required(ErrorMessage = "La cantidad es obligatoria.")]
+        [Range(0, int.MaxValue, ErrorMessage = "La cantidad debe ser un valor positivo.")]
         public int Cantidad { get; set; }
         
-        [Required]
+        [Required(ErrorMessage = "El stock mínimo es obligatorio.")]
+        [Range(0, int.MaxValue, ErrorMessage = "El stock mínimo debe ser un valor positivo.")]
         public int StockMinimo { get; set; }
         
-        [StringLength(50)]
+        [StringLength(50, ErrorMessage = "La unidad no puede exceder los 50 caracteres.")]
         public string? Unidad { get; set; }
         
         [Column(TypeName = "decimal(18,2)")]
+        [Range(0, double.MaxValue, ErrorMessage = "El precio unitario debe ser un valor positivo.")]
         public decimal PrecioUnitario { get; set; }
         
         public DateTime FechaActualizacion { get; set; } = DateTime.Now;

@@ -22,9 +22,9 @@
                        id="searchInput">
                 <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
             </div>
-            <button class="btn btn-primary">
+            <a asp-action="Create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Nuevo Cliente
-            </button>
+            </a>
         </div>
     </div>
 </div>
@@ -142,10 +142,7 @@
         
         @if (!Model.Any())
         {
-            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
-                <i class="fas fa-users" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
-                <p style="margin: 0;">No hay clientes registrados</p>
-            </div>
+            <div id="emptyStateContainer"></div>
         }
     </div>
 </div>
@@ -162,5 +159,25 @@
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
             });
         });
+
+        // Mostrar empty state si no hay clientes
+        @if (!Model.Any())
+        {
+            <text>
+            const container = document.getElementById('emptyStateContainer');
+            if (container) {
+                const emptyState = AutoSysUI.createEmptyState({
+                    icon: 'fas fa-users',
+                    title: 'No hay clientes registrados',
+                    description: 'Comienza agregando tu primer cliente para gestionar sus vehículos y servicios',
+                    actionText: 'Agregar Cliente',
+                    actionCallback: () => {
+                        window.location.href = '@Url.Action("Create", "Clientes")';
+                    }
+                });
+                container.appendChild(emptyState);
+            }
+            </text>
+        }
     </script>
 }
