@@ -5,8 +5,10 @@ namespace AutoSys.Patterns.Composite
     /// </summary>
     public class ValidationResult
     {
-        public bool IsValid { get; set; }
-        public List<string> Errors { get; set; } = new();
+        public bool IsValid { get; private set; }
+        public List<string> Errors { get; private set; } = new();
+
+        private ValidationResult() { }
 
         public static ValidationResult Success() => new() { IsValid = true };
         

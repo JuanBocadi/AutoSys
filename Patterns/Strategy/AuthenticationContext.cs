@@ -63,7 +63,7 @@ namespace AutoSys.Patterns.Strategy
 
             if (signInResult.Succeeded)
             {
-                return AuthenticationResult.Successful(user, usedStrategy!);
+                return AuthenticationResult.Successful(user, usedStrategy ?? "Desconocido");
             }
 
             if (signInResult.IsLockedOut)

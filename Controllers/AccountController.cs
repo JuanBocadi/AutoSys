@@ -96,24 +96,21 @@ namespace AutoSys.Controllers
                 return View(model);
             }
 
-            if (ModelState.IsValid)
+            // Usar el patrón Builder para crear el usuario
+            var buildResult = await _userDirector.BuildStandardUserAsync(
+                model.Username,
+                model.Email,
+                model.Password,
+                model.Rol);
+
+            if (buildResult.Succeeded)
             {
-                // Usar el patrón Builder para crear el usuario
-                var buildResult = await _userDirector.BuildStandardUserAsync(
-                    model.Username,
-                    model.Email,
-                    model.Password,
-                    model.Rol);
-
-                if (buildResult.Succeeded)
-                {
-                    TempData["Success"] = "Usuario registrado correctamente.";
-                    return RedirectToAction("Index", "Usuarios");
-                }
-
-                foreach (var error in buildResult.Errors)
-                    ModelState.AddModelError(string.Empty, error);
+                TempData["Success"] = "Usuario registrado correctamente.";
+                return RedirectToAction("Index", "Usuarios");
             }
+
+            foreach (var error in buildResult.Errors)
+                ModelState.AddModelError(string.Empty, error);
 
             ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
             return View(model);
