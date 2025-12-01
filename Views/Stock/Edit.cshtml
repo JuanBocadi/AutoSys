@@ -3,78 +3,130 @@
     ViewData["Title"] = "Editar Item";
 }
 
-<div class="container mt-4">
-    <div class="card shadow-lg">
-        <div class="card-header bg-warning text-dark">
-            <h2><i class="fas fa-edit me-2"></i>Editar Item: @Model.Nombre</h2>
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-edit" style="margin-right: 0.5rem; color: #f59e0b;"></i>
+                Editar Item
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Modificar los datos de @Model.Nombre</p>
         </div>
-        <div class="card-body">
-            <form asp-action="Edit" method="post">
-                <input type="hidden" asp-for="Id" />
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+        <a asp-action="Index" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Nombre" class="form-label"></label>
-                        <input asp-for="Nombre" class="form-control" />
-                        <span asp-validation-for="Nombre" class="text-danger"></span>
-                    </div>
-
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="Unidad" class="form-label"></label>
-                        <input asp-for="Unidad" class="form-control" />
-                        <span asp-validation-for="Unidad" class="text-danger"></span>
-                    </div>
+<!-- Formulario -->
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post" id="formStock">
+            <input type="hidden" asp-for="Id" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <div class="row g-3">
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label asp-for="Nombre" class="form-label">
+                        <i class="fas fa-tag me-1"></i> Nombre
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Nombre" class="form-control" required />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Descripcion" class="form-label"></label>
+                <!-- Unidad -->
+                <div class="col-md-6">
+                    <label asp-for="Unidad" class="form-label">
+                        <i class="fas fa-ruler me-1"></i> Unidad de Medida
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Unidad" class="form-control" required />
+                    <span asp-validation-for="Unidad" class="text-danger"></span>
+                </div>
+
+                <!-- Descripción -->
+                <div class="col-12">
+                    <label asp-for="Descripcion" class="form-label">
+                        <i class="fas fa-align-left me-1"></i> Descripción
+                    </label>
                     <textarea asp-for="Descripcion" class="form-control" rows="3"></textarea>
                     <span asp-validation-for="Descripcion" class="text-danger"></span>
                 </div>
 
-                <div class="row">
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="Cantidad" class="form-label"></label>
-                        <input asp-for="Cantidad" class="form-control" type="number" min="0" />
-                        <span asp-validation-for="Cantidad" class="text-danger"></span>
-                    </div>
+                <!-- Cantidad -->
+                <div class="col-md-4">
+                    <label asp-for="Cantidad" class="form-label">
+                        <i class="fas fa-boxes me-1"></i> Cantidad Actual
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Cantidad" class="form-control" type="number" min="0" required />
+                    <span asp-validation-for="Cantidad" class="text-danger"></span>
+                </div>
 
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="StockMinimo" class="form-label"></label>
-                        <input asp-for="StockMinimo" class="form-control" type="number" min="1" />
-                        <span asp-validation-for="StockMinimo" class="text-danger"></span>
-                        <small class="form-text text-muted">Cantidad mínima antes de reorden</small>
-                    </div>
-
-                    <div class="col-md-4 mb-3">
-                        <label asp-for="PrecioUnitario" class="form-label"></label>
-                        <div class="input-group">
-                            <span class="input-group-text">$</span>
-                            <input asp-for="PrecioUnitario" class="form-control" type="number" 
-                                   step="0.01" min="0" />
-                        </div>
-                        <span asp-validation-for="PrecioUnitario" class="text-danger"></span>
+                <!-- Stock Mínimo -->
+                <div class="col-md-4">
+                    <label asp-for="StockMinimo" class="form-label">
+                        <i class="fas fa-exclamation-triangle me-1"></i> Stock Mínimo
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="StockMinimo" class="form-control" type="number" min="1" required />
+                    <span asp-validation-for="StockMinimo" class="text-danger"></span>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i>
+                        Cantidad mínima antes de reorden
                     </div>
                 </div>
 
-                <div class="alert alert-info">
-                    <strong>Última actualización:</strong> @Model.FechaActualizacion.ToString("dd/MM/yyyy HH:mm")
+                <!-- Precio Unitario -->
+                <div class="col-md-4">
+                    <label asp-for="PrecioUnitario" class="form-label">
+                        <i class="fas fa-dollar-sign me-1"></i> Precio Unitario
+                        <span class="text-danger">*</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="input-group-text">$</span>
+                        <input asp-for="PrecioUnitario" class="form-control" type="number" 
+                               step="0.01" min="0" required />
+                    </div>
+                    <span asp-validation-for="PrecioUnitario" class="text-danger"></span>
                 </div>
 
-                <div class="d-flex justify-content-between mt-4">
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Volver
-                    </a>
-                    <button type="submit" class="btn btn-warning text-dark">
-                        <i class="fas fa-save me-1"></i>Guardar Cambios
-                    </button>
+                <!-- Info de última actualización -->
+                <div class="col-12">
+                    <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: var(--radius);">
+                        <i class="fas fa-info-circle" style="color: #3b82f6; margin-right: 0.5rem;"></i>
+                        <strong>Última actualización:</strong> @Model.FechaActualizacion.ToString("dd/MM/yyyy HH:mm")
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <a asp-action="Index" class="btn btn-outline">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    
+    <script>
+        // Agregar loading state al guardar
+        document.getElementById('formStock').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            
+            if (this.checkValidity()) {
+                AutoSysUI.setButtonLoading(submitBtn, true);
+            }
+        });
+    </script>
 }

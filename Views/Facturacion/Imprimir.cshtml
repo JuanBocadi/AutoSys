@@ -1,0 +1,377 @@
+@model AutoSys.Models.Factura
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Factura @Model.NumeroFactura</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 20px;
+            background: white;
+        }
+
+        .factura-container {
+            max-width: 800px;
+            margin: 0 auto;
+            border: 2px solid #333;
+            padding: 30px;
+        }
+
+        .header {
+            text-align: center;
+            border-bottom: 3px solid #333;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .factura-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+        .info-section {
+            flex: 1;
+        }
+
+        .info-section h3 {
+            font-size: 16px;
+            color: #333;
+            margin-bottom: 10px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 5px;
+        }
+
+        .info-section p {
+            font-size: 13px;
+            line-height: 1.6;
+            color: #555;
+        }
+
+        .info-section strong {
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        thead {
+            background-color: #333;
+            color: white;
+        }
+
+        th {
+            padding: 12px;
+            text-align: left;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #ddd;
+            font-size: 13px;
+        }
+
+        tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-end {
+            text-align: right;
+        }
+
+        .totals {
+            margin-top: 30px;
+            border-top: 2px solid #333;
+            padding-top: 15px;
+        }
+
+        .totals table {
+            width: 40%;
+            margin-left: auto;
+            margin-bottom: 0;
+        }
+
+        .totals td {
+            border: none;
+            padding: 8px;
+            font-size: 14px;
+        }
+
+        .totals .total-final {
+            font-size: 18px;
+            font-weight: bold;
+            background-color: #f0f0f0;
+        }
+
+        .estado {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .estado-pagada {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .estado-pendiente {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+
+        .estado-anulada {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        .observaciones {
+            margin-top: 30px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-left: 4px solid #333;
+        }
+
+        .observaciones h4 {
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .observaciones p {
+            font-size: 13px;
+            color: #555;
+            line-height: 1.6;
+        }
+
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-servicio {
+            background-color: #0d6efd;
+            color: white;
+        }
+
+        .badge-repuesto {
+            background-color: #6c757d;
+            color: white;
+        }
+
+        @@media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+
+            .factura-container {
+                border: none;
+                padding: 0;
+            }
+        }
+
+        .print-button {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .print-button button {
+            background-color: #0d6efd;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 5px;
+            font-size: 14px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .print-button button:hover {
+            background-color: #0b5ed7;
+        }
+    </style>
+</head>
+<body>
+    <div class="print-button no-print">
+        <button onclick="window.print()">
+            🖨️ Imprimir Factura
+        </button>
+    </div>
+
+    <div class="factura-container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🚗 AUTOSYS - Taller Mecánico</h1>
+            <p>Sistema de Gestión de Taller Automotriz</p>
+            <p><strong>FACTURA</strong></p>
+        </div>
+
+        <!-- Información principal -->
+        <div class="factura-info">
+            <div class="info-section">
+                <h3>Datos de la Factura</h3>
+                <p><strong>Número:</strong> @Model.NumeroFactura</p>
+                <p><strong>Fecha de Emisión:</strong> @Model.FechaEmision.ToString("dd/MM/yyyy HH:mm")</p>
+                <p>
+                    <strong>Estado:</strong>
+                    @if (Model.Estado == "Pagada")
+                    {
+                        <span class="estado estado-pagada">PAGADA</span>
+                    }
+                    else if (Model.Estado == "Pendiente")
+                    {
+                        <span class="estado estado-pendiente">PENDIENTE</span>
+                    }
+                    else
+                    {
+                        <span class="estado estado-anulada">ANULADA</span>
+                    }
+                </p>
+                @if (!string.IsNullOrEmpty(Model.MetodoPago))
+                {
+                    <p><strong>Método de Pago:</strong> @Model.MetodoPago</p>
+                }
+            </div>
+
+            <div class="info-section">
+                <h3>Cliente</h3>
+                <p><strong>@Model.Cliente?.Nombre @Model.Cliente?.Apellido</strong></p>
+                <p><strong>DNI:</strong> @Model.Cliente?.DNI</p>
+                <p><strong>Teléfono:</strong> @Model.Cliente?.Telefono</p>
+                @if (!string.IsNullOrEmpty(Model.Cliente?.Email))
+                {
+                    <p><strong>Email:</strong> @Model.Cliente?.Email</p>
+                }
+            </div>
+
+            @if (Model.Ingreso != null)
+            {
+                <div class="info-section">
+                    <h3>Vehículo</h3>
+                    <p><strong>@Model.Ingreso.Vehiculo?.Marca @Model.Ingreso.Vehiculo?.Modelo</strong></p>
+                    <p><strong>Patente:</strong> @Model.Ingreso.Vehiculo?.Patente</p>
+                    <p><strong>Ingreso:</strong> @Model.Ingreso.FechaIngreso.ToString("dd/MM/yyyy")</p>
+                </div>
+            }
+        </div>
+
+        <!-- Tabla de detalles -->
+        <table>
+            <thead>
+                <tr>
+                    <th>Descripción</th>
+                    <th class="text-center">Tipo</th>
+                    <th class="text-center">Cant.</th>
+                    <th class="text-end">Precio Unit.</th>
+                    <th class="text-end">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var detalle in Model.Detalles)
+                {
+                    <tr>
+                        <td>@detalle.Descripcion</td>
+                        <td class="text-center">
+                            <span class="badge badge-@(detalle.Tipo == "Servicio" ? "servicio" : "repuesto")">
+                                @detalle.Tipo
+                            </span>
+                        </td>
+                        <td class="text-center">@detalle.Cantidad</td>
+                        <td class="text-end">$@detalle.PrecioUnitario.ToString("N2")</td>
+                        <td class="text-end">$@detalle.Subtotal.ToString("N2")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <!-- Totales -->
+        <div class="totals">
+            <table>
+                <tr>
+                    <td><strong>Subtotal:</strong></td>
+                    <td class="text-end"><strong>$@Model.Subtotal.ToString("N2")</strong></td>
+                </tr>
+                <tr>
+                    <td><strong>IVA (21%):</strong></td>
+                    <td class="text-end"><strong>$@Model.IVA.ToString("N2")</strong></td>
+                </tr>
+                <tr class="total-final">
+                    <td><strong>TOTAL:</strong></td>
+                    <td class="text-end"><strong>$@Model.Total.ToString("N2")</strong></td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Observaciones -->
+        @if (!string.IsNullOrEmpty(Model.Observaciones))
+        {
+            <div class="observaciones">
+                <h4>Observaciones</h4>
+                <p>@Model.Observaciones</p>
+            </div>
+        }
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Gracias por confiar en AutoSys - Taller Mecánico</p>
+            <p>Este documento fue generado electrónicamente y es válido sin firma</p>
+            <p>Impreso el: @DateTime.Now.ToString("dd/MM/yyyy HH:mm")</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-imprimir al cargar (opcional)
+        // window.onload = function() { window.print(); }
+    </script>
+</body>
+</html>

@@ -3,12 +3,25 @@
     ViewData["Title"] = "Nueva Factura";
 }
 
-<div class="container mt-4">
-    <div class="card shadow-lg">
-        <div class="card-header bg-success text-white">
-            <h2><i class="fas fa-plus me-2"></i>Nueva Factura</h2>
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-file-invoice-dollar" style="margin-right: 0.5rem; color: #10b981;"></i>
+                Nueva Factura
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Complete los datos para generar una nueva factura</p>
         </div>
-        <div class="card-body">
+        <a asp-action="Index" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Formulario -->
+<div class="card">
+    <div class="card-body">
             <form asp-action="Create" method="post" id="facturaForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
@@ -116,18 +129,17 @@
                     <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
                 </div>
 
-                <div class="d-flex justify-content-between">
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left me-1"></i>Volver
+                <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <a asp-action="Index" class="btn btn-outline">
+                        <i class="fas fa-times me-2"></i>Cancelar
                     </a>
-                    <button type="submit" class="btn btn-success">
-                        <i class="fas fa-save me-1"></i>Crear Factura
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <i class="fas fa-save me-2"></i>Crear Factura
                     </button>
                 </div>
             </form>
         </div>
     </div>
-</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

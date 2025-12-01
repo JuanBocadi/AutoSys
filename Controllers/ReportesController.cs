@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Patterns.Factory;
+using AutoSys.Patterns.Singleton;
 
 namespace AutoSys.Controllers
 {
@@ -43,19 +45,18 @@ namespace AutoSys.Controllers
             desde ??= DateTime.Now.AddMonths(-1);
             hasta ??= DateTime.Now;
 
-            var ingresos = await _context.Ingresos
-                .Include(i => i.Vehiculo!)
-                    .ThenInclude(v => v.Cliente)
-                .Where(i => i.FechaIngreso >= desde && i.FechaIngreso <= hasta)
-                .OrderByDescending(i => i.FechaIngreso)
-                .ToListAsync();
+            // PATRÓN FACTORY METHOD: Crear reporte de ingresos usando factory
+            var reportFactory = new IngresosPeriodoReportFactory(_context, desde.Value, hasta.Value);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
 
-            ViewBag.Desde = desde;
-            ViewBag.Hasta = hasta;
-            ViewBag.TotalIngresos = ingresos.Count;
-            ViewBag.EnProceso = ingresos.Count(i => !i.FechaEgreso.HasValue);
-            ViewBag.Finalizados = ingresos.Count(i => i.FechaEgreso.HasValue);
+            ViewBag.Desde = data["Desde"];
+            ViewBag.Hasta = data["Hasta"];
+            ViewBag.TotalIngresos = data["TotalIngresos"];
+            ViewBag.EnProceso = data["EnProceso"];
+            ViewBag.Finalizados = data["Finalizados"];
 
+            var ingresos = (List<Ingreso>)data["Ingresos"];
             return View(ingresos);
         }
 
@@ -65,30 +66,35 @@ namespace AutoSys.Controllers
             desde ??= DateTime.Now.AddMonths(-1);
             hasta ??= DateTime.Now;
 
-            var facturas = await _context.Facturas
-                .Include(f => f.Cliente)
-                .Include(f => f.Detalles)
-                .Where(f => f.FechaEmision >= desde && f.FechaEmision <= hasta)
-                .OrderByDescending(f => f.FechaEmision)
-                .ToListAsync();
+            // PATRÓN FACTORY METHOD: Crear reporte de facturación usando factory
+            var reportFactory = new FacturacionPeriodoReportFactory(_context, desde.Value, hasta.Value);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
 
-            ViewBag.Desde = desde;
-            ViewBag.Hasta = hasta;
-            ViewBag.TotalFacturas = facturas.Count;
-            ViewBag.TotalPagadas = facturas.Count(f => f.Estado == "Pagada");
-            ViewBag.TotalRecaudado = facturas.Where(f => f.Estado == "Pagada").Sum(f => f.Total);
-            ViewBag.TotalPendiente = facturas.Where(f => f.Estado == "Pendiente").Sum(f => f.Total);
+            ViewBag.Desde = data["Desde"];
+            ViewBag.Hasta = data["Hasta"];
+            ViewBag.TotalFacturas = data["TotalFacturas"];
+            ViewBag.TotalPagadas = data["TotalPagadas"];
+            ViewBag.TotalRecaudado = data["TotalRecaudado"];
+            ViewBag.TotalPendiente = data["TotalPendiente"];
 
+            var facturas = (List<Factura>)data["Facturas"];
             return View(facturas);
         }
 
         public async Task<IActionResult> ClientesActivos()
         {
-            var clientes = await _context.Clientes
-                .Include(c => c.Vehiculos)
-                    .ThenInclude(v => v.Ingresos)
-                .ToListAsync();
+            // PATRÓN FACTORY METHOD: Crear reporte de clientes activos usando factory
+            var reportFactory = new ClientesActivosReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
 
+            ViewBag.TotalClientes = data["TotalClientes"];
+            ViewBag.ClientesConVehiculos = data["ClientesConVehiculos"];
+            ViewBag.ClientesConIngresos = data["ClientesConIngresos"];
+
+            var clientes = (List<Cliente>)data["Clientes"];
+            
             var clientesConEstadisticas = clientes.Select(c => new
             {
                 Cliente = c,
@@ -108,12 +114,19 @@ namespace AutoSys.Controllers
 
         public async Task<IActionResult> StockBajo()
         {
-            var items = await _context.Stock
-                .Where(s => s.Cantidad <= s.StockMinimo * 2)
-                .OrderBy(s => s.Cantidad)
-                .ToListAsync();
+            // PATRÓN FACTORY METHOD: Crear reporte de stock bajo usando factory
+            // PATRÓN SINGLETON: Obtener configuración del nivel de alerta
+            var config = AppConfigurationManager.Instance;
+            int warningLevel = config.GetSettingAsInt("StockWarningLevel", 10);
 
-            ViewBag.ItemsCriticos = items.Count(s => s.Cantidad < s.StockMinimo);
+            var reportFactory = new StockBajoReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            ViewBag.TotalItems = data["TotalItems"];
+            ViewBag.ItemsCriticos = data["ItemsCriticos"];
+
+            var items = (List<Stock>)data["Items"];
             ViewBag.ItemsBajo = items.Count(s => s.Cantidad >= s.StockMinimo && s.Cantidad <= s.StockMinimo * 2);
 
             return View(items);
@@ -121,32 +134,18 @@ namespace AutoSys.Controllers
 
         public async Task<IActionResult> TiemposReparacion()
         {
-            var ingresosFinalizados = await _context.Ingresos
-                .Include(i => i.Vehiculo!)
-                    .ThenInclude(v => v.Cliente)
-                .Where(i => i.FechaEgreso.HasValue)
-                .OrderByDescending(i => i.FechaEgreso)
-                .Take(100)
-                .ToListAsync();
+            // PATRÓN FACTORY METHOD: Crear reporte de tiempos de reparación usando factory
+            var reportFactory = new TiemposReparacionReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
 
-            if (ingresosFinalizados.Any())
-            {
-                var tiempos = ingresosFinalizados
-                    .Select(i => (i.FechaEgreso!.Value - i.FechaIngreso).TotalDays)
-                    .ToList();
+            ViewBag.TotalReparaciones = data["TotalReparaciones"];
+            ViewBag.TiempoPromedio = Convert.ToDouble(data["TiempoPromedioHoras"]) / 24; // Convertir a días
+            ViewBag.TiempoMinimo = data["TiempoMinimoDias"];
+            ViewBag.TiempoMaximo = data["TiempoMaximoDias"];
 
-                ViewBag.TiempoPromedio = tiempos.Average();
-                ViewBag.TiempoMinimo = tiempos.Min();
-                ViewBag.TiempoMaximo = tiempos.Max();
-            }
-            else
-            {
-                ViewBag.TiempoPromedio = 0;
-                ViewBag.TiempoMinimo = 0;
-                ViewBag.TiempoMaximo = 0;
-            }
-
-            return View(ingresosFinalizados);
+            var ingresosFinalizados = (List<Ingreso>)data["Ingresos"];
+            return View(ingresosFinalizados.OrderByDescending(i => i.FechaEgreso).Take(100).ToList());
         }
     }
 }

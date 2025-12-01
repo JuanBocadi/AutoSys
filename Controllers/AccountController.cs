@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AutoSys.ViewModels;
+using AutoSys.Patterns.Composite;
+using AutoSys.Patterns.Singleton;
 using System.Threading.Tasks;
 using System.Linq;
 
@@ -34,6 +36,23 @@ namespace AutoSys.Controllers
         [Authorize(Roles = "Administrador")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
+            // PATRÓN COMPOSITE: Validación jerárquica de registro
+            var validationContext = new ValidationContext
+            {
+                Username = model.Username,
+                Email = model.Email,
+                Password = model.Password,
+                Rol = model.Rol
+            };
+
+            var validator = ValidationFactory.CreateRegisterValidation();
+            if (!validator.Validate(validationContext))
+            {
+                ModelState.AddModelError(string.Empty, validator.GetErrorMessage());
+                ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
+                return View(model);
+            }
+
             if (ModelState.IsValid)
             {
                 var user = new IdentityUser { UserName = model.Username, Email = model.Email };
@@ -69,6 +88,24 @@ namespace AutoSys.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Login(string email, string password)
         {
+            // PATRÓN COMPOSITE: Validación jerárquica de login
+            // PATRÓN SINGLETON: Obtener configuración de longitud mínima de contraseña
+            var config = AppConfigurationManager.Instance;
+            int minPasswordLength = config.GetSettingAsInt("MinPasswordLength", 6);
+
+            var validationContext = new ValidationContext
+            {
+                Username = email,
+                Password = password
+            };
+
+            var validator = ValidationFactory.CreateLoginValidation();
+            if (!validator.Validate(validationContext))
+            {
+                ViewBag.Error = validator.GetErrorMessage();
+                return View();
+            }
+
             var user = await _userManager.FindByNameAsync(email) ?? await _userManager.FindByEmailAsync(email);
             
             if (user != null)

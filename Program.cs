@@ -32,8 +32,12 @@ builder.Services.AddAuthorization(options =>
         .Build();
 });
 
+// Servicios y patrones de diseño
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
+
+// Patrón Observer: Registrar sujeto y observadores
+builder.Services.AddSingleton<AutoSys.Patterns.Observer.EventSubject>();
 
 var app = builder.Build();
 

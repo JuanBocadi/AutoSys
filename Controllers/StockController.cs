@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Patterns.Observer;
+using AutoSys.Services;
 using System.Linq;
 
 namespace AutoSys.Controllers
@@ -12,11 +14,24 @@ namespace AutoSys.Controllers
     {
         private readonly AutoSysDbContext _context;
         private readonly ILogger<StockController> _logger;
+        private readonly EventSubject _eventSubject;
+        private readonly INotificationService _notificationService;
 
-        public StockController(AutoSysDbContext context, ILogger<StockController> logger)
+        public StockController(AutoSysDbContext context, 
+                              ILogger<StockController> logger,
+                              EventSubject eventSubject,
+                              INotificationService notificationService)
         {
             _context = context;
             _logger = logger;
+            _eventSubject = eventSubject;
+            _notificationService = notificationService;
+
+            // PATRÓN OBSERVER: Adjuntar observadores
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            _eventSubject.Attach(new EmailNotificationObserver(_notificationService,
+                loggerFactory.CreateLogger<EmailNotificationObserver>()));
+            _eventSubject.Attach(new LoggerObserver(loggerFactory.CreateLogger<LoggerObserver>()));
         }
 
         public async Task<IActionResult> Index(string buscar = "")
@@ -179,6 +194,22 @@ namespace AutoSys.Controllers
                 
                 _logger.LogInformation("Stock ajustado exitosamente. Item: {Nombre}, Nueva cantidad: {Cantidad}", 
                     stock.Nombre, stock.Cantidad);
+
+                // PATRÓN OBSERVER: Notificar si el stock está bajo
+                if (stock.Cantidad < stock.StockMinimo)
+                {
+                    var eventData = new StockBajoEventData
+                    {
+                        ProductoId = stock.Id,
+                        NombreProducto = stock.Nombre,
+                        CantidadActual = stock.Cantidad,
+                        StockMinimo = stock.StockMinimo,
+                        FechaDeteccion = DateTime.Now
+                    };
+
+                    await _eventSubject.NotifyAsync("StockBajo", eventData);
+                }
+
                 TempData["SuccessMessage"] = $"Stock ajustado correctamente. Nueva cantidad: {stock.Cantidad} {stock.Unidad}";
             }
             catch (Exception ex)

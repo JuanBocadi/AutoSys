@@ -1,5 +1,7 @@
 ﻿using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Patterns.Observer;
+using AutoSys.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
@@ -12,11 +14,27 @@ namespace AutoSys.Controllers
     {
         private readonly AutoSysDbContext _context;
         private readonly IWebHostEnvironment _env;
+        private readonly EventSubject _eventSubject;
+        private readonly INotificationService _notificationService;
+        private readonly ILogger<IngresoController> _logger;
 
-        public IngresoController(AutoSysDbContext context, IWebHostEnvironment env)
+        public IngresoController(AutoSysDbContext context, 
+                                 IWebHostEnvironment env,
+                                 EventSubject eventSubject,
+                                 INotificationService notificationService,
+                                 ILogger<IngresoController> logger)
         {
             _context = context;
             _env = env;
+            _eventSubject = eventSubject;
+            _notificationService = notificationService;
+            _logger = logger;
+
+            // PATRÓN OBSERVER: Adjuntar observadores al sujeto
+            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+            _eventSubject.Attach(new EmailNotificationObserver(_notificationService, 
+                loggerFactory.CreateLogger<EmailNotificationObserver>()));
+            _eventSubject.Attach(new LoggerObserver(loggerFactory.CreateLogger<LoggerObserver>()));
         }
 
         [Authorize(Roles = "Administrador,Recepcionista")]
@@ -163,12 +181,17 @@ namespace AutoSys.Controllers
                 return RedirectToAction("Detalle", new { id });
             }
 
-            var ingreso = await _context.Ingresos.FirstOrDefaultAsync(i => i.Id == id);
+            var ingreso = await _context.Ingresos
+                .Include(i => i.Vehiculo!)
+                    .ThenInclude(v => v.Cliente)
+                .FirstOrDefaultAsync(i => i.Id == id);
+            
             if (ingreso == null)
             {
                 return NotFound();
             }
 
+            string estadoAnterior = ingreso.Estado ?? "Sin estado";
             ingreso.Estado = estado;
             
             if (estado == "Entregado" && !ingreso.FechaEgreso.HasValue)
@@ -177,6 +200,19 @@ namespace AutoSys.Controllers
             }
             
             await _context.SaveChangesAsync();
+
+            // PATRÓN OBSERVER: Notificar cambio de estado
+            var eventData = new IngresoStateChangedEventData
+            {
+                IngresoId = ingreso.Id,
+                EstadoAnterior = estadoAnterior,
+                NuevoEstado = estado,
+                Patente = ingreso.Vehiculo?.Patente ?? "N/A",
+                ClienteEmail = ingreso.Vehiculo?.Cliente?.Email,
+                FechaCambio = DateTime.Now
+            };
+
+            await _eventSubject.NotifyAsync("IngresoStateChanged", eventData);
 
             TempData["SuccessMessage"] = "Estado actualizado correctamente.";
             return RedirectToAction("Detalle", new { id });
