@@ -132,13 +132,15 @@ html, body {
     color: var(--text-primary);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow-x: hidden;
 }
 
 /* ========== LAYOUT PRINCIPAL ========== */
 .autosys-container {
     display: flex;
     height: 100vh;
-    background-color: var(--bg-primary);
 }
 
 /* ========== SIDEBAR ========== */
@@ -157,18 +159,42 @@ html, body {
     border-right: 1px solid var(--sidebar-border);
 }
 
+/* Sidebar con posición relativa para botón de tema */
+.autosys-sidebar {
+    position: relative;
+}
+
+/* Sidebar Header - Sin botón de cerrar */
 .sidebar-header {
     padding: var(--spacing-xl);
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+    position: relative;
 }
 
 .sidebar-logo {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
+    justify-content: center;
+    padding: 1rem 0;
+    position: relative;
+}
+
+.sidebar-logo-img {
+    max-width: 180px;
+    height: auto;
+    transition: opacity 0.3s ease;
+}
+
+/* Por defecto mostrar logo claro */
+.sidebar-logo-img.logo-light {
+    display: block;
+}
+
+.sidebar-logo-img.logo-dark {
+    display: none;
 }
 
 .logo-icon {
@@ -250,6 +276,39 @@ html, body {
     background-color: var(--sidebar-hover);
     margin: 0;
     border-radius: 0;
+}
+
+/* Theme Toggle in Sidebar - Top Right Corner */
+.theme-toggle-sidebar {
+    display: none; /* Oculto por defecto */
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    z-index: 10;
+    width: 50px;
+    height: 50px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-md);
+}
+
+.theme-toggle-sidebar:hover {
+    background: var(--primary-blue-dark);
+    transform: scale(1.05);
+}
+
+.theme-toggle-sidebar:active {
+    transform: scale(0.95);
+}
+
+.theme-toggle-sidebar i {
+    font-size: 1.25rem;
 }
 
 .user-profile {
@@ -354,9 +413,8 @@ html, body {
 /* ========== MAIN CONTENT ========== */
 .autosys-main {
     flex: 1;
-    margin-left: 16rem;
     overflow-y: auto;
-    padding: var(--spacing-xl);
+    padding: 1.5rem;
 }
 
 /* ========== PAGE HEADER ========== */
@@ -942,19 +1000,7 @@ select option {
     grid-template-columns: repeat(4, 1fr);
 }
 
-@media (max-width: 1024px) {
-    .grid-4 {
-        grid-template-columns: repeat(2, 1fr);
-    }
-}
 
-@media (max-width: 768px) {
-    .grid-2,
-    .grid-3,
-    .grid-4 {
-        grid-template-columns: 1fr;
-    }
-}
 
 /* ========== SEMAFOROS ========== */
 .semaforo-indicator {
@@ -1110,15 +1156,27 @@ img[loading="lazy"].loaded {
 
 /* Logo del Login */
 .login-logo-container {
-    width: 64px;
-    height: 64px;
-    background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
-    border-radius: var(--border-radius-lg);
     display: flex;
     align-items: center;
     justify-content: center;
     margin: 0 auto var(--spacing-lg);
-    box-shadow: var(--shadow-lg);
+    position: relative;
+    min-height: 120px;
+}
+
+.login-logo-img {
+    max-width: 200px;
+    height: auto;
+    transition: opacity 0.3s ease;
+}
+
+/* Por defecto mostrar logo claro en login */
+.login-logo-img.logo-light {
+    display: block;
+}
+
+.login-logo-img.logo-dark {
+    display: none;
 }
 
 .login-logo-icon {
@@ -1129,106 +1187,7 @@ img[loading="lazy"].loaded {
 /* Logo del Login en Modo Oscuro */
 
 
-/* ========== MOBILE MENU ========== */
-.mobile-menu-toggle {
-    display: none;
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 1001;
-    width: 3rem;
-    height: 3rem;
-    background: var(--primary-blue);
-    color: white;
-    border: none;
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-lg);
-    cursor: pointer;
-    transition: all 0.3s ease;
-}
 
-.mobile-menu-toggle:hover {
-    background: var(--primary-blue-dark);
-    transform: scale(1.05);
-}
-
-.mobile-menu-toggle:active {
-    transform: scale(0.95);
-}
-
-.mobile-overlay {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 999;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.mobile-overlay.active {
-    opacity: 1;
-}
-
-.mobile-close-btn {
-    display: none;
-    position: absolute;
-    top: 1.5rem;
-    right: 1rem;
-    background: transparent;
-    border: none;
-    color: var(--text-secondary);
-    font-size: 1.5rem;
-    cursor: pointer;
-    padding: 0.5rem;
-    transition: color 0.2s ease;
-}
-
-.mobile-close-btn:hover {
-    color: var(--text-primary);
-}
-
-.mobile-topbar {
-    display: none;
-    position: sticky;
-    top: 0;
-    left: 0;
-    right: 0;
-    background: var(--white);
-    border-bottom: 1px solid var(--border-color);
-    padding: 1rem;
-    z-index: 100;
-    box-shadow: var(--shadow-sm);
-}
-
-.mobile-topbar-content {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-
-.mobile-logo {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-weight: 700;
-    font-size: 1.2rem;
-    color: var(--text-primary);
-}
-
-.mobile-logo i {
-    color: var(--primary-blue);
-    font-size: 1.5rem;
-}
-
-.mobile-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
 
 .theme-toggle-btn {
     width: 2.5rem;
@@ -1422,217 +1381,7 @@ img[loading="lazy"].loaded {
     to { transform: rotate(360deg); }
 }
 
-/* ========== RESPONSIVE MEJORAS ========== */
-@media (max-width: 1024px) {
-    .autosys-main {
-        padding: var(--spacing-lg);
-    }
-    
-    .page-title {
-        font-size: 1.5rem;
-    }
-    
-    /* Hacer las cards más compactas en tablets */
-    .card-body {
-        padding: 1.25rem;
-    }
-}
 
-@media (max-width: 768px) {
-    /* ===== MOBILE MENU ===== */
-    .mobile-menu-toggle {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-    
-    .mobile-overlay {
-        display: block;
-    }
-    
-    .mobile-topbar {
-        display: block;
-    }
-    
-    .mobile-close-btn {
-        display: block;
-    }
-    
-    /* ===== SIDEBAR ===== */
-    .autosys-sidebar {
-        position: fixed;
-        left: -100%;
-        top: 0;
-        height: 100vh;
-        width: 280px;
-        z-index: 1000;
-        transition: left 0.3s ease;
-    }
-    
-    .autosys-sidebar.mobile-open {
-        left: 0;
-    }
-    
-    /* ===== MAIN CONTENT ===== */
-    .autosys-main {
-        margin-left: 0 !important;
-        padding: 1rem;
-        padding-top: 4rem; /* Espacio para mobile topbar */
-    }
-    
-    /* ===== THEME TOGGLE DESKTOP ===== */
-    .theme-toggle-floating {
-        display: none;
-    }
-    
-    /* ===== PAGE TITLES ===== */
-    .page-title,
-    h1 {
-        font-size: 1.5rem !important;
-    }
-    
-    h2 {
-        font-size: 1.25rem !important;
-    }
-    
-    h3 {
-        font-size: 1.1rem !important;
-    }
-    
-    /* ===== STAT CARDS ===== */
-    .stat-card {
-        padding: var(--spacing-md);
-    }
-    
-    /* ===== TABLES ===== */
-    .table {
-        font-size: 0.875rem;
-    }
-    
-    .table th,
-    .table td {
-        padding: var(--spacing-sm);
-    }
-    
-    /* Ocultar columnas menos importantes en móvil */
-    .table th.d-none-mobile,
-    .table td.d-none-mobile {
-        display: none;
-    }
-    
-    /* ===== BUTTONS ===== */
-    .btn-group {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-    
-    .btn-group .btn {
-        width: 100%;
-    }
-    
-    /* ===== FORMS ===== */
-    .form-row {
-        flex-direction: column;
-    }
-    
-    .form-group {
-        width: 100% !important;
-    }
-    
-    /* ===== MODALS ===== */
-    .modal-dialog {
-        width: 95%;
-        margin: 1rem auto;
-    }
-    
-    /* ===== CARDS ===== */
-    .card-header {
-        padding: 1rem;
-    }
-    
-    .card-body {
-        padding: 1rem;
-    }
-    
-    /* ===== GRID RESPONSIVE ===== */
-    [style*="grid-template-columns"] {
-        grid-template-columns: 1fr !important;
-    }
-    
-    /* ===== BREADCRUMBS ===== */
-    .breadcrumb {
-        font-size: 0.875rem;
-        padding: 0.5rem 0;
-    }
-    
-    /* ===== SCROLL TO TOP ===== */
-    #scrollTopBtn {
-        bottom: 1rem;
-        right: 1rem;
-        width: 2.5rem;
-        height: 2.5rem;
-    }
-}
-
-@media (max-width: 480px) {
-    /* ===== EXTRA SMALL DEVICES ===== */
-    .autosys-main {
-        padding: 0.75rem;
-        padding-top: 4rem;
-    }
-    
-    .btn {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.875rem;
-    }
-    
-    .card {
-        border-radius: var(--radius-md);
-        margin-bottom: 1rem;
-    }
-    
-    .card-header,
-    .card-body {
-        padding: 0.75rem;
-    }
-    
-    /* Stack action buttons */
-    .btn-toolbar {
-        flex-direction: column;
-    }
-    
-    .btn-toolbar .btn {
-        width: 100%;
-        margin-bottom: 0.5rem;
-    }
-    
-    /* Smaller text inputs */
-    .form-control,
-    .form-select {
-        font-size: 16px; /* Previene zoom en iOS */
-    }
-    
-    /* Smaller badges */
-    .badge {
-        font-size: 0.75rem;
-        padding: 0.25rem 0.5rem;
-    }
-    
-    /* Adjust stat cards */
-    .stat-card h3 {
-        font-size: 1.5rem !important;
-    }
-    
-    /* Mobile topbar adjustments */
-    .mobile-logo {
-        font-size: 1rem;
-    }
-    
-    .mobile-logo i {
-        font-size: 1.25rem;
-    }
-}
 
 /* ========== SKELETON LOADERS ========== */
 .skeleton {
@@ -1943,18 +1692,307 @@ a:focus-visible {
     }
 }
 
-/* ========== TOAST RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .toast-container {
-        left: 1rem;
-        right: 1rem;
-        top: auto;
-        bottom: 1rem;
+/* ========== RESPONSIVE DESIGN - MOBILE FIRST ========== */
+
+/* Mobile Menu Toggle Button */
+.mobile-menu-toggle {
+    display: none; /* oculto en desktop */
+    position: fixed;
+    top: 1rem;
+    left: 1rem;
+    z-index: 1060; /* Por encima del overlay y sidebar */
+    width: 50px;
+    height: 50px;
+    background: var(--primary-blue);
+    color: white;
+    border: none;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.mobile-menu-toggle:active {
+    transform: scale(0.95);
+}
+
+/* Mobile Overlay */
+.mobile-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1040;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.mobile-overlay.active {
+    opacity: 1;
+    pointer-events: all;
+}
+
+/* Tablets y menores (1024px) */
+@media (max-width: 1024px) {
+    /* Sidebar se mantiene pero más estrecho */
+    .autosys-sidebar {
+        width: 240px;
     }
     
-    .toast {
-        min-width: unset;
+    .autosys-main {
+        margin-left: 240px;
+    }
+    
+    .autosys-main main {
+        padding: 1.5rem;
+    }
+    
+    /* Ajustar grids */
+    .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .stat-card {
+        padding: 1rem;
+    }
+}
+
+/* Mobile (768px y menores) */
+@media (max-width: 768px) {
+    /* Activar menú hamburguesa */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    .mobile-overlay {
+        display: block;
+    }
+    
+    /* Sidebar: oculto por defecto, se muestra con clase .mobile-open */
+    .autosys-sidebar {
+        position: fixed;
+        top: 0;
+        left: -280px;
+        width: 280px;
+        height: 100vh;
+        z-index: 1045;
+        overflow-y: auto;
+        transition: left 0.3s ease;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .autosys-sidebar.mobile-open {
+        left: 0;
+    }
+    
+    /* Mostrar botón de tema en sidebar cuando está abierto en móvil */
+    .autosys-sidebar.mobile-open .theme-toggle-sidebar {
+        display: flex;
+    }
+    
+    /* Main ocupa todo el ancho */
+    .autosys-main {
+        margin-left: 0 !important;
         width: 100%;
+    }
+    
+    .autosys-main main {
+        padding: 1rem;
+        padding-top: 5rem; /* espacio para botón hamburguesa */
+    }
+    
+    /* Grids a 1 columna */
+    .grid-2,
+    .grid-3,
+    .grid-4 {
+        grid-template-columns: 1fr;
+    }
+    
+    /* Cards más compactas */
+    .card {
+        margin-bottom: 1rem;
+    }
+    
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: 1rem;
+    }
+    
+    /* Tablas con scroll horizontal suave */
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        border-radius: var(--radius-md);
+        margin-bottom: 1rem;
+    }
+    
+    .table {
+        min-width: 700px; /* ancho mínimo para scroll horizontal */
+        margin-bottom: 0;
+        font-size: 0.9rem;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.75rem 0.5rem;
+        white-space: nowrap;
+    }
+    
+    /* Formularios a ancho completo */
+    .form-row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .form-group {
+        width: 100% !important;
+        margin-bottom: 1rem;
+    }
+    
+    .form-control,
+    .form-select {
+        width: 100%;
+        font-size: 16px; /* evita zoom en iOS */
+        min-height: 44px; /* touch-friendly */
+    }
+    
+    /* Botones táctiles */
+    .btn {
+        min-height: 44px;
+        padding: 0.75rem 1.25rem;
+        font-size: 1rem;
+    }
+    
+    .btn-group {
+        flex-direction: column;
+        width: 100%;
+        gap: 0.5rem;
+    }
+    
+    .btn-group .btn {
+        width: 100%;
+    }
+    
+    /* Modals ajustados */
+    .modal-dialog {
+        width: 95%;
+        max-width: 95%;
+        margin: 1rem auto;
+    }
+    
+    .modal-content {
+        max-height: 90vh;
+    }
+    
+    .modal-body {
+        max-height: 60vh;
+        overflow-y: auto;
+    }
+    
+    /* Breadcrumbs compactos */
+    .breadcrumb {
+        font-size: 0.85rem;
+        padding: 0.5rem 0.75rem;
+        flex-wrap: wrap;
+    }
+    
+    /* Títulos más pequeños */
+    .page-title,
+    h1 {
+        font-size: 1.75rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    h3 {
+        font-size: 1.25rem;
+    }
+    
+    /* Stat cards apiladas */
+    .stat-card {
+        padding: 1rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 1.75rem;
+    }
+    
+    /* Paginación compacta */
+    .pagination {
+        font-size: 0.9rem;
+        flex-wrap: wrap;
+        gap: 0.25rem;
+    }
+    
+    .page-link {
+        padding: 0.5rem 0.75rem;
+    }
+    
+    /* Theme toggle flotante oculto en mobile (sidebar tiene el suyo) */
+    .theme-toggle-floating {
+        display: none;
+    }
+    
+    /* Filtros y búsqueda a ancho completo */
+    .search-bar,
+    .filter-group {
+        width: 100%;
+    }
+    
+    .search-bar input {
+        width: 100%;
+    }
+}
+
+/* Mobile pequeño (480px y menores) */
+@media (max-width: 480px) {
+    .autosys-main main {
+        padding: 0.75rem;
+        padding-top: 4.5rem;
+    }
+    
+    .table {
+        font-size: 0.85rem;
+        min-width: 600px;
+    }
+    
+    .table th,
+    .table td {
+        padding: 0.5rem 0.35rem;
+    }
+    
+    .btn {
+        font-size: 0.9rem;
+        padding: 0.65rem 1rem;
+    }
+    
+    .card-header,
+    .card-body,
+    .card-footer {
+        padding: 0.75rem;
+    }
+    
+    .page-title,
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    h2 {
+        font-size: 1.25rem;
+    }
+    
+    h3 {
+        font-size: 1.1rem;
     }
 }
 
@@ -1986,3 +2024,5 @@ a:focus-visible {
         color: black !important;
     }
 }
+
+

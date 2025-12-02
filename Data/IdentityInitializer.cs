@@ -99,6 +99,7 @@ namespace AutoSys.Data
             {
                 Console.WriteLine("ℹ️ El usuario administrador ya existe.");
             }
+
         }
     }
 }

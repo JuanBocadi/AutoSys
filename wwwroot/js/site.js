@@ -97,9 +97,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const themeToggle = document.getElementById('themeToggle');
     const themeIcon = document.getElementById('themeIcon');
     
-    // ========== THEME TOGGLE - MOBILE ==========
-    const themeToggleMobile = document.getElementById('themeToggleMobile');
-    const themeIconMobile = document.getElementById('themeIconMobile');
+    // ========== THEME TOGGLE - SIDEBAR ==========
+    const themeToggleSidebar = document.getElementById('themeToggleSidebar');
+    const themeIconSidebar = document.getElementById('themeIconSidebar');
     
     function toggleTheme() {
         const currentTheme = localStorage.getItem('theme') || 'light';
@@ -121,8 +121,43 @@ document.addEventListener('DOMContentLoaded', function () {
         // Actualizar ambos botones
         updateThemeButtons();
         
+        // Actualizar el logo del sidebar
+        updateSidebarLogo();
+        
         // Disparar evento personalizado para actualizar gráficos
         document.dispatchEvent(new Event('themeChanged'));
+    }
+    
+    function updateSidebarLogo() {
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        
+        // Logo del sidebar
+        const sidebarLogoLight = document.querySelector('.sidebar-logo-img.logo-light');
+        const sidebarLogoDark = document.querySelector('.sidebar-logo-img.logo-dark');
+        
+        if (sidebarLogoLight && sidebarLogoDark) {
+            if (currentTheme === 'dark') {
+                sidebarLogoLight.style.display = 'none';
+                sidebarLogoDark.style.display = 'block';
+            } else {
+                sidebarLogoLight.style.display = 'block';
+                sidebarLogoDark.style.display = 'none';
+            }
+        }
+        
+        // Logo del login (si existe)
+        const loginLogoLight = document.querySelector('.login-logo-img.logo-light');
+        const loginLogoDark = document.querySelector('.login-logo-img.logo-dark');
+        
+        if (loginLogoLight && loginLogoDark) {
+            if (currentTheme === 'dark') {
+                loginLogoLight.style.display = 'none';
+                loginLogoDark.style.display = 'block';
+            } else {
+                loginLogoLight.style.display = 'block';
+                loginLogoDark.style.display = 'none';
+            }
+        }
     }
     
     if (themeToggle) {
@@ -130,9 +165,12 @@ document.addEventListener('DOMContentLoaded', function () {
         themeToggle.addEventListener('click', toggleTheme);
     }
     
-    if (themeToggleMobile) {
-        themeToggleMobile.addEventListener('click', toggleTheme);
+    if (themeToggleSidebar) {
+        themeToggleSidebar.addEventListener('click', toggleTheme);
     }
+    
+    // Actualizar el logo al cargar la página
+    updateSidebarLogo();
     
     function updateThemeButtons() {
         const currentTheme = localStorage.getItem('theme') || 'light';
@@ -145,9 +183,9 @@ document.addEventListener('DOMContentLoaded', function () {
             themeToggle.title = title;
         }
         
-        if (themeIconMobile) {
-            themeIconMobile.className = iconClass;
-            themeToggleMobile.title = title;
+        if (themeIconSidebar) {
+            themeIconSidebar.className = iconClass;
+            themeToggleSidebar.title = title;
         }
     }
     

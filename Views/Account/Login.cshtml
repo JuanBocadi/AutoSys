@@ -10,6 +10,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - AutoSys</title>
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 </head>
@@ -24,7 +25,8 @@
             <!-- Header con logo y título -->
             <div style="padding: var(--spacing-2xl); text-align: center; border-bottom: 1px solid var(--border-color);">
                 <div class="login-logo-container">
-                    <i class="fas fa-car login-logo-icon"></i>
+                    <img src="~/images/logo-light.png" alt="AutoSys Logo" class="login-logo-img logo-light" id="loginLogo" />
+                    <img src="~/images/logo-dark.png" alt="AutoSys Logo" class="login-logo-img logo-dark" id="loginLogoDark" />
                 </div>
                 <h1 style="font-size: 1.875rem; font-weight: 700; color: var(--text-primary); margin-bottom: var(--spacing-sm);">
                     Bienvenido a AutoSys
