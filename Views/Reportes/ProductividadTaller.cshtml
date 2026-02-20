@@ -1,0 +1,490 @@
+@{
+    ViewData["Title"] = "Productividad del Taller";
+    var mesesData = ViewBag.MesesData as IEnumerable<dynamic>;
+    var mesesSeleccionados = (int)ViewBag.Meses;
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-industry" style="margin-right: 0.5rem; color: #6366f1;"></i>
+                Productividad del Taller
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Tendencias de trabajo y facturación de los últimos @mesesSeleccionados meses</p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Filtro de período -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <form method="get" asp-action="ProductividadTaller" style="display: flex; align-items: end; gap: 1rem;">
+            <div>
+                <label class="form-label" style="font-size: 0.875rem; font-weight: 600;">Período de análisis</label>
+                <select name="meses" class="form-select" style="width: auto;">
+                    @{
+                        var opciones = new[] { 3, 6, 12, 24 };
+                        var textos = new[] { "Últimos 3 meses", "Últimos 6 meses", "Últimos 12 meses", "Últimos 24 meses" };
+                    }
+                    @for (int i = 0; i < opciones.Length; i++)
+                    {
+                        if (mesesSeleccionados == opciones[i])
+                        {
+                            <option value="@opciones[i]" selected>@textos[i]</option>
+                        }
+                        else
+                        {
+                            <option value="@opciones[i]">@textos[i]</option>
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="fas fa-sync-alt me-1"></i> Actualizar
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- KPIs principales -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card" style="border-left: 4px solid #6366f1;">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Total Ingresos</p>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; margin: 0; color: #6366f1;">@ViewBag.TotalIngresosPeriodo</h3>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">en @mesesSeleccionados meses</p>
+                </div>
+                <div style="width: 2.5rem; height: 2.5rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-clipboard-list" style="color: #6366f1; font-size: 1.25rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #10b981;">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Total Facturado</p>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; margin: 0; color: #10b981;">$@(((decimal)ViewBag.TotalFacturadoPeriodo).ToString("N0"))</h3>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">en @mesesSeleccionados meses</p>
+                </div>
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-dollar-sign" style="color: #10b981; font-size: 1.25rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #3b82f6;">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Promedio Mensual</p>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; margin: 0; color: #3b82f6;">@(((double)ViewBag.PromedioIngresosMes).ToString("F1"))</h3>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">ingresos/mes</p>
+                </div>
+                <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-chart-line" style="color: #3b82f6; font-size: 1.25rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card" style="border-left: 4px solid #f59e0b;">
+        <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start;">
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">Tasa de Finalización</p>
+                    <h3 style="font-size: 1.75rem; font-weight: 700; margin: 0; color: #f59e0b;">@ViewBag.TasaFinalizacion%</h3>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">completados en el período</p>
+                </div>
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-circle" style="color: #f59e0b; font-size: 1.25rem;"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Indicadores adicionales -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-arrow-up" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Mes más productivo</p>
+                    <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">@ViewBag.MesMaxIngresos ingresos</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-arrow-down" style="color: #ef4444;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Mes menos productivo</p>
+                    <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">@ViewBag.MesMinIngresos ingresos</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-wrench" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">En taller actualmente</p>
+                    <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">@ViewBag.IngresosActivosActuales vehículos</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-money-bill-wave" style="color: #3b82f6;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Facturación prom./mes</p>
+                    <h4 style="font-size: 1.25rem; font-weight: 700; margin: 0;">$@(((decimal)ViewBag.PromedioFacturacionMes).ToString("N0"))</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos -->
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    <!-- Gráfico de Líneas: Tendencias mensuales -->
+    <div class="card">
+        <div class="card-header">
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0;">
+                <i class="fas fa-chart-line" style="margin-right: 0.5rem; color: #3b82f6;"></i>
+                Tendencia Mensual: Ingresos y Facturación
+            </h3>
+        </div>
+        <div class="card-body">
+            <canvas id="chartTendencia" style="max-height: 400px;"></canvas>
+        </div>
+    </div>
+
+    <!-- Gráfico de Torta: Distribución de Estados -->
+    <div class="card">
+        <div class="card-header">
+            <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0;">
+                <i class="fas fa-chart-pie" style="margin-right: 0.5rem; color: #6366f1;"></i>
+                Estados Actuales en Taller
+            </h3>
+        </div>
+        <div class="card-body" style="display: flex; align-items: center; justify-content: center;">
+            <canvas id="chartEstados" style="max-height: 350px;"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Gráfico secundario: Ingresos vs Finalizados -->
+<div class="card" style="margin-bottom: 2rem;">
+    <div class="card-header">
+        <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0;">
+            <i class="fas fa-chart-bar" style="margin-right: 0.5rem; color: #10b981;"></i>
+            Ingresos Nuevos vs Finalizados por Mes
+        </h3>
+    </div>
+    <div class="card-body">
+        <canvas id="chartIngresosVsFinalizados" style="max-height: 350px;"></canvas>
+    </div>
+</div>
+
+<!-- Info de toma de decisiones -->
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #3b82f6;">
+    <div class="card-body">
+        <h4 style="font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+            <i class="fas fa-lightbulb" style="color: #f59e0b;"></i>
+            Información para la Toma de Decisiones
+        </h4>
+        <ul style="margin: 0; padding-left: 1.5rem; line-height: 1.8;">
+            <li>La <strong>tendencia de ingresos</strong> permite anticipar la carga de trabajo y planificar personal.</li>
+            <li>La <strong>tasa de finalización</strong> (@ViewBag.TasaFinalizacion%) indica la eficiencia operativa del taller.</li>
+            <li>Compare <strong>ingresos nuevos vs finalizados</strong> para detectar acumulación de trabajo pendiente.</li>
+            <li>La <strong>distribución de estados</strong> muestra cuellos de botella (ej: muchos en "Esperando repuestos" indica problemas de abastecimiento).</li>
+            <li>La <strong>facturación mensual</strong> permite proyectar ingresos futuros y definir metas financieras.</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Tabla resumen mensual -->
+<div class="card">
+    <div class="card-header">
+        <h3 style="font-size: 1.125rem; font-weight: 700; margin: 0;">
+            <i class="fas fa-table" style="margin-right: 0.5rem;"></i>
+            Resumen Mensual Detallado
+        </h3>
+    </div>
+    <div class="card-body" style="padding: 0;">
+        @if (mesesData != null && mesesData.Any())
+        {
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th style="text-align: center;">Nuevos Ingresos</th>
+                            <th style="text-align: center;">Finalizados</th>
+                            <th style="text-align: center;">Facturas</th>
+                            <th style="text-align: right;">Facturado</th>
+                            <th style="text-align: right;">Ticket Prom.</th>
+                            <th style="text-align: center;">Rendimiento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var mes in mesesData)
+                        {
+                            var promedioIng = (double)ViewBag.PromedioIngresosMes;
+                            int ingMes = (int)mes.Ingresos;
+                            var rendimiento = ingMes >= promedioIng * 1.2 ? "success" : ingMes >= promedioIng * 0.8 ? "warning" : "danger";
+                            var rendimientoLabel = ingMes >= promedioIng * 1.2 ? "Alto" : ingMes >= promedioIng * 0.8 ? "Normal" : "Bajo";
+                            
+                            <tr>
+                                <td style="font-weight: 600;">@mes.Mes</td>
+                                <td style="text-align: center;">
+                                    <span style="font-weight: 700; color: #6366f1;">@mes.Ingresos</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="font-weight: 700; color: #10b981;">@mes.Finalizados</span>
+                                </td>
+                                <td style="text-align: center;">
+                                    <span style="font-weight: 600;">@mes.CantFacturas</span>
+                                </td>
+                                <td style="text-align: right; font-family: monospace; font-weight: 600;">
+                                    $@(((decimal)mes.Facturado).ToString("N2"))
+                                </td>
+                                <td style="text-align: right; font-family: monospace;">
+                                    $@(((decimal)mes.TicketPromedio).ToString("N2"))
+                                </td>
+                                <td style="text-align: center;">
+                                    @if (rendimiento == "success")
+                                    {
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-arrow-up me-1"></i>@rendimientoLabel
+                                        </span>
+                                    }
+                                    else if (rendimiento == "warning")
+                                    {
+                                        <span class="badge bg-warning text-dark">
+                                            <i class="fas fa-minus me-1"></i>@rendimientoLabel
+                                        </span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-arrow-down me-1"></i>@rendimientoLabel
+                                        </span>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                <i class="fas fa-industry" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin: 0;">No hay datos suficientes para el período seleccionado</p>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Datos serializados desde el servidor
+        var labels = @Html.Raw(ViewBag.Labels);
+        var ingresosCount = @Html.Raw(ViewBag.IngresosCountPorMes);
+        var facturado = @Html.Raw(ViewBag.FacturadoPorMes);
+        var finalizados = @Html.Raw(ViewBag.FinalizadosPorMes);
+        var estadosLabels = @Html.Raw(ViewBag.EstadosLabels);
+        var estadosCantidades = @Html.Raw(ViewBag.EstadosCantidades);
+
+        // Colores para estados
+        var estadosColores = [
+            'rgba(59, 130, 246, 0.8)',   // Azul
+            'rgba(245, 158, 11, 0.8)',   // Amarillo
+            'rgba(16, 185, 129, 0.8)',   // Verde
+            'rgba(239, 68, 68, 0.8)',    // Rojo
+            'rgba(99, 102, 241, 0.8)',   // Indigo
+            'rgba(236, 72, 153, 0.8)',   // Rosa
+            'rgba(20, 184, 166, 0.8)'    // Teal
+        ];
+
+        // 1. Gráfico de Líneas: Tendencia de Ingresos + Facturación (doble eje)
+        var ctx1 = document.getElementById('chartTendencia').getContext('2d');
+        new Chart(ctx1, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Ingresos (cantidad)',
+                        data: ingresosCount,
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'y',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    },
+                    {
+                        label: 'Facturación ($)',
+                        data: facturado,
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        yAxisID: 'y1',
+                        pointRadius: 4,
+                        pointHoverRadius: 6
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Evolución mensual de trabajo y facturación',
+                        font: { size: 14 }
+                    },
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        type: 'linear',
+                        display: true,
+                        position: 'left',
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cantidad de Ingresos' },
+                        ticks: { stepSize: 1 }
+                    },
+                    y1: {
+                        type: 'linear',
+                        display: true,
+                        position: 'right',
+                        beginAtZero: true,
+                        title: { display: true, text: 'Facturación ($)' },
+                        ticks: {
+                            callback: function (value) {
+                                return '$' + value.toLocaleString();
+                            }
+                        },
+                        grid: { drawOnChartArea: false }
+                    }
+                }
+            }
+        });
+
+        // 2. Gráfico de Torta: Distribución de Estados Actuales
+        var ctx2 = document.getElementById('chartEstados').getContext('2d');
+        if (estadosLabels.length > 0) {
+            new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: estadosLabels,
+                    datasets: [{
+                        data: estadosCantidades,
+                        backgroundColor: estadosColores.slice(0, estadosLabels.length),
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Distribución de trabajos activos',
+                            font: { size: 14 }
+                        },
+                        legend: { position: 'bottom' },
+                        tooltip: {
+                            callbacks: {
+                                label: function (context) {
+                                    var total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                    var pct = total > 0 ? ((context.raw / total) * 100).toFixed(1) : 0;
+                                    return context.label + ': ' + context.raw + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        } else {
+            ctx2.canvas.parentElement.innerHTML = '<div style="text-align: center; color: var(--muted-foreground); padding: 2rem;"><i class="fas fa-check-circle" style="font-size: 2rem; color: #10b981;"></i><p>No hay trabajos activos</p></div>';
+        }
+
+        // 3. Gráfico de Barras: Ingresos Nuevos vs Finalizados
+        var ctx3 = document.getElementById('chartIngresosVsFinalizados').getContext('2d');
+        new Chart(ctx3, {
+            type: 'bar',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Nuevos Ingresos',
+                        data: ingresosCount,
+                        backgroundColor: 'rgba(99, 102, 241, 0.7)',
+                        borderColor: 'rgba(99, 102, 241, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: 'Finalizados',
+                        data: finalizados,
+                        backgroundColor: 'rgba(16, 185, 129, 0.7)',
+                        borderColor: 'rgba(16, 185, 129, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Comparación: Ingresos Nuevos vs Reparaciones Finalizadas',
+                        font: { size: 14 }
+                    },
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        title: { display: true, text: 'Cantidad' },
+                        ticks: { stepSize: 1 }
+                    }
+                }
+            }
+        });
+    });
+</script>

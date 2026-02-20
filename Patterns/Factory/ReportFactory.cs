@@ -93,4 +93,36 @@ namespace AutoSys.Patterns.Factory
             return new TiemposReparacionReport(_context);
         }
     }
+
+    /// <summary>
+    /// Patrón Factory Method: Creador concreto para Reporte de Rentabilidad por Cliente
+    /// </summary>
+    public class RentabilidadClientesReportFactory : ReportFactory
+    {
+        public RentabilidadClientesReportFactory(AutoSysDbContext context) : base(context) { }
+
+        public override IReport CreateReport()
+        {
+            return new RentabilidadClientesReport(_context);
+        }
+    }
+
+    /// <summary>
+    /// Patrón Factory Method: Creador concreto para Reporte de Productividad del Taller
+    /// </summary>
+    public class ProductividadTallerReportFactory : ReportFactory
+    {
+        private readonly int _meses;
+
+        public ProductividadTallerReportFactory(AutoSysDbContext context, int meses = 12) 
+            : base(context)
+        {
+            _meses = meses;
+        }
+
+        public override IReport CreateReport()
+        {
+            return new ProductividadTallerReport(_context, _meses);
+        }
+    }
 }

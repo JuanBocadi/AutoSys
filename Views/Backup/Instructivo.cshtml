@@ -1,0 +1,906 @@
+@{
+    ViewData["Title"] = "Instructivo de Resguardo y Restauración";
+    ViewData["Breadcrumb"] = "Instructivo";
+    ViewData["BreadcrumbParent"] = "Resguardo";
+    ViewData["BreadcrumbParentUrl"] = Url.Action("Index", "Backup");
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-book" style="margin-right: 0.5rem; color: #10b981;"></i>
+                Instructivo de Resguardo y Restauración
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Políticas, procedimientos y mejores prácticas para la protección de datos</p>
+        </div>
+        <a asp-action="Index" class="btn" style="background: #f3f4f6; color: var(--foreground); border: 1px solid var(--border); font-weight: 600;">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Índice -->
+<div class="card" style="margin-bottom: 2rem; border-left: 4px solid #3b82f6;">
+    <div class="card-body">
+        <h5 style="font-weight: 700; margin-bottom: 1rem;">
+            <i class="fas fa-list-ol" style="color: #3b82f6; margin-right: 0.5rem;"></i>
+            Índice del Documento
+        </h5>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0.5rem;">
+            <a href="#politicas" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-gavel" style="color: #6366f1; width: 20px;"></i> 1. Políticas de Resguardo
+            </a>
+            <a href="#tipos" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-layer-group" style="color: #8b5cf6; width: 20px;"></i> 2. Tipos de Backup (Ventajas y Desventajas)
+            </a>
+            <a href="#medio" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-hdd" style="color: #f59e0b; width: 20px;"></i> 3. Medio de Almacenamiento
+            </a>
+            <a href="#frecuencia" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-calendar-alt" style="color: #10b981; width: 20px;"></i> 4. Frecuencia y Responsable
+            </a>
+            <a href="#instructivo-backup" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-download" style="color: #3b82f6; width: 20px;"></i> 5. Instructivo de Resguardo
+            </a>
+            <a href="#instructivo-restore" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-upload" style="color: #ef4444; width: 20px;"></i> 6. Instructivo de Restauración
+            </a>
+            <a href="#verificacion" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-check-double" style="color: #10b981; width: 20px;"></i> 7. Verificación de Backups
+            </a>
+            <a href="#herramientas" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-tools" style="color: #d97706; width: 20px;"></i> 8. Herramientas Utilizadas
+            </a>
+            <a href="#automaticos" style="text-decoration: none; color: var(--foreground); padding: 0.5rem; border-radius: var(--radius); transition: background 0.2s;"
+               onmouseover="this.style.background='var(--accent)'" onmouseout="this.style.background='transparent'">
+                <i class="fas fa-robot" style="color: #8b5cf6; width: 20px;"></i> 9. Backups Automáticos Programados
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 1. POLÍTICAS DE RESGUARDO -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="politicas" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-gavel" style="color: #6366f1; font-size: 0.9rem;"></i>
+            </div>
+            1. Políticas de Resguardo
+        </h4>
+
+        <div style="background: var(--accent); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem;">
+            <p style="font-size: 0.9rem; line-height: 1.7; margin: 0;">
+                Las políticas de resguardo definen las reglas y procedimientos para proteger la información del sistema
+                <strong>AutoSys</strong> ante posibles pérdidas de datos causadas por fallas de hardware, errores humanos,
+                ataques informáticos o desastres naturales. Su cumplimiento es <strong>obligatorio</strong> para todo el
+                personal con acceso al sistema.
+            </p>
+        </div>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Principios Fundamentales:</h6>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
+            <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-shield-alt" style="color: #10b981;"></i>
+                    <strong style="font-size: 0.875rem;">Integridad</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0;">
+                    Cada backup debe ser verificado para garantizar que los datos son íntegros y restaurables.
+                </p>
+            </div>
+            <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-clock" style="color: #3b82f6;"></i>
+                    <strong style="font-size: 0.875rem;">Regularidad</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0;">
+                    Los backups deben realizarse con la frecuencia establecida sin excepción.
+                </p>
+            </div>
+            <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-lock" style="color: #d97706;"></i>
+                    <strong style="font-size: 0.875rem;">Confidencialidad</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0;">
+                    Los archivos de backup contienen datos sensibles y deben protegerse con los mismos controles que la BD.
+                </p>
+            </div>
+            <div style="background: #fce7f3; border: 1px solid #fbcfe8; border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-copy" style="color: #ec4899;"></i>
+                    <strong style="font-size: 0.875rem;">Redundancia</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0;">
+                    Mantener copias en al menos 2 ubicaciones diferentes para prevenir pérdida total.
+                </p>
+            </div>
+        </div>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Datos que se Resguardan:</h6>
+        <div class="table-responsive">
+            <table class="table" style="font-size: 0.875rem;">
+                <thead>
+                    <tr>
+                        <th>Componente</th>
+                        <th>Descripción</th>
+                        <th>Incluido</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong>Base de datos SQL Server</strong></td>
+                        <td>Clientes, vehículos, ingresos, facturas, stock, usuarios, permisos y configuración de Identity</td>
+                        <td><span style="color: #10b981;"><i class="fas fa-check-circle"></i> Siempre</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Archivos subidos</strong></td>
+                        <td>Fotografías de vehículos almacenadas en <code>wwwroot/uploads/</code></td>
+                        <td><span style="color: #3b82f6;"><i class="fas fa-check-circle"></i> Opcional</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong>Catálogo de backups</strong></td>
+                        <td>Archivo JSON con historial y metadatos de backups realizados</td>
+                        <td><span style="color: #f59e0b;"><i class="fas fa-info-circle"></i> Independiente</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 2. TIPOS DE BACKUP -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="tipos" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #ede9fe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-layer-group" style="color: #8b5cf6; font-size: 0.9rem;"></i>
+            </div>
+            2. Tipos de Backup — Ventajas y Desventajas
+        </h4>
+
+        <div class="table-responsive">
+            <table class="table" style="font-size: 0.875rem;">
+                <thead>
+                    <tr>
+                        <th style="width: 15%;">Tipo</th>
+                        <th style="width: 25%;">Descripción</th>
+                        <th style="width: 25%;">Ventajas</th>
+                        <th style="width: 25%;">Desventajas</th>
+                        <th style="width: 10%;">Usado en AutoSys</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <span style="background: #dbeafe; color: #1d4ed8; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">
+                                Completo (Full)
+                            </span>
+                        </td>
+                        <td>Copia íntegra de toda la base de datos. Incluye todos los datos, esquemas, procedimientos y configuración.</td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Restauración más simple y rápida</li>
+                                <li>Independiente de otros backups</li>
+                                <li>Mayor confiabilidad</li>
+                                <li>Punto de restauración completo</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Mayor espacio en disco</li>
+                                <li>Mayor tiempo de ejecución</li>
+                                <li>Mayor carga en el servidor</li>
+                            </ul>
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: #10b981; font-size: 1.25rem;"><i class="fas fa-check-circle"></i></span>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Implementado</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span style="background: #fef3c7; color: #92400e; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">
+                                Diferencial
+                            </span>
+                        </td>
+                        <td>Copia solo los datos modificados desde el último backup completo. Requiere el backup completo base para restaurar.</td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Menor espacio que el completo</li>
+                                <li>Ejecución más rápida</li>
+                                <li>Solo requiere Full + último diferencial</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Depende del backup completo</li>
+                                <li>Crece con el tiempo</li>
+                                <li>Restauración más compleja</li>
+                            </ul>
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: var(--muted-foreground); font-size: 1.25rem;"><i class="fas fa-minus-circle"></i></span>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">No aplica</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span style="background: #ede9fe; color: #5b21b6; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">
+                                Incremental
+                            </span>
+                        </td>
+                        <td>Copia solo los datos modificados desde el último backup de cualquier tipo. Requiere toda la cadena de backups.</td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Menor espacio en disco</li>
+                                <li>Ejecución más rápida</li>
+                                <li>Menor impacto en rendimiento</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Restauración lenta (toda la cadena)</li>
+                                <li>Si un eslabón falla, se pierde todo</li>
+                                <li>Gestión compleja</li>
+                            </ul>
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: var(--muted-foreground); font-size: 1.25rem;"><i class="fas fa-minus-circle"></i></span>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">No aplica</div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <span style="background: #dcfce7; color: #166534; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 600; font-size: 0.8rem;">
+                                De Archivos
+                            </span>
+                        </td>
+                        <td>Copia de los archivos físicos del sistema (fotografías, documentos subidos por los usuarios).</td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Protege contenido multimedia</li>
+                                <li>Complementa el backup de BD</li>
+                                <li>Fácil de restaurar</li>
+                            </ul>
+                        </td>
+                        <td>
+                            <ul style="margin: 0; padding-left: 1.2rem;">
+                                <li>Puede ocupar mucho espacio</li>
+                                <li>Crece de forma continua</li>
+                            </ul>
+                        </td>
+                        <td style="text-align: center;">
+                            <span style="color: #10b981; font-size: 1.25rem;"><i class="fas fa-check-circle"></i></span>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Opcional (ZIP)</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 1rem; margin-top: 1rem;">
+            <div style="display: flex; align-items: start; gap: 0.5rem;">
+                <i class="fas fa-lightbulb" style="color: #10b981; margin-top: 2px;"></i>
+                <p style="font-size: 0.875rem; margin: 0;">
+                    <strong>Decisión de diseño:</strong> Para AutoSys se implementó el <strong>Backup Completo (Full)</strong>
+                    por ser un sistema de gestión de taller automotriz con un volumen de datos moderado, donde la simplicidad
+                    y confiabilidad de la restauración son prioritarias frente al ahorro de espacio.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 3. MEDIO DE ALMACENAMIENTO -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="medio" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-hdd" style="color: #f59e0b; font-size: 0.9rem;"></i>
+            </div>
+            3. Medio de Almacenamiento y Ubicación
+        </h4>
+
+        <div class="table-responsive">
+            <table class="table" style="font-size: 0.875rem;">
+                <thead>
+                    <tr>
+                        <th>Medio</th>
+                        <th>Ubicación</th>
+                        <th>Ventajas</th>
+                        <th>Desventajas</th>
+                        <th>Recomendación</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><strong><i class="fas fa-server" style="color: #3b82f6;"></i> Disco local del servidor</strong></td>
+                        <td>Carpeta <code>Backups/</code> dentro del proyecto</td>
+                        <td>Velocidad máxima, acceso inmediato, sin costo adicional</td>
+                        <td>Vulnerable a fallas del disco, ransomware, desastres físicos</td>
+                        <td><span style="background: #dbeafe; color: #1d4ed8; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Primario</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="fas fa-usb" style="color: #8b5cf6;"></i> Disco externo / USB</strong></td>
+                        <td>Dispositivo extraíble conectado al servidor</td>
+                        <td>Portátil, aislado del sistema, bajo costo</td>
+                        <td>Puede ser extraviado, capacidad limitada, desgaste</td>
+                        <td><span style="background: #dcfce7; color: #166534; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Secundario</span></td>
+                    </tr>
+                    <tr>
+                        <td><strong><i class="fas fa-cloud" style="color: #06b6d4;"></i> Almacenamiento en la nube</strong></td>
+                        <td>OneDrive, Google Drive, Azure Blob Storage</td>
+                        <td>Protección ante desastres, acceso remoto, escalable</td>
+                        <td>Requiere Internet, costo mensual, latencia</td>
+                        <td><span style="background: #fef3c7; color: #92400e; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">Terciario</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 1rem; margin-top: 1rem;">
+            <div style="display: flex; align-items: start; gap: 0.5rem;">
+                <i class="fas fa-info-circle" style="color: #3b82f6; margin-top: 2px;"></i>
+                <p style="font-size: 0.875rem; margin: 0;">
+                    <strong>Estrategia recomendada (Regla 3-2-1):</strong> Mantener al menos <strong>3 copias</strong>
+                    de los datos, en <strong>2 tipos de medio</strong> diferentes, con <strong>1 copia fuera del sitio</strong>
+                    (off-site). AutoSys genera el backup en disco local y ofrece la opción de descarga para que el
+                    administrador copie el archivo a un medio externo o la nube.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 4. FRECUENCIA Y RESPONSABLE -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="frecuencia" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-calendar-alt" style="color: #10b981; font-size: 0.9rem;"></i>
+            </div>
+            4. Frecuencia de Resguardo y Responsable
+        </h4>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+            <!-- Frecuencia -->
+            <div>
+                <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Cronograma Recomendado:</h6>
+                <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+                    <div style="background: var(--accent); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-calendar-day" style="color: #3b82f6;"></i>
+                            <strong style="font-size: 0.875rem;">Diario</strong>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 1.5rem;">
+                            Al finalizar cada jornada laboral. Backup completo con archivos.
+                        </p>
+                    </div>
+                    <div style="padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-calendar-week" style="color: #8b5cf6;"></i>
+                            <strong style="font-size: 0.875rem;">Semanal</strong>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 1.5rem;">
+                            Viernes al cierre. Copiar backup a medio externo (USB / nube).
+                        </p>
+                    </div>
+                    <div style="padding: 0.75rem 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fas fa-calendar" style="color: #10b981;"></i>
+                            <strong style="font-size: 0.875rem;">Mensual</strong>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 1.5rem;">
+                            Último día hábil del mes. Verificar integridad y archivar en ubicación off-site.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Responsable -->
+            <div>
+                <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Responsables:</h6>
+                <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+                    <div style="background: var(--accent); padding: 0.75rem 1rem; border-bottom: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 2rem; height: 2rem; background: #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-shield" style="color: #6366f1; font-size: 0.75rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size: 0.875rem;">Administrador del Sistema</strong>
+                                <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Responsable principal</p>
+                            </div>
+                        </div>
+                        <ul style="font-size: 0.8rem; margin: 0.5rem 0 0 2.5rem; padding-left: 1rem; color: var(--muted-foreground);">
+                            <li>Ejecutar backups diarios</li>
+                            <li>Verificar integridad periódicamente</li>
+                            <li>Gestionar retención de backups antiguos</li>
+                            <li>Realizar restauraciones cuando sea necesario</li>
+                        </ul>
+                    </div>
+                    <div style="padding: 0.75rem 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div style="width: 2rem; height: 2rem; background: #fef3c7; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-user-tie" style="color: #d97706; font-size: 0.75rem;"></i>
+                            </div>
+                            <div>
+                                <strong style="font-size: 0.875rem;">Responsable IT / Dueño del Negocio</strong>
+                                <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Supervisión</p>
+                            </div>
+                        </div>
+                        <ul style="font-size: 0.8rem; margin: 0.5rem 0 0 2.5rem; padding-left: 1rem; color: var(--muted-foreground);">
+                            <li>Auditar que los backups se realicen según la política</li>
+                            <li>Almacenar copias en ubicación off-site</li>
+                            <li>Autorizar restauraciones</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Retención -->
+                <div style="background: #fef3c7; border: 1px solid #fde68a; border-radius: var(--radius); padding: 1rem; margin-top: 1rem;">
+                    <div style="display: flex; align-items: start; gap: 0.5rem;">
+                        <i class="fas fa-archive" style="color: #d97706; margin-top: 2px;"></i>
+                        <div>
+                            <p style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.25rem;">Política de Retención</p>
+                            <ul style="font-size: 0.8rem; margin: 0; padding-left: 1rem; color: var(--muted-foreground);">
+                                <li><strong>Diarios:</strong> conservar los últimos 7 días</li>
+                                <li><strong>Semanales:</strong> conservar las últimas 4 semanas</li>
+                                <li><strong>Mensuales:</strong> conservar los últimos 12 meses</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 5. INSTRUCTIVO DE RESGUARDO -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="instructivo-backup" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-download" style="color: #3b82f6; font-size: 0.9rem;"></i>
+            </div>
+            5. Instructivo de Resguardo (Backup)
+        </h4>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Procedimiento paso a paso:</h6>
+
+        <div style="position: relative; padding-left: 2rem;">
+            <!-- Línea vertical -->
+            <div style="position: absolute; left: 0.9rem; top: 0; bottom: 0; width: 2px; background: #e5e7eb;"></div>
+
+            <!-- Paso 1 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">1</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Acceder al módulo de Resguardo</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        Iniciar sesión como <strong>Administrador</strong> y navegar a
+                        <strong>Resguardo</strong> en el menú lateral del sistema.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Paso 2 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">2</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Crear un nuevo backup</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        Hacer clic en el botón <strong>"Crear Backup"</strong>. Se abrirá un formulario donde puede:
+                    </p>
+                    <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0; padding-left: 1.2rem;">
+                        <li>Escribir una nota descriptiva (ej: "Backup antes de actualización")</li>
+                        <li>Seleccionar si desea incluir archivos subidos (fotos de vehículos)</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Paso 3 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">3</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Esperar la confirmación</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        El sistema ejecutará el comando <code>BACKUP DATABASE</code> de SQL Server.
+                        Al finalizar, mostrará un mensaje de éxito con el nombre del archivo y su tamaño.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Paso 4 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #3b82f6; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">4</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Verificar el backup</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        En la tabla de backups, hacer clic en el botón de verificación
+                        (<i class="fas fa-check-double" style="color: #3b82f6;"></i>).
+                        El sistema ejecutará <code>RESTORE VERIFYONLY</code> para comprobar la integridad.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Paso 5 -->
+            <div style="position: relative; margin-bottom: 0.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">5</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Descargar y almacenar copia externa</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        Usar el botón de descarga (<i class="fas fa-download" style="color: #10b981;"></i>)
+                        para obtener el archivo <code>.bak</code> y copiarlo a un disco externo o servicio de almacenamiento
+                        en la nube, cumpliendo con la regla 3-2-1.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 6. INSTRUCTIVO DE RESTAURACIÓN -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="instructivo-restore" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-upload" style="color: #ef4444; font-size: 0.9rem;"></i>
+            </div>
+            6. Instructivo de Restauración (Restore)
+        </h4>
+
+        <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 1rem; margin-bottom: 1.25rem;">
+            <div style="display: flex; align-items: start; gap: 0.5rem;">
+                <i class="fas fa-exclamation-triangle" style="color: #ef4444; margin-top: 2px;"></i>
+                <div>
+                    <p style="font-weight: 700; color: #dc2626; margin-bottom: 0.25rem; font-size: 0.9rem;">ADVERTENCIA IMPORTANTE</p>
+                    <p style="font-size: 0.85rem; color: #991b1b; margin: 0;">
+                        La restauración <strong>reemplaza todos los datos actuales</strong> con los del backup seleccionado.
+                        Todos los cambios realizados después de la fecha del backup se <strong>perderán permanentemente</strong>.
+                        Se recomienda <strong>crear un backup del estado actual</strong> antes de restaurar.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Procedimiento paso a paso:</h6>
+
+        <div style="position: relative; padding-left: 2rem;">
+            <div style="position: absolute; left: 0.9rem; top: 0; bottom: 0; width: 2px; background: #fca5a5;"></div>
+
+            <!-- Paso 1 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">1</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Crear backup del estado actual</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        Antes de restaurar, cree un backup del estado actual como red de seguridad.
+                        Use el botón "Crear Backup" con una nota descriptiva como "Pre-restauración".
+                    </p>
+                </div>
+            </div>
+
+            <!-- Paso 2 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">2</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Seleccionar el backup a restaurar</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        En la tabla de backups, identificar el punto de restauración deseado.
+                        Se recomienda restaurar solo backups con estado <strong>"Verificado"</strong>.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Paso 3 -->
+            <div style="position: relative; margin-bottom: 1.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #ef4444; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">3</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Ejecutar la restauración</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        Hacer clic en el botón de restauración (<i class="fas fa-undo-alt" style="color: #d97706;"></i>).
+                        Confirmar la operación en el diálogo de advertencia. El sistema ejecutará:
+                    </p>
+                    <ol style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.5rem 0 0 0; padding-left: 1.2rem;">
+                        <li><code>ALTER DATABASE SET SINGLE_USER</code> — desconecta usuarios activos</li>
+                        <li><code>RESTORE DATABASE ... WITH REPLACE</code> — restaura los datos</li>
+                        <li><code>ALTER DATABASE SET MULTI_USER</code> — habilita acceso nuevamente</li>
+                        <li>Si se incluyeron archivos, se restaura la carpeta <code>uploads/</code></li>
+                    </ol>
+                </div>
+            </div>
+
+            <!-- Paso 4 -->
+            <div style="position: relative; margin-bottom: 0.5rem;">
+                <div style="position: absolute; left: -1.55rem; width: 1.5rem; height: 1.5rem; background: #10b981; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 0.7rem; font-weight: 700;">4</div>
+                <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem; margin-left: 0.5rem;">
+                    <strong style="font-size: 0.9rem;">Verificar la restauración</strong>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                        Una vez completada la restauración, se recomienda <strong>reiniciar la aplicación</strong>
+                        y verificar que los datos sean coherentes navegando por los módulos principales
+                        (Clientes, Vehículos, Ingresos, Facturación).
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Restauración manual con SSMS -->
+        <div style="background: var(--accent); border-radius: var(--radius); padding: 1.25rem; margin-top: 1.5rem;">
+            <h6 style="font-weight: 700; margin-bottom: 0.75rem;">
+                <i class="fas fa-terminal" style="color: #6366f1; margin-right: 0.25rem;"></i>
+                Restauración Manual (alternativa con SQL Server Management Studio)
+            </h6>
+            <p style="font-size: 0.8rem; color: var(--muted-foreground); margin-bottom: 0.75rem;">
+                Si la restauración desde la aplicación no es posible (ej: la aplicación no inicia),
+                se puede restaurar directamente desde SSMS:
+            </p>
+            <div style="background: #1e293b; color: #e2e8f0; border-radius: var(--radius); padding: 1rem; font-family: 'Consolas', monospace; font-size: 0.8rem; overflow-x: auto;">
+                <pre style="margin: 0; white-space: pre-wrap;"><span style="color: #818cf8;">-- 1. Cerrar conexiones activas</span>
+<span style="color: #38bdf8;">ALTER DATABASE</span> [AutoSysDB] <span style="color: #38bdf8;">SET</span> SINGLE_USER <span style="color: #38bdf8;">WITH</span> ROLLBACK IMMEDIATE;
+
+<span style="color: #818cf8;">-- 2. Restaurar desde archivo .bak</span>
+<span style="color: #38bdf8;">RESTORE DATABASE</span> [AutoSysDB]
+<span style="color: #38bdf8;">FROM DISK</span> = N<span style="color: #a5f3fc;">'C:\ruta\al\backup\AutoSysDB_20250101_120000.bak'</span>
+<span style="color: #38bdf8;">WITH REPLACE</span>, STATS = 10;
+
+<span style="color: #818cf8;">-- 3. Devolver al modo multi-usuario</span>
+<span style="color: #38bdf8;">ALTER DATABASE</span> [AutoSysDB] <span style="color: #38bdf8;">SET</span> MULTI_USER;</pre>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 7. VERIFICACIÓN DE BACKUPS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="verificacion" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-check-double" style="color: #10b981; font-size: 0.9rem;"></i>
+            </div>
+            7. Verificación de Backups
+        </h4>
+
+        <p style="font-size: 0.9rem; margin-bottom: 1rem;">
+            La verificación es un paso <strong>crítico</strong> para asegurar que un backup es restaurable.
+            Un archivo de backup corrupto o incompleto es equivalente a no tener backup.
+        </p>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem;">
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <i class="fas fa-database" style="color: #3b82f6;"></i>
+                    <strong style="font-size: 0.9rem;">Verificación Lógica (VERIFYONLY)</strong>
+                </div>
+                <p style="font-size: 0.8rem; color: var(--muted-foreground); margin-bottom: 0.5rem;">
+                    AutoSys utiliza el comando <code>RESTORE VERIFYONLY</code> de SQL Server que:
+                </p>
+                <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0; padding-left: 1.2rem;">
+                    <li>Verifica que el backup está completo y legible</li>
+                    <li>Valida los checksums de las páginas de datos</li>
+                    <li>Confirma que el header del backup es consistente</li>
+                    <li><strong>No modifica datos</strong> — es 100% seguro de ejecutar</li>
+                </ul>
+            </div>
+
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <i class="fas fa-tasks" style="color: #10b981;"></i>
+                    <strong style="font-size: 0.9rem;">Cuándo Verificar</strong>
+                </div>
+                <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0; padding-left: 1.2rem;">
+                    <li><strong>Siempre</strong> después de crear un backup</li>
+                    <li>Después de copiar a otro medio de almacenamiento</li>
+                    <li>Como parte de la auditoría mensual</li>
+                    <li>Antes de realizar una restauración</li>
+                    <li>Cuando se detecten problemas en el disco</li>
+                </ul>
+            </div>
+
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;">
+                    <i class="fas fa-exclamation-triangle" style="color: #f59e0b;"></i>
+                    <strong style="font-size: 0.9rem;">Señales de Alerta</strong>
+                </div>
+                <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0; padding-left: 1.2rem;">
+                    <li>La verificación falla → <strong>NO usar</strong> ese backup</li>
+                    <li>El archivo tiene tamaño 0 bytes → backup incompleto</li>
+                    <li>Múltiples fallos seguidos → revisar hardware del disco</li>
+                    <li>El backup es mucho menor al anterior → posible corrupción</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 8. HERRAMIENTAS UTILIZADAS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="herramientas" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-tools" style="color: #d97706; font-size: 0.9rem;"></i>
+            </div>
+            8. Herramientas y Tecnologías Utilizadas
+        </h4>
+
+        <div class="table-responsive">
+            <table class="table" style="font-size: 0.875rem;">
+                <thead>
+                    <tr>
+                        <th>Herramienta</th>
+                        <th>Propósito</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>SQL Server BACKUP DATABASE</strong>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Comando T-SQL nativo</div>
+                        </td>
+                        <td>Crea una copia completa de la base de datos en un archivo <code>.bak</code></td>
+                        <td><span style="background: #dbeafe; color: #1d4ed8; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Motor de BD</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>SQL Server RESTORE DATABASE</strong>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Comando T-SQL nativo</div>
+                        </td>
+                        <td>Restaura la base de datos desde un archivo <code>.bak</code></td>
+                        <td><span style="background: #dbeafe; color: #1d4ed8; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Motor de BD</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>SQL Server RESTORE VERIFYONLY</strong>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Comando T-SQL nativo</div>
+                        </td>
+                        <td>Verifica la integridad del archivo de backup sin restaurar</td>
+                        <td><span style="background: #dbeafe; color: #1d4ed8; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Motor de BD</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>Microsoft.Data.SqlClient</strong>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Paquete NuGet (incluido via EF Core)</div>
+                        </td>
+                        <td>Ejecuta los comandos T-SQL directamente desde la aplicación .NET</td>
+                        <td><span style="background: #dcfce7; color: #166534; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Framework</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>System.IO.Compression (ZipFile)</strong>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Biblioteca estándar de .NET</div>
+                        </td>
+                        <td>Comprime la carpeta de archivos subidos en un archivo ZIP</td>
+                        <td><span style="background: #dcfce7; color: #166534; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Framework</span></td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <strong>SQL Server Management Studio (SSMS)</strong>
+                            <div style="font-size: 0.75rem; color: var(--muted-foreground);">Herramienta de terceros (Microsoft)</div>
+                        </td>
+                        <td>Alternativa para restauración manual cuando la aplicación no está disponible</td>
+                        <td><span style="background: #fef3c7; color: #92400e; padding: 0.15rem 0.4rem; border-radius: 4px; font-size: 0.75rem;">Terceros</span></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<!-- 9. BACKUPS AUTOMÁTICOS PROGRAMADOS -->
+<!-- ════════════════════════════════════════════════════════════════════ -->
+<div id="automaticos" class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <h4 style="font-weight: 700; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="width: 2rem; height: 2rem; background: #ede9fe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                <i class="fas fa-robot" style="color: #8b5cf6; font-size: 0.9rem;"></i>
+            </div>
+            9. Backups Automáticos Programados
+        </h4>
+
+        <div style="background: var(--accent); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1.25rem;">
+            <p style="font-size: 0.9rem; line-height: 1.7; margin: 0;">
+                AutoSys incluye un <strong>servicio en segundo plano</strong> (<code>BackgroundService</code>) que ejecuta
+                backups de forma automática según un cronograma configurable. El sistema combina backups <strong>completos</strong>
+                (cada X horas) con backups <strong>diferenciales</strong> (cada Y horas) para optimizar el equilibrio entre
+                seguridad y uso de espacio en disco.
+            </p>
+        </div>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Funcionamiento:</h6>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1rem; margin-bottom: 1.25rem;">
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-database" style="color: #3b82f6;"></i>
+                    <strong style="font-size: 0.9rem;">Backup Completo Automático</strong>
+                </div>
+                <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0; padding-left: 1.2rem;">
+                    <li>Se ejecuta cada <strong>24 horas</strong> (configurable)</li>
+                    <li>Incluye toda la base de datos y archivos</li>
+                    <li>Tras ejecutarse, resetea el timer del diferencial</li>
+                    <li>Registrado como "Sistema (Automático)"</li>
+                </ul>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-layer-group" style="color: #f59e0b;"></i>
+                    <strong style="font-size: 0.9rem;">Backup Diferencial Automático</strong>
+                </div>
+                <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0; padding-left: 1.2rem;">
+                    <li>Se ejecuta cada <strong>6 horas</strong> (configurable)</li>
+                    <li>Solo incluye cambios desde el último completo</li>
+                    <li>Más rápido y ocupa menos espacio</li>
+                    <li>Requiere que exista al menos un backup completo</li>
+                </ul>
+            </div>
+            <div style="border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-hand-pointer" style="color: #6366f1;"></i>
+                    <strong style="font-size: 0.9rem;">Backup Manual</strong>
+                </div>
+                <ul style="font-size: 0.8rem; color: var(--muted-foreground); margin: 0; padding-left: 1.2rem;">
+                    <li>Disponible en cualquier momento</li>
+                    <li>Puede ser Completo o Diferencial</li>
+                    <li><strong>No afecta</strong> el cronograma automático</li>
+                    <li>Ideal antes de cambios importantes</li>
+                </ul>
+            </div>
+        </div>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Configuración (<code>appsettings.json</code>):</h6>
+        <div style="background: #1e293b; color: #e2e8f0; border-radius: var(--radius); padding: 1rem; font-family: 'Consolas', monospace; font-size: 0.8rem; margin-bottom: 1.25rem; overflow-x: auto;">
+            <pre style="margin: 0; white-space: pre-wrap;"><span style="color: #818cf8;">"Backup"</span>: {
+  <span style="color: #818cf8;">"Directory"</span>: <span style="color: #a5f3fc;">""</span>,          <span style="color: #64748b;">// Vacío = carpeta Backups/ del proyecto</span>
+  <span style="color: #818cf8;">"Schedule"</span>: {
+    <span style="color: #818cf8;">"Enabled"</span>: <span style="color: #4ade80;">true</span>,       <span style="color: #64748b;">// Habilitar/deshabilitar automático</span>
+    <span style="color: #818cf8;">"FullIntervalHours"</span>: <span style="color: #fbbf24;">24</span>,  <span style="color: #64748b;">// Cada cuántas horas hacer completo</span>
+    <span style="color: #818cf8;">"DiffIntervalHours"</span>: <span style="color: #fbbf24;">6</span>    <span style="color: #64748b;">// Cada cuántas horas hacer diferencial</span>
+  }
+}</pre>
+        </div>
+
+        <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Controles desde la interfaz:</h6>
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: var(--radius); padding: 1rem;">
+            <ul style="font-size: 0.85rem; margin: 0; padding-left: 1.2rem;">
+                <li><strong>Activar/Desactivar:</strong> Botón en el panel de "Backups Automáticos" para pausar/reanudar el cronograma sin modificar archivos de configuración.</li>
+                <li><strong>Crear Backup Manual:</strong> Botón "Crear Backup" que permite elegir entre Completo o Diferencial. Los automáticos continuarán según su cronograma.</li>
+                <li><strong>Visualización:</strong> El panel muestra el próximo backup programado, el intervalo configurado y la fecha del último backup automático ejecutado.</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Botón inferior para volver -->
+<div style="text-align: center; margin-top: 2rem; margin-bottom: 2rem;">
+    <a asp-action="Index" class="btn btn-primary" style="padding: 0.75rem 2rem;">
+        <i class="fas fa-arrow-left"></i> Volver a Gestión de Backups
+    </a>
+</div>

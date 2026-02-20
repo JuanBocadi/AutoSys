@@ -221,22 +221,6 @@
                 </div>
             </div>
 
-            <!-- Clientes Activos -->
-            <div class="card" style="border: 1px solid var(--border);">
-                <div class="card-body">
-                    <div style="width: 3rem; height: 3rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
-                        <i class="fas fa-user-friends" style="color: #6366f1; font-size: 1.5rem;"></i>
-                    </div>
-                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Clientes Más Activos</h5>
-                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
-                        Ranking de clientes con mayor frecuencia de visitas.
-                    </p>
-                    <a asp-action="ClientesActivos" class="btn btn-info btn-sm">
-                        Ver Reporte <i class="fas fa-arrow-right"></i>
-                    </a>
-                </div>
-            </div>
-
             <!-- Stock Bajo -->
             <div class="card" style="border: 1px solid var(--border);">
                 <div class="card-body">
@@ -264,6 +248,38 @@
                         Análisis de tiempos promedio de reparación por tipo de servicio.
                     </p>
                     <a asp-action="TiemposReparacion" class="btn btn-warning btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Rentabilidad por Cliente (NUEVO - CON GRÁFICOS) -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-chart-bar" style="color: #10b981; font-size: 1.5rem;"></i>
+                    </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Rentabilidad por Cliente</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Análisis de ingresos por cliente con gráficos de servicios vs repuestos.
+                    </p>
+                    <a asp-action="RentabilidadClientes" class="btn btn-success btn-sm">
+                        Ver Reporte <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Productividad del Taller (NUEVO - CON GRÁFICOS) -->
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body">
+                    <div style="width: 3rem; height: 3rem; background: #e0e7ff; border-radius: var(--radius); display: flex; align-items: center; justify-content: center; margin-bottom: 1rem;">
+                        <i class="fas fa-industry" style="color: #6366f1; font-size: 1.5rem;"></i>
+                    </div>
+                    <h5 style="font-size: 1.125rem; font-weight: 700; margin-bottom: 0.5rem;">Productividad del Taller</h5>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground); margin-bottom: 1rem;">
+                        Tendencias mensuales de trabajo, facturación y distribución de estados con gráficos.
+                    </p>
+                    <a asp-action="ProductividadTaller" class="btn btn-primary btn-sm">
                         Ver Reporte <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>

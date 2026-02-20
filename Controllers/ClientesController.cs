@@ -78,8 +78,20 @@ namespace AutoSys.Controllers
             }
             catch (DbUpdateException ex)
             {
-                _logger.LogError(ex, "Error al crear cliente: {Message}", ex.Message);
-                TempData["ErrorMessage"] = "Error al guardar el cliente. Por favor, verifique los datos e intente nuevamente.";
+                _logger.LogError(ex, "Error al crear cliente: {Message}", ex.InnerException?.Message ?? ex.Message);
+                if (ex.InnerException?.Message?.Contains("IX_Clientes_Email") == true
+                    || ex.InnerException?.Message?.Contains("duplicate key") == true)
+                {
+                    TempData["ErrorMessage"] = $"Ya existe un cliente registrado con el email '{cliente.Email}'. Por favor, use un email diferente.";
+                }
+                else if (ex.InnerException?.Message?.Contains("IX_Clientes_DNI") == true)
+                {
+                    TempData["ErrorMessage"] = $"Ya existe un cliente registrado con el DNI '{cliente.DNI}'. Por favor, verifique el DNI.";
+                }
+                else
+                {
+                    TempData["ErrorMessage"] = "Error al guardar el cliente. Por favor, verifique los datos e intente nuevamente.";
+                }
             }
             catch (Exception ex)
             {

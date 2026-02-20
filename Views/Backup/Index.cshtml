@@ -1,0 +1,558 @@
+@model List<AutoSys.Services.BackupRecord>
+@{
+    ViewData["Title"] = "Resguardo y Restauración";
+    ViewData["Breadcrumb"] = "Resguardo y Restauración";
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-shield-alt" style="margin-right: 0.5rem; color: #10b981;"></i>
+                Resguardo y Restauración
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Gestión de copias de seguridad de la base de datos y archivos del sistema</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+            <a asp-action="Instructivo" class="btn" style="background: #f0fdf4; color: #10b981; border: 1px solid #86efac; font-weight: 600;">
+                <i class="fas fa-book"></i> Instructivo
+            </a>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createBackupModal">
+                <i class="fas fa-plus-circle"></i> Crear Backup
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Stats Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-database" style="color: #3b82f6;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Total Backups</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.TotalBackups</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-check-circle" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Backups Exitosos</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.BackupsExitosos</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-clock" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Último Backup</p>
+                    <h4 style="font-size: 1rem; font-weight: 700; margin: 0;">@ViewBag.UltimoBackup</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #ede9fe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-hdd" style="color: #8b5cf6;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Espacio Utilizado</p>
+                    <h4 style="font-size: 1rem; font-weight: 700; margin: 0;">@FormatBytes((long)ViewBag.TamanoTotal)</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Info Panel -->
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #3b82f6;">
+    <div class="card-body" style="padding: 1rem 1.25rem;">
+        <div style="display: flex; align-items: start; gap: 0.75rem;">
+            <i class="fas fa-info-circle" style="color: #3b82f6; font-size: 1.25rem; margin-top: 2px;"></i>
+            <div>
+                <p style="font-weight: 600; margin-bottom: 0.25rem;">Directorio de Backups</p>
+                <p style="color: var(--muted-foreground); margin: 0; font-size: 0.875rem; word-break: break-all;">
+                    <code>@ViewBag.BackupDirectory</code>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ═══════════════ PANEL DE BACKUPS AUTOMÁTICOS ═══════════════ -->
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid #8b5cf6;">
+    <div class="card-body">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+            <h5 style="font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-robot" style="color: #8b5cf6;"></i>
+                Backups Automáticos
+                @if ((bool)ViewBag.ScheduleEnabled)
+                {
+                    <span style="background: #dcfce7; color: #166534; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600;">
+                        <i class="fas fa-circle" style="font-size: 0.4rem; vertical-align: middle;"></i> ACTIVO
+                    </span>
+                }
+                else
+                {
+                    <span style="background: #fee2e2; color: #991b1b; padding: 0.2rem 0.6rem; border-radius: 9999px; font-size: 0.7rem; font-weight: 600;">
+                        <i class="fas fa-circle" style="font-size: 0.4rem; vertical-align: middle;"></i> INACTIVO
+                    </span>
+                }
+            </h5>
+            <form asp-action="ToggleScheduler" method="post" style="display: inline;">
+                @Html.AntiForgeryToken()
+                @if ((bool)ViewBag.ScheduleEnabled)
+                {
+                    <input type="hidden" name="enable" value="false" />
+                    <button type="submit" class="btn btn-sm" style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; font-weight: 600;">
+                        <i class="fas fa-pause"></i> Desactivar
+                    </button>
+                }
+                else
+                {
+                    <input type="hidden" name="enable" value="true" />
+                    <button type="submit" class="btn btn-sm" style="background: #dcfce7; color: #166534; border: 1px solid #86efac; font-weight: 600;">
+                        <i class="fas fa-play"></i> Activar
+                    </button>
+                }
+            </form>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+            <!-- Próximo Completo -->
+            <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-database" style="color: #3b82f6;"></i>
+                    <strong style="font-size: 0.8rem;">Próximo Completo</strong>
+                </div>
+                <p style="font-size: 1rem; font-weight: 700; margin: 0;">@ViewBag.NextFullBackup</p>
+                <p style="font-size: 0.7rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                    Cada @ViewBag.FullIntervalHours horas
+                </p>
+            </div>
+
+            <!-- Próximo Diferencial -->
+            <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-layer-group" style="color: #f59e0b;"></i>
+                    <strong style="font-size: 0.8rem;">Próximo Diferencial</strong>
+                </div>
+                <p style="font-size: 1rem; font-weight: 700; margin: 0;">@ViewBag.NextDiffBackup</p>
+                <p style="font-size: 0.7rem; color: var(--muted-foreground); margin: 0.25rem 0 0 0;">
+                    Cada @ViewBag.DiffIntervalHours horas
+                </p>
+            </div>
+
+            <!-- Último Completo Auto -->
+            <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-history" style="color: #10b981;"></i>
+                    <strong style="font-size: 0.8rem;">Último Auto Completo</strong>
+                </div>
+                <p style="font-size: 1rem; font-weight: 700; margin: 0;">@ViewBag.LastAutoFull</p>
+            </div>
+
+            <!-- Último Diferencial Auto -->
+            <div style="background: var(--accent); border-radius: var(--radius); padding: 1rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                    <i class="fas fa-history" style="color: #8b5cf6;"></i>
+                    <strong style="font-size: 0.8rem;">Último Auto Diferencial</strong>
+                </div>
+                <p style="font-size: 1rem; font-weight: 700; margin: 0;">@ViewBag.LastAutoDiff</p>
+            </div>
+        </div>
+
+        <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 0.75rem 1rem; margin-top: 1rem;">
+            <p style="font-size: 0.8rem; color: #1e40af; margin: 0;">
+                <i class="fas fa-info-circle" style="margin-right: 0.25rem;"></i>
+                Los backups manuales <strong>no afectan</strong> el cronograma automático. Puede crear un backup manual
+                en cualquier momento y el sistema seguirá ejecutando los automáticos según lo programado. Los intervalos
+                se configuran en <code>appsettings.json</code> → <code>Backup:Schedule</code>.
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- Backup History Table -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        @if (Model.Count == 0)
+        {
+            <div style="text-align: center; padding: 3rem 1rem;">
+                <i class="fas fa-database" style="font-size: 3rem; color: var(--muted-foreground); opacity: 0.3; margin-bottom: 1rem;"></i>
+                <h5 style="color: var(--muted-foreground);">No hay backups registrados</h5>
+                <p style="color: var(--muted-foreground); font-size: 0.875rem;">Cree su primer backup haciendo clic en "Crear Backup".</p>
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+                <table class="table" style="margin-bottom: 0;">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Archivo</th>
+                            <th>Tipo</th>
+                            <th>Origen</th>
+                            <th>Tamaño</th>
+                            <th>Estado</th>
+                            <th>Archivos</th>
+                            <th>Creado por</th>
+                            <th style="text-align: right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var backup in Model)
+                        {
+                            var statusColor = backup.Status switch
+                            {
+                                "Exitoso" => "#10b981",
+                                "Verificado" => "#3b82f6",
+                                "Fallido" => "#ef4444",
+                                _ => "#6b7280"
+                            };
+                            var statusBg = backup.Status switch
+                            {
+                                "Exitoso" => "#dcfce7",
+                                "Verificado" => "#dbeafe",
+                                "Fallido" => "#fee2e2",
+                                _ => "#f3f4f6"
+                            };
+                            var statusIcon = backup.Status switch
+                            {
+                                "Exitoso" => "fa-check-circle",
+                                "Verificado" => "fa-shield-alt",
+                                "Fallido" => "fa-times-circle",
+                                _ => "fa-question-circle"
+                            };
+                            <tr>
+                                <td>
+                                    <div style="font-weight: 500;">@backup.CreatedAt.ToString("dd/MM/yyyy")</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted-foreground);">@backup.CreatedAt.ToString("HH:mm:ss")</div>
+                                </td>
+                                <td>
+                                    <code style="font-size: 0.8rem;">@backup.FileName</code>
+                                    @if (!string.IsNullOrEmpty(backup.Notes) && !backup.Notes.Contains("Error"))
+                                    {
+                                        <div style="font-size: 0.75rem; color: var(--muted-foreground); margin-top: 2px;">@backup.Notes</div>
+                                    }
+                                </td>
+                                <td>
+                                    <span style="background: #ede9fe; color: #7c3aed; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                        @backup.Type
+                                    </span>
+                                </td>
+                                <td>
+                                    @{
+                                        var originColor = backup.Origin == "Automático" ? "#0891b2" : "#6366f1";
+                                        var originBg = backup.Origin == "Automático" ? "#cffafe" : "#e0e7ff";
+                                        var originIcon = backup.Origin == "Automático" ? "fa-robot" : "fa-hand-pointer";
+                                    }
+                                    <span style="background: @originBg; color: @originColor; padding: 0.2rem 0.5rem; border-radius: 4px; font-size: 0.75rem; font-weight: 600;">
+                                        <i class="fas @originIcon"></i> @backup.Origin
+                                    </span>
+                                </td>
+                                <td style="font-weight: 500;">@FormatBytes(backup.SizeBytes)</td>
+                                <td>
+                                    <span style="background: @statusBg; color: @statusColor; padding: 0.25rem 0.6rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.3rem;">
+                                        <i class="fas @statusIcon"></i> @backup.Status
+                                    </span>
+                                </td>
+                                <td>
+                                    @if (backup.IncludesFiles)
+                                    {
+                                        <span style="color: #10b981;"><i class="fas fa-check"></i> Sí</span>
+                                    }
+                                    else
+                                    {
+                                        <span style="color: var(--muted-foreground);"><i class="fas fa-minus"></i> No</span>
+                                    }
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 1.75rem; height: 1.75rem; background: #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                                            <i class="fas fa-user" style="font-size: 0.7rem; color: #6366f1;"></i>
+                                        </div>
+                                        <span style="font-size: 0.875rem;">@backup.CreatedBy</span>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; justify-content: flex-end; gap: 0.4rem; flex-wrap: wrap;">
+                                        @if (backup.Status != "Fallido")
+                                        {
+                                            <!-- Verificar -->
+                                            <form asp-action="Verify" method="post" style="display: inline;">
+                                                @Html.AntiForgeryToken()
+                                                <input type="hidden" name="id" value="@backup.Id" />
+                                                <button type="submit" class="btn btn-sm"
+                                                    style="background: #eff6ff; color: #3b82f6; border: 1px solid #bfdbfe; font-size: 0.75rem;"
+                                                    title="Verificar integridad">
+                                                    <i class="fas fa-check-double"></i>
+                                                </button>
+                                            </form>
+
+                                            <!-- Descargar -->
+                                            <a asp-action="Download" asp-route-id="@backup.Id"
+                                               class="btn btn-sm"
+                                               style="background: #f0fdf4; color: #10b981; border: 1px solid #86efac; font-size: 0.75rem;"
+                                               title="Descargar backup">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+
+                                            <!-- Restaurar -->
+                                            <button type="button" class="btn btn-sm"
+                                                style="background: #fef3c7; color: #d97706; border: 1px solid #fcd34d; font-size: 0.75rem;"
+                                                title="Restaurar desde este backup"
+                                                onclick="confirmRestore('@backup.Id', '@backup.FileName')">
+                                                <i class="fas fa-undo-alt"></i>
+                                            </button>
+                                        }
+
+                                        <!-- Eliminar -->
+                                        <button type="button" class="btn btn-sm"
+                                            style="background: #fee2e2; color: #ef4444; border: 1px solid #fca5a5; font-size: 0.75rem;"
+                                            title="Eliminar backup"
+                                            onclick="confirmDelete('@backup.Id', '@backup.FileName')">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Modal: Crear Backup -->
+<div class="modal fade" id="createBackupModal" tabindex="-1" aria-labelledby="createBackupLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form asp-action="Create" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                    <h5 class="modal-title" id="createBackupLabel">
+                        <i class="fas fa-plus-circle" style="color: #3b82f6; margin-right: 0.5rem;"></i>
+                        Crear Nuevo Backup
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius); padding: 1rem; margin-bottom: 1.25rem;">
+                        <div style="display: flex; align-items: start; gap: 0.5rem;">
+                            <i class="fas fa-info-circle" style="color: #3b82f6; margin-top: 2px;"></i>
+                            <p style="font-size: 0.875rem; color: #1e40af; margin: 0;">
+                                Puede crear un backup manual en cualquier momento. El cronograma automático
+                                <strong>no se verá afectado</strong>.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Tipo de Backup -->
+                    <div class="mb-3">
+                        <label style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">
+                            Tipo de Backup
+                        </label>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                            <label style="border: 2px solid #3b82f6; border-radius: var(--radius); padding: 0.75rem; cursor: pointer; background: #eff6ff; transition: all 0.2s;" id="labelFull">
+                                <input type="radio" name="type" value="Completo" checked
+                                    style="margin-right: 0.5rem;" onchange="toggleBackupType()">
+                                <strong style="color: #1d4ed8; font-size: 0.875rem;">
+                                    <i class="fas fa-database"></i> Completo
+                                </strong>
+                                <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0.25rem 0 0 1.5rem;">
+                                    Copia íntegra de toda la BD.
+                                </p>
+                            </label>
+                            <label style="border: 2px solid var(--border); border-radius: var(--radius); padding: 0.75rem; cursor: pointer; transition: all 0.2s;" id="labelDiff">
+                                <input type="radio" name="type" value="Diferencial"
+                                    style="margin-right: 0.5rem;" onchange="toggleBackupType()">
+                                <strong style="color: var(--foreground); font-size: 0.875rem;">
+                                    <i class="fas fa-layer-group"></i> Diferencial
+                                </strong>
+                                <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0.25rem 0 0 1.5rem;">
+                                    Solo cambios desde el último completo.
+                                </p>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="notes" style="font-weight: 600; font-size: 0.875rem; margin-bottom: 0.5rem; display: block;">
+                            Notas (opcional)
+                        </label>
+                        <textarea id="notes" name="notes" class="form-control" rows="2"
+                            placeholder="Ej: Backup antes de actualización del sistema..."
+                            style="font-size: 0.875rem;"></textarea>
+                    </div>
+
+                    <div class="form-check" style="margin-top: 1rem;" id="includeFilesGroup">
+                        <input class="form-check-input" type="checkbox" id="includeFiles" name="includeFiles" value="true" checked>
+                        <label class="form-check-label" for="includeFiles" style="font-size: 0.875rem;">
+                            <i class="fas fa-images" style="color: #8b5cf6; margin-right: 0.25rem;"></i>
+                            Incluir archivos subidos (fotos de vehículos)
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                    <button type="button" class="btn" style="color: var(--muted-foreground);" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-database"></i> Crear Backup
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar Restauración -->
+<div class="modal fade" id="restoreModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="restoreForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-triangle" style="color: #f59e0b; margin-right: 0.5rem;"></i>
+                        Confirmar Restauración
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <div style="background: #fef2f2; border: 1px solid #fca5a5; border-radius: var(--radius); padding: 1rem; margin-bottom: 1rem;">
+                        <div style="display: flex; align-items: start; gap: 0.5rem;">
+                            <i class="fas fa-exclamation-triangle" style="color: #ef4444; margin-top: 2px;"></i>
+                            <div>
+                                <p style="font-weight: 700; color: #dc2626; margin-bottom: 0.25rem;">¡ATENCIÓN! Operación irreversible</p>
+                                <p style="font-size: 0.875rem; color: #991b1b; margin: 0;">
+                                    Esta operación <strong>reemplazará TODOS los datos actuales</strong> de la base de datos
+                                    con los datos del backup seleccionado. Todos los cambios realizados después de la
+                                    fecha del backup se perderán permanentemente.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <p style="font-size: 0.875rem;">
+                        Se restaurará desde: <strong id="restoreFileName"></strong>
+                    </p>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground);">
+                        Se recomienda crear un backup del estado actual antes de restaurar.
+                    </p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                    <button type="button" class="btn" style="color: var(--muted-foreground);" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn" style="background: #dc2626; color: white; font-weight: 600;">
+                        <i class="fas fa-undo-alt"></i> Sí, Restaurar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Confirmar Eliminación -->
+<div class="modal fade" id="deleteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form id="deleteForm" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header" style="border-bottom: 1px solid var(--border);">
+                    <h5 class="modal-title">
+                        <i class="fas fa-trash-alt" style="color: #ef4444; margin-right: 0.5rem;"></i>
+                        Confirmar Eliminación
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size: 0.875rem;">
+                        ¿Está seguro de que desea eliminar el backup <strong id="deleteFileName"></strong>?
+                    </p>
+                    <p style="font-size: 0.875rem; color: var(--muted-foreground);">
+                        Se eliminarán los archivos del disco de forma permanente.
+                    </p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid var(--border);">
+                    <button type="button" class="btn" style="color: var(--muted-foreground);" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn" style="background: #ef4444; color: white; font-weight: 600;">
+                        <i class="fas fa-trash-alt"></i> Eliminar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@functions {
+    string FormatBytes(long bytes)
+    {
+        string[] sizes = { "B", "KB", "MB", "GB" };
+        int order = 0;
+        double size = bytes;
+        while (size >= 1024 && order < sizes.Length - 1)
+        {
+            order++;
+            size /= 1024;
+        }
+        return $"{size:0.##} {sizes[order]}";
+    }
+}
+
+@section Scripts {
+    <script>
+        function confirmRestore(id, fileName) {
+            document.getElementById('restoreFileName').textContent = fileName;
+            document.getElementById('restoreForm').action = '@Url.Action("Restore", "Backup")' + '?id=' + id;
+            new bootstrap.Modal(document.getElementById('restoreModal')).show();
+        }
+
+        function confirmDelete(id, fileName) {
+            document.getElementById('deleteFileName').textContent = fileName;
+            document.getElementById('deleteForm').action = '@Url.Action("Delete", "Backup")' + '?id=' + id;
+            new bootstrap.Modal(document.getElementById('deleteModal')).show();
+        }
+
+        function toggleBackupType() {
+            var radios = document.querySelectorAll('input[name="type"]');
+            var labelFull = document.getElementById('labelFull');
+            var labelDiff = document.getElementById('labelDiff');
+            var includeFilesGroup = document.getElementById('includeFilesGroup');
+            var isFull = radios[0].checked;
+
+            if (isFull) {
+                labelFull.style.borderColor = '#3b82f6';
+                labelFull.style.background = '#eff6ff';
+                labelDiff.style.borderColor = 'var(--border)';
+                labelDiff.style.background = 'transparent';
+                includeFilesGroup.style.display = 'block';
+            } else {
+                labelDiff.style.borderColor = '#f59e0b';
+                labelDiff.style.background = '#fffbeb';
+                labelFull.style.borderColor = 'var(--border)';
+                labelFull.style.background = 'transparent';
+                includeFilesGroup.style.display = 'none';
+            }
+        }
+    </script>
+}

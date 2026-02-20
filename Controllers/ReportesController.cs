@@ -6,6 +6,7 @@ using AutoSys.Models;
 using AutoSys.Filters;
 using AutoSys.Patterns.Factory;
 using AutoSys.Patterns.Singleton;
+using System.Text.Json;
 
 namespace AutoSys.Controllers
 {
@@ -84,36 +85,6 @@ namespace AutoSys.Controllers
             return View(facturas);
         }
 
-        public async Task<IActionResult> ClientesActivos()
-        {
-            // PATRÓN FACTORY METHOD: Crear reporte de clientes activos usando factory
-            var reportFactory = new ClientesActivosReportFactory(_context);
-            var report = reportFactory.CreateReport();
-            var data = report.GenerateData();
-
-            ViewBag.TotalClientes = data["TotalClientes"];
-            ViewBag.ClientesConVehiculos = data["ClientesConVehiculos"];
-            ViewBag.ClientesConIngresos = data["ClientesConIngresos"];
-
-            var clientes = (List<Cliente>)data["Clientes"];
-            
-            var clientesConEstadisticas = clientes.Select(c => new
-            {
-                Cliente = c,
-                TotalIngresos = c.Vehiculos.Sum(v => v.Ingresos.Count),
-                TotalVehiculos = c.Vehiculos.Count,
-                UltimoIngreso = c.Vehiculos.SelectMany(v => v.Ingresos)
-                    .OrderByDescending(i => i.FechaIngreso)
-                    .FirstOrDefault()?.FechaIngreso
-            })
-            .OrderByDescending(x => x.TotalIngresos)
-            .Take(20)
-            .ToList();
-
-            ViewBag.ClientesConEstadisticas = clientesConEstadisticas;
-            return View();
-        }
-
         public async Task<IActionResult> StockBajo()
         {
             // PATRÓN FACTORY METHOD: Crear reporte de stock bajo usando factory
@@ -146,8 +117,85 @@ namespace AutoSys.Controllers
             ViewBag.TiempoMinimo = data["TiempoMinimoDias"];
             ViewBag.TiempoMaximo = data["TiempoMaximoDias"];
 
+            // Datos para gráficos (serializados a JSON)
+            ViewBag.RangosLabels = JsonSerializer.Serialize(data["RangosLabels"]);
+            ViewBag.RangosCantidades = JsonSerializer.Serialize(data["RangosCantidades"]);
+            ViewBag.Rapidos = data["Rapidos"];
+            ViewBag.Normales = data["Normales"];
+            ViewBag.Lentos = data["Lentos"];
+
             var ingresosFinalizados = (List<Ingreso>)data["Ingresos"];
             return View(ingresosFinalizados.OrderByDescending(i => i.FechaEgreso).Take(100).ToList());
+        }
+
+        // Reporte de Rentabilidad por Cliente (CRUZA: Clientes + Vehículos + Ingresos + Facturas + Detalles)
+        // Contiene GRÁFICO de barras con los clientes más rentables
+        public async Task<IActionResult> RentabilidadClientes()
+        {
+            // PATRÓN FACTORY METHOD: Crear reporte de rentabilidad usando factory
+            var reportFactory = new RentabilidadClientesReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            ViewBag.TotalClientes = data["TotalClientes"];
+            ViewBag.ClientesConFactura = data["ClientesConFactura"];
+            ViewBag.TotalRecaudadoGlobal = data["TotalRecaudadoGlobal"];
+            ViewBag.TotalServiciosGlobal = data["TotalServiciosGlobal"];
+            ViewBag.TotalRepuestosGlobal = data["TotalRepuestosGlobal"];
+            ViewBag.TicketPromedioGlobal = data["TicketPromedioGlobal"];
+
+            // Datos para los gráficos (serializados a JSON)
+            ViewBag.Top10Nombres = JsonSerializer.Serialize(data["Top10Nombres"]);
+            ViewBag.Top10Facturado = JsonSerializer.Serialize(data["Top10Facturado"]);
+            ViewBag.Top10Servicios = JsonSerializer.Serialize(data["Top10Servicios"]);
+            ViewBag.Top10Repuestos = JsonSerializer.Serialize(data["Top10Repuestos"]);
+
+            // Datos de servicios vs repuestos globales para gráfico de torta
+            ViewBag.ServiciosVsRepuestos = JsonSerializer.Serialize(new[] 
+            { 
+                (decimal)data["TotalServiciosGlobal"], 
+                (decimal)data["TotalRepuestosGlobal"] 
+            });
+
+            ViewBag.Rentabilidad = data["Rentabilidad"];
+
+            return View();
+        }
+
+        // Reporte de Productividad del Taller (CRUZA: Ingresos + Facturas por mes)
+        // Contiene GRÁFICOS de líneas (tendencias) y torta (distribución de estados)
+        public async Task<IActionResult> ProductividadTaller(int? meses)
+        {
+            var cantMeses = meses ?? 12;
+            if (cantMeses < 3) cantMeses = 3;
+            if (cantMeses > 24) cantMeses = 24;
+
+            // PATRÓN FACTORY METHOD: Crear reporte de productividad usando factory
+            var reportFactory = new ProductividadTallerReportFactory(_context, cantMeses);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            ViewBag.TotalIngresosPeriodo = data["TotalIngresosPeriodo"];
+            ViewBag.TotalFacturadoPeriodo = data["TotalFacturadoPeriodo"];
+            ViewBag.PromedioIngresosMes = data["PromedioIngresosMes"];
+            ViewBag.PromedioFacturacionMes = data["PromedioFacturacionMes"];
+            ViewBag.MesMaxIngresos = data["MesMaxIngresos"];
+            ViewBag.MesMinIngresos = data["MesMinIngresos"];
+            ViewBag.TasaFinalizacion = data["TasaFinalizacion"];
+            ViewBag.IngresosActivosActuales = data["IngresosActivosActuales"];
+            ViewBag.Meses = data["Meses"];
+
+            // Datos para gráficos (serializados a JSON)
+            ViewBag.Labels = JsonSerializer.Serialize(data["Labels"]);
+            ViewBag.IngresosCountPorMes = JsonSerializer.Serialize(data["IngresosCountPorMes"]);
+            ViewBag.FacturadoPorMes = JsonSerializer.Serialize(data["FacturadoPorMes"]);
+            ViewBag.FinalizadosPorMes = JsonSerializer.Serialize(data["FinalizadosPorMes"]);
+            ViewBag.EstadosLabels = JsonSerializer.Serialize(data["EstadosLabels"]);
+            ViewBag.EstadosCantidades = JsonSerializer.Serialize(data["EstadosCantidades"]);
+
+            ViewBag.MesesData = data["MesesData"];
+
+            return View();
         }
     }
 }

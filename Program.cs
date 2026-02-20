@@ -56,6 +56,11 @@ builder.Services.AddAuthorization(options =>
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<AutoSys.Services.IPermissionService, AutoSys.Services.PermissionService>();
+builder.Services.AddScoped<IBackupService, BackupService>();
+
+// Servicio de backups automáticos programados
+builder.Services.AddSingleton<BackupSchedulerService>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<BackupSchedulerService>());
 
 // Patrón Observer: Registrar sujeto y observadores
 builder.Services.AddSingleton<AutoSys.Patterns.Observer.EventSubject>();
