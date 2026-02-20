@@ -3,13 +3,15 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Filters;
 using AutoSys.Patterns.Observer;
 using AutoSys.Services;
 using System.Linq;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Mecanico")]
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [RequirePermiso("VerStock")]
     public class StockController : Controller
     {
         private readonly AutoSysDbContext _context;
@@ -64,7 +66,7 @@ namespace AutoSys.Controllers
             }
         }
 
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("CrearStock")]
         public IActionResult Create()
         {
             return View();
@@ -72,7 +74,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("CrearStock")]
         public async Task<IActionResult> Create(Stock stock)
         {
             if (ModelState.IsValid)
@@ -86,7 +88,7 @@ namespace AutoSys.Controllers
             return View(stock);
         }
 
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("EditarStock")]
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -99,7 +101,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("EditarStock")]
         public async Task<IActionResult> Edit(int id, Stock stock)
         {
             if (id != stock.Id) return NotFound();
@@ -139,6 +141,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("AjustarStock")]
         public async Task<IActionResult> AjustarStock(int id, int cantidad, string tipo)
         {
             try

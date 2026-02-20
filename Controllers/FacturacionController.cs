@@ -4,10 +4,12 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Filters;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista")]
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [RequirePermiso("VerFacturacion")]
     public class FacturacionController : Controller
     {
         private readonly AutoSysDbContext _context;
@@ -50,6 +52,7 @@ namespace AutoSys.Controllers
             return View(facturas);
         }
 
+        [RequirePermiso("CrearFacturas")]
         public async Task<IActionResult> Create(int? ingresoId)
         {
             var ingresosDisponibles = await _context.Ingresos
@@ -95,6 +98,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("CrearFacturas")]
         public async Task<IActionResult> Create(Factura factura, List<DetalleFactura> detalles)
         {
             if (ModelState.IsValid && detalles != null && detalles.Any())
@@ -140,6 +144,7 @@ namespace AutoSys.Controllers
         // POST: Facturacion/CambiarEstado
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("CrearFacturas")]
         public async Task<IActionResult> CambiarEstado(int id, string estado, string? metodoPago)
         {
             var factura = await _context.Facturas.FindAsync(id);

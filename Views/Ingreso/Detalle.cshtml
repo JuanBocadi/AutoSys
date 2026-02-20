@@ -182,9 +182,12 @@
 <div class="card">
     <div class="card-body">
         <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i>Registrar Otro Ingreso
-            </a>
+            @if (ViewBag.PuedeCrearIngreso == true)
+            {
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus me-2"></i>Registrar Otro Ingreso
+                </a>
+            }
             <a asp-action="Index" class="btn btn-secondary">
                 <i class="fas fa-list me-2"></i>Ver Todos los Ingresos
             </a>

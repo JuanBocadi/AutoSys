@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Filters;
 using System.Linq;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Mecanico")]
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [RequirePermiso("VerReparaciones")]
     public class ReparacionesController : Controller
     {
         private readonly AutoSysDbContext _context;

@@ -4,6 +4,7 @@ using AutoSys.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoSys.Migrations
 {
     [DbContext(typeof(AutoSysDbContext))]
-    partial class AutoSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260219144312_AgregarUserPermissions")]
+    partial class AgregarUserPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -230,83 +233,6 @@ namespace AutoSys.Migrations
                     b.HasIndex("VehiculoId", "FechaIngreso");
 
                     b.ToTable("Ingresos");
-                });
-
-            modelBuilder.Entity("AutoSys.Models.RolePermission", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<bool>("ActualizarEstadoIngresos")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("AjustarStock")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CrearClientes")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CrearFacturas")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CrearIngresos")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CrearStock")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("CrearVehiculos")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EditarClientes")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("EditarStock")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("ModificadoPor")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("RolNombre")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<DateTime>("UltimaModificacion")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("VerClientes")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerFacturacion")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerIngresos")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerReparaciones")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerReportes")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerStock")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerVehiculos")
-                        .HasColumnType("bit");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RolNombre")
-                        .IsUnique();
-
-                    b.ToTable("RolePermissions");
                 });
 
             modelBuilder.Entity("AutoSys.Models.Stock", b =>

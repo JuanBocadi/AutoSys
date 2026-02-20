@@ -3,15 +3,35 @@ using AutoSys.Data;
 using AutoSys.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
 
+// Configurar antiforgery para admitir peticiones AJAX con header
+builder.Services.AddAntiforgery(options =>
+{
+    options.HeaderName = "RequestVerificationToken";
+});
+
 builder.Services.AddDbContext<AutoSysDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-builder.Services.AddIdentity<IdentityUser, IdentityRole>()
+builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+{
+    // Política de contraseñas
+    options.Password.RequireDigit           = true;
+    options.Password.RequiredLength         = 8;
+    options.Password.RequireUppercase       = true;
+    options.Password.RequireLowercase       = true;
+    options.Password.RequireNonAlphanumeric = true;
+
+    // Bloqueo de cuenta: 5 intentos fallidos → 10 minutos
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.DefaultLockoutTimeSpan  = TimeSpan.FromMinutes(10);
+    options.Lockout.AllowedForNewUsers      = true;
+})
     .AddEntityFrameworkStores<AutoSysDbContext>()
     .AddDefaultTokenProviders();
 
@@ -35,6 +55,7 @@ builder.Services.AddAuthorization(options =>
 // Servicios y patrones de diseño
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
+builder.Services.AddScoped<AutoSys.Services.IPermissionService, AutoSys.Services.PermissionService>();
 
 // Patrón Observer: Registrar sujeto y observadores
 builder.Services.AddSingleton<AutoSys.Patterns.Observer.EventSubject>();
@@ -48,15 +69,18 @@ using (var scope = app.Services.CreateScope())
     var context = services.GetRequiredService<AutoSysDbContext>();
     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = services.GetRequiredService<UserManager<IdentityUser>>();
+    var configuration = services.GetRequiredService<IConfiguration>();
 
     context.Database.Migrate();
     DbInitializer.Seed(context);
-    await IdentityInitializer.SeedAsync(roleManager, userManager);
+    await IdentityInitializer.SeedAsync(roleManager, userManager, configuration);
 }
 
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
+    app.UseHttpsRedirection();   // forzar HTTPS en producción
+    app.UseHsts();
 }
 
 app.UseStaticFiles();

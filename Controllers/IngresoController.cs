@@ -2,10 +2,12 @@
 using AutoSys.Models;
 using AutoSys.Patterns.Observer;
 using AutoSys.Services;
+using AutoSys.Filters;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Authorization;
 using System;
+using System.Security.Claims;
 
 namespace AutoSys.Controllers
 {
@@ -17,27 +19,31 @@ namespace AutoSys.Controllers
         private readonly EventSubject _eventSubject;
         private readonly INotificationService _notificationService;
         private readonly ILogger<IngresoController> _logger;
+        private readonly IPermissionService _permissionService;
 
-        public IngresoController(AutoSysDbContext context, 
+        public IngresoController(AutoSysDbContext context,
                                  IWebHostEnvironment env,
                                  EventSubject eventSubject,
                                  INotificationService notificationService,
-                                 ILogger<IngresoController> logger)
+                                 ILogger<IngresoController> logger,
+                                 IPermissionService permissionService)
         {
             _context = context;
             _env = env;
             _eventSubject = eventSubject;
             _notificationService = notificationService;
             _logger = logger;
+            _permissionService = permissionService;
 
             // PATRÓN OBSERVER: Adjuntar observadores al sujeto
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            _eventSubject.Attach(new EmailNotificationObserver(_notificationService, 
+            _eventSubject.Attach(new EmailNotificationObserver(_notificationService,
                 loggerFactory.CreateLogger<EmailNotificationObserver>()));
             _eventSubject.Attach(new LoggerObserver(loggerFactory.CreateLogger<LoggerObserver>()));
         }
 
-        [Authorize(Roles = "Administrador,Recepcionista")]
+        [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+        [RequirePermiso("CrearIngresos")]
         public IActionResult Create()
         {
             ViewBag.Vehiculos = _context.Vehiculos
@@ -55,6 +61,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("CrearIngresos")]
         public async Task<IActionResult> Create(Ingreso ingreso, IFormFile? Foto, string? FotoTempPath)
         {
             bool ingresoActivo = await _context.Ingresos
@@ -92,10 +99,25 @@ namespace AutoSys.Controllers
 
             if (Foto != null && Foto.Length > 0)
             {
+                // Validar extensión
+                var ext = Path.GetExtension(Foto.FileName).ToLowerInvariant();
+                var allowed = new HashSet<string> { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
+                if (!allowed.Contains(ext))
+                {
+                    ModelState.AddModelError("Foto", "Solo se permiten imágenes (.jpg, .jpeg, .png, .gif, .webp).");
+                    return View(ingreso);
+                }
+                // Validar tamaño (5 MB)
+                if (Foto.Length > 5_242_880)
+                {
+                    ModelState.AddModelError("Foto", "La imagen no puede superar 5 MB.");
+                    return View(ingreso);
+                }
+
                 string tempFolder = Path.Combine(_env.WebRootPath, "temp");
                 Directory.CreateDirectory(tempFolder);
 
-                string fileName = Guid.NewGuid().ToString() + Path.GetExtension(Foto.FileName);
+                string fileName = Guid.NewGuid().ToString() + ext;
                 string filePath = Path.Combine(tempFolder, fileName);
 
                 using (var stream = new FileStream(filePath, FileMode.Create))
@@ -167,6 +189,25 @@ namespace AutoSys.Controllers
             if (ingreso == null)
                 return NotFound();
 
+            // ── Calcular permisos efectivos para la vista ──
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var rol = User.IsInRole("Administrador") ? "Administrador"
+                    : User.IsInRole("Recepcionista") ? "Recepcionista"
+                    : "Mecanico";
+
+            // Admin y Recepcionista siempre pueden; Mecánico solo si tiene el permiso delegado
+            bool puedeActualizarEstado = User.IsInRole("Administrador") || User.IsInRole("Recepcionista");
+            bool puedeCrearIngreso     = User.IsInRole("Administrador") || User.IsInRole("Recepcionista");
+
+            if (!puedeActualizarEstado && !string.IsNullOrEmpty(userId))
+                puedeActualizarEstado = await _permissionService.TienePermisoEfectivoAsync(userId, rol, nameof(AutoSys.Models.UserPermission.ActualizarEstadoIngresos));
+
+            if (!puedeCrearIngreso && !string.IsNullOrEmpty(userId))
+                puedeCrearIngreso = await _permissionService.TienePermisoEfectivoAsync(userId, rol, nameof(AutoSys.Models.UserPermission.CrearIngresos));
+
+            ViewBag.PuedeActualizarEstado = puedeActualizarEstado;
+            ViewBag.PuedeCrearIngreso     = puedeCrearIngreso;
+
             return View(ingreso);
         }
 
@@ -175,6 +216,20 @@ namespace AutoSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ActualizarEstado(int id, string estado)
         {
+            // Verificar permiso efectivo (Admin y Receptionist siempre OK; Mecánico solo si tiene permiso delegado)
+            bool tienePermiso = User.IsInRole("Administrador") || User.IsInRole("Recepcionista");
+            if (!tienePermiso)
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                tienePermiso = await _permissionService.TienePermisoEfectivoAsync(userId, "Mecanico",
+                    nameof(AutoSys.Models.UserPermission.ActualizarEstadoIngresos));
+            }
+
+            if (!tienePermiso)
+            {
+                TempData["ErrorMessage"] = "No tiene permiso para actualizar el estado de ingresos.";
+                return RedirectToAction("Detalle", new { id });
+            }
             if (string.IsNullOrWhiteSpace(estado))
             {
                 TempData["ErrorMessage"] = "Debe seleccionar un estado válido.";

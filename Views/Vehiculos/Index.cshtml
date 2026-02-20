@@ -1,6 +1,11 @@
 @model IEnumerable<AutoSys.Models.Vehiculo>
 @{
     ViewData["Title"] = "Vehículos";
+    var _u = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    var _rol = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+    var _p = User.IsInRole("Administrador")
+        ? PermissionService.GetDefaultsByRole("Administrador", _u)
+        : await PermissionService.ObtenerPermisosEfectivosAsync(_u, _rol);
 }
 
 <!-- Header -->
@@ -22,9 +27,12 @@
                        id="searchInput">
                 <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
             </div>
-            <a asp-action="Create" class="btn btn-success">
-                <i class="fas fa-plus"></i> Nuevo Vehículo
-            </a>
+            @if (_p.CrearVehiculos)
+            {
+                <a asp-action="Create" class="btn btn-success">
+                    <i class="fas fa-plus"></i> Nuevo Vehículo
+                </a>
+            }
         </div>
     </div>
 </div>
@@ -149,11 +157,14 @@
                                     }
                                 </td>
                                 <td style="text-align: right;">
-                                    <a asp-action="ReparacionesDelVehiculo" asp-route-id="@v.Id" 
-                                       class="btn btn-sm btn-primary"
-                                       title="Ver historial de reparaciones">
-                                        <i class="fas fa-tools"></i> Ver Reparaciones
-                                    </a>
+                                    @if (_p.VerIngresos)
+                                    {
+                                        <a asp-action="ReparacionesDelVehiculo" asp-route-id="@v.Id" 
+                                           class="btn btn-sm btn-primary"
+                                           title="Ver historial de reparaciones">
+                                            <i class="fas fa-tools"></i> Ver Reparaciones
+                                        </a>
+                                    }
                                 </td>
                             </tr>
                         }

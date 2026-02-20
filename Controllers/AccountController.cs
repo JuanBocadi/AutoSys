@@ -86,6 +86,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [AllowAnonymous]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(string email, string password)
         {
             // PATRÓN COMPOSITE: Validación jerárquica de login
@@ -110,10 +111,19 @@ namespace AutoSys.Controllers
             
             if (user != null)
             {
-                var result = await _signInManager.PasswordSignInAsync(user.UserName!, password, false, false);
+                var result = await _signInManager.PasswordSignInAsync(
+                    user.UserName!, password,
+                    isPersistent: false,
+                    lockoutOnFailure: true);  // activa bloqueo tras 5 intentos fallidos
                 
                 if (result.Succeeded)
                     return RedirectToAction("Index", "Home");
+
+                if (result.IsLockedOut)
+                {
+                    ViewBag.Error = "Cuenta bloqueada temporalmente por múltiples intentos fallidos. Intente en unos minutos.";
+                    return View();
+                }
             }
 
             ViewBag.Error = "Usuario o contraseña incorrectos.";

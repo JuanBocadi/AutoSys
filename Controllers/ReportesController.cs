@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Filters;
 using AutoSys.Patterns.Factory;
 using AutoSys.Patterns.Singleton;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [RequirePermiso("VerReportes")]
     public class ReportesController : Controller
     {
         private readonly AutoSysDbContext _context;

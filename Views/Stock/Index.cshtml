@@ -1,6 +1,11 @@
 @model IEnumerable<AutoSys.Models.Stock>
 @{
     ViewData["Title"] = "Stock";
+    var _u = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    var _rol = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+    var _p = User.IsInRole("Administrador")
+        ? PermissionService.GetDefaultsByRole("Administrador", _u)
+        : await PermissionService.ObtenerPermisosEfectivosAsync(_u, _rol);
 }
 
 <!-- Header -->
@@ -13,7 +18,7 @@
             </h1>
             <p style="color: var(--muted-foreground); margin: 0;">Control de inventario y niveles de stock</p>
         </div>
-        @if (User.IsInRole("Administrador"))
+        @if (_p.CrearStock)
         {
             <a asp-action="Create" class="btn btn-primary">
                 <i class="fas fa-plus"></i> Agregar Item
@@ -202,16 +207,18 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                        <button type="button" class="btn btn-sm btn-info btn-ajustar-stock" 
-                                                data-stock-id="@item.Id"
-                                                data-stock-nombre="@item.Nombre"
-                                                data-stock-cantidad="@item.Cantidad"
-                                                data-stock-unidad="@item.Unidad"
-                                                title="Ajustar stock">
-                                            <i class="fas fa-exchange-alt"></i> Ajustar
-                                        </button>
-                                        
-                                        @if (User.IsInRole("Administrador"))
+                                        @if (_p.AjustarStock)
+                                        {
+                                            <button type="button" class="btn btn-sm btn-info btn-ajustar-stock" 
+                                                    data-stock-id="@item.Id"
+                                                    data-stock-nombre="@item.Nombre"
+                                                    data-stock-cantidad="@item.Cantidad"
+                                                    data-stock-unidad="@item.Unidad"
+                                                    title="Ajustar stock">
+                                                <i class="fas fa-exchange-alt"></i> Ajustar
+                                            </button>
+                                        }
+                                        @if (_p.EditarStock)
                                         {
                                             <button type="button" class="btn btn-sm btn-warning btn-editar-stock"
                                                     data-stock-id="@item.Id"
@@ -224,6 +231,9 @@
                                                     title="Editar">
                                                 <i class="fas fa-edit"></i>
                                             </button>
+                                        }
+                                        @if (User.IsInRole("Administrador"))
+                                        {
                                             <button type="button" class="btn btn-sm btn-danger btn-eliminar-stock"
                                                     data-stock-id="@item.Id"
                                                     data-stock-nombre="@item.Nombre"

@@ -3,11 +3,13 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Filters;
 using System.Linq;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista")]
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [RequirePermiso("VerVehiculos")]
     public class VehiculosController : Controller
     {
         private readonly AutoSysDbContext _context;
@@ -28,6 +30,7 @@ namespace AutoSys.Controllers
             return View(vehiculos);
         }
 
+        [RequirePermiso("CrearVehiculos")]
         public IActionResult Create()
         {
             ViewBag.Clientes = _context.Clientes
@@ -43,6 +46,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("CrearVehiculos")]
         public async Task<IActionResult> Create([Bind("ClienteId,Patente,Marca,Modelo")] Vehiculo vehiculo)
         {
             _logger.LogInformation("POST Create - Recibido: ClienteId={ClienteId}, Patente={Patente}, Marca={Marca}, Modelo={Modelo}", 

@@ -3,10 +3,9 @@
     "configurations": [
         
         {
-            "name": "Launch AutoSys with Tunnel",
+            "name": "Launch AutoSys",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "start-tunnel",
             "program": "${workspaceFolder}/bin/Debug/net8.0/AutoSys.dll",
             "args": [],
             "cwd": "${workspaceFolder}",

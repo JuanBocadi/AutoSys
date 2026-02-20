@@ -17,6 +17,8 @@ namespace AutoSys.Data
         public DbSet<Stock> Stock { get; set; }
         public DbSet<Factura> Facturas { get; set; }
         public DbSet<DetalleFactura> DetallesFactura { get; set; }
+        public DbSet<UserPermission> UserPermissions { get; set; }
+        public DbSet<RolePermission> RolePermissions { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -109,6 +111,22 @@ namespace AutoSys.Data
                     .WithMany()
                     .HasForeignKey(f => f.ClienteId)
                     .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // UserPermissions
+            modelBuilder.Entity<UserPermission>(entity =>
+            {
+                entity.Property(e => e.UserId).HasMaxLength(450).IsRequired();
+                entity.Property(e => e.ModificadoPor).HasMaxLength(256);
+                entity.HasIndex(e => e.UserId).IsUnique();
+            });
+
+            // RolePermissions
+            modelBuilder.Entity<RolePermission>(entity =>
+            {
+                entity.Property(e => e.RolNombre).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.ModificadoPor).HasMaxLength(256);
+                entity.HasIndex(e => e.RolNombre).IsUnique();
             });
 
             // DetallesFactura

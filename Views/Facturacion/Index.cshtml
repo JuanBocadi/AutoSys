@@ -1,6 +1,11 @@
 @model IEnumerable<AutoSys.Models.Factura>
 @{
     ViewData["Title"] = "Facturación";
+    var _u = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    var _rol = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+    var _p = User.IsInRole("Administrador")
+        ? PermissionService.GetDefaultsByRole("Administrador", _u)
+        : await PermissionService.ObtenerPermisosEfectivosAsync(_u, _rol);
 }
 
 <!-- Header -->
@@ -13,9 +18,12 @@
             </h1>
             <p style="color: var(--muted-foreground); margin: 0;">Gestión de facturas y cobros</p>
         </div>
-        <a asp-action="Create" class="btn btn-primary">
-            <i class="fas fa-plus"></i> Nueva Factura
-        </a>
+        @if (_p.CrearFacturas)
+        {
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Nueva Factura
+            </a>
+        }
     </div>
 </div>
 
@@ -228,9 +236,12 @@
             <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
                 <i class="fas fa-file-invoice-dollar" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
                 <p style="margin-bottom: 1rem;">No hay facturas registradas</p>
-                <a asp-action="Create" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Crear Primera Factura
-                </a>
+                @if (_p.CrearFacturas)
+                {
+                    <a asp-action="Create" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Crear Primera Factura
+                    </a>
+                }
             </div>
         }
     </div>

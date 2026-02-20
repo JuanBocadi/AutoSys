@@ -3,12 +3,14 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
+using AutoSys.Filters;
 using System.Linq;
 using Microsoft.Data.SqlClient;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista")]
+    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [RequirePermiso("VerClientes")]
     public class ClientesController : Controller
     {
         private readonly AutoSysDbContext _context;
@@ -47,6 +49,7 @@ namespace AutoSys.Controllers
             }
         }
 
+        [RequirePermiso("CrearClientes")]
         public IActionResult Create()
         {
             ViewData["Breadcrumb"] = "Nuevo Cliente";
@@ -57,6 +60,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("CrearClientes")]
         public async Task<IActionResult> Create([Bind("Nombre,Apellido,DNI,Telefono,Email")] Cliente cliente)
         {
             try

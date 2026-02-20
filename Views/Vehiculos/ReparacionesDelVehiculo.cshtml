@@ -1,6 +1,11 @@
 @model AutoSys.Models.Vehiculo
 @{
     ViewData["Title"] = $"Reparaciones de {Model.Patente}";
+    var _u = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    var _rol = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+    var _p = User.IsInRole("Administrador")
+        ? PermissionService.GetDefaultsByRole("Administrador", _u)
+        : await PermissionService.ObtenerPermisosEfectivosAsync(_u, _rol);
 }
 
 <div class="mt-4">
@@ -169,11 +174,14 @@
                                         }
                                     </td>
                                     <td class="text-center">
-                                        <a asp-controller="Ingreso" asp-action="Detalle" asp-route-id="@ingreso.Id" 
-                                           class="btn btn-sm btn-info"
-                                           title="Ver detalle completo">
-                                            <i class="fas fa-eye me-1"></i>Ver Detalle
-                                        </a>
+                                        @if (_p.VerIngresos)
+                                        {
+                                            <a asp-controller="Ingreso" asp-action="Detalle" asp-route-id="@ingreso.Id" 
+                                               class="btn btn-sm btn-info"
+                                               title="Ver detalle completo">
+                                                <i class="fas fa-eye me-1"></i>Ver Detalle
+                                            </a>
+                                        }
                                     </td>
                                 </tr>
                             }

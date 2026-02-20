@@ -1,6 +1,11 @@
 @model IEnumerable<AutoSys.Models.Cliente>
 @{
     ViewData["Title"] = "Clientes";
+    var _u = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+    var _rol = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+    var _p = User.IsInRole("Administrador")
+        ? PermissionService.GetDefaultsByRole("Administrador", _u)
+        : await PermissionService.ObtenerPermisosEfectivosAsync(_u, _rol);
 }
 
 <!-- Header -->
@@ -22,9 +27,12 @@
                        id="searchInput">
                 <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
             </div>
-            <a asp-action="Create" class="btn btn-primary">
-                <i class="fas fa-plus"></i> Nuevo Cliente
-            </a>
+            @if (_p.CrearClientes)
+            {
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Cliente
+                </a>
+            }
         </div>
     </div>
 </div>
@@ -130,9 +138,12 @@
                                 <div style="font-size: 0.75rem; color: var(--muted-foreground);">@c.FechaRegistro.ToString("HH:mm")</div>
                             </td>
                             <td style="text-align: right;">
-                                <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" class="btn btn-sm btn-secondary">
-                                    <i class="fas fa-car"></i> Ver Vehículos
-                                </a>
+                                @if (_p.VerVehiculos)
+                                {
+                                    <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-car"></i> Ver Vehículos
+                                    </a>
+                                }
                             </td>
                         </tr>
                     }

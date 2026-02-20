@@ -1,0 +1,256 @@
+@using Microsoft.AspNetCore.Html
+@model AutoSys.ViewModels.GrupoPermisosViewModel
+
+@{
+    ViewData["Title"] = "Permisos de Grupos";
+}
+
+@functions {
+    bool RolPerm(AutoSys.Models.RolePermission rp, string nombre)
+    {
+        var prop = typeof(AutoSys.Models.RolePermission).GetProperty(nombre);
+        return prop != null && (bool)(prop.GetValue(rp) ?? false);
+    }
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <a asp-controller="Usuarios" asp-action="Index"
+           style="color: var(--muted-foreground); text-decoration: none; font-size: 0.875rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fas fa-arrow-left"></i> Volver a Usuarios
+        </a>
+    </div>
+    <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-users-cog" style="color: #6366f1;"></i>
+        Permisos de Grupos
+    </h1>
+    <p style="color: var(--muted-foreground); margin: 0;">
+        Define los permisos predeterminados para cada grupo. Se aplican a usuarios sin configuración individual.
+    </p>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" style="margin-bottom: 1.5rem;">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<!-- Info banner -->
+<div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: var(--radius);
+            padding: 0.875rem 1rem; margin-bottom: 1.5rem; font-size: 0.875rem; color: #1e40af;
+            display: flex; align-items: flex-start; gap: 0.75rem;">
+    <i class="fas fa-info-circle" style="margin-top: 0.15rem; flex-shrink: 0;"></i>
+    <span>
+        Los permisos aquí configurados son los <strong>defaults del grupo</strong>.
+        Los usuarios con permisos <strong>individuales</strong> configurados no se ven afectados por estos cambios.
+    </span>
+</div>
+
+<!-- Two-column panel -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+    @* ── Mecánicos ─────────────────────────────────────────────────── *@
+    <div class="card" style="border: 1px solid var(--border);">
+        <div class="card-body" style="padding: 0;">
+
+            <!-- Role header -->
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+                        display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: 50%;
+                                display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-tools" style="color: #15803d;"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: #15803d;">Mecánicos</div>
+                        @if (Model.UltimaModifMecanico.HasValue)
+                        {
+                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">
+                                Modificado @Model.UltimaModifMecanico.Value.ToString("dd/MM/yyyy HH:mm")
+                                @if (!string.IsNullOrEmpty(Model.ModifPorMecanico)) { <text>por @Model.ModifPorMecanico</text> }
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">Usando defaults del sistema</div>
+                        }
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.4rem; flex-direction: column; align-items: flex-end;">
+                    <button type="button" onclick="toggleAll('mecanico', true)"
+                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
+                            background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;">
+                        <i class="fas fa-check-double"></i> Todos
+                    </button>
+                    <button type="button" onclick="toggleAll('mecanico', false)"
+                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
+                            background:#f4f4f5; color:#71717a; border:1px solid #e4e4e7;">
+                        <i class="fas fa-times"></i> Ninguno
+                    </button>
+                </div>
+            </div>
+
+            <form asp-action="GuardarPermisosGrupo" method="post" style="padding: 1.5rem;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="rolNombre" value="Mecanico" />
+
+                @RenderModules("mecanico", Model.PermisosMecanico)
+
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button type="submit" class="btn btn-primary" style="background: #15803d; border-color: #15803d;">
+                        <i class="fas fa-save me-1"></i> Guardar Mecánicos
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    @* ── Recepcionistas ─────────────────────────────────────────────── *@
+    <div class="card" style="border: 1px solid var(--border);">
+        <div class="card-body" style="padding: 0;">
+
+            <!-- Role header -->
+            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+                        display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: 50%;
+                                display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-user-tie" style="color: #1e40af;"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 700; font-size: 1rem; color: #1e40af;">Recepcionistas</div>
+                        @if (Model.UltimaModifRecepcionista.HasValue)
+                        {
+                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">
+                                Modificado @Model.UltimaModifRecepcionista.Value.ToString("dd/MM/yyyy HH:mm")
+                                @if (!string.IsNullOrEmpty(Model.ModifPorRecepcionista)) { <text>por @Model.ModifPorRecepcionista</text> }
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">Usando defaults del sistema</div>
+                        }
+                    </div>
+                </div>
+                <div style="display: flex; gap: 0.4rem; flex-direction: column; align-items: flex-end;">
+                    <button type="button" onclick="toggleAll('recepcionista', true)"
+                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
+                            background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">
+                        <i class="fas fa-check-double"></i> Todos
+                    </button>
+                    <button type="button" onclick="toggleAll('recepcionista', false)"
+                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
+                            background:#f4f4f5; color:#71717a; border:1px solid #e4e4e7;">
+                        <i class="fas fa-times"></i> Ninguno
+                    </button>
+                </div>
+            </div>
+
+            <form asp-action="GuardarPermisosGrupo" method="post" style="padding: 1.5rem;">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="rolNombre" value="Recepcionista" />
+
+                @RenderModules("recepcionista", Model.PermisosRecepcionista)
+
+                <div style="margin-top: 1.5rem; text-align: right;">
+                    <button type="submit" class="btn btn-primary" style="background: #1e40af; border-color: #1e40af;">
+                        <i class="fas fa-save me-1"></i> Guardar Recepcionistas
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+@* ─── Legend ───────────────────────────────────────────────────────────── *@
+<div class="card" style="margin-top: 1.5rem;">
+    <div class="card-body" style="padding: 1rem 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap; font-size: 0.8rem;">
+            <span style="font-weight: 600; color: var(--muted-foreground);">Leyenda:</span>
+            <span style="background: #dcfce7; color: #15803d; padding: 0.2rem 0.6rem; border-radius: 1rem; font-weight: 600;">
+                <i class="fas fa-circle" style="font-size:0.45rem; vertical-align:middle;"></i> Activo
+            </span>
+            <span style="background: #f4f4f5; color: #71717a; padding: 0.2rem 0.6rem; border-radius: 1rem; font-weight: 600;">
+                <i class="fas fa-circle" style="font-size:0.45rem; vertical-align:middle;"></i> Inactivo
+            </span>
+        </div>
+    </div>
+</div>
+
+@* ─── Local helper: renders a module block with checkboxes ────────────────── *@
+@{
+    IHtmlContent RenderModules(string prefix, AutoSys.Models.RolePermission rp)
+    {
+        var modules = new[]
+        {
+            ("fas fa-users", "Clientes",    new[] { ("VerClientes","Ver"),("CrearClientes","Crear"),("EditarClientes","Editar") }),
+            ("fas fa-car",   "Vehículos",   new[] { ("VerVehiculos","Ver"),("CrearVehiculos","Crear") }),
+            ("fas fa-clipboard-list","Ingresos", new[] { ("VerIngresos","Ver"),("CrearIngresos","Crear"),("ActualizarEstadoIngresos","Actualizar Estado") }),
+            ("fas fa-wrench","Reparaciones",new[] { ("VerReparaciones","Ver") }),
+            ("fas fa-boxes", "Stock",        new[] { ("VerStock","Ver"),("CrearStock","Crear"),("EditarStock","Editar"),("AjustarStock","Ajustar") }),
+            ("fas fa-file-invoice-dollar","Facturación",new[] { ("VerFacturacion","Ver"),("CrearFacturas","Crear Facturas") }),
+            ("fas fa-chart-bar","Reportes",  new[] { ("VerReportes","Ver") }),
+        };
+
+        var sb = new System.Text.StringBuilder();
+        foreach (var (icon, title, perms) in modules)
+        {
+            sb.Append($"<div style=\"margin-bottom:1rem;\">");
+            sb.Append($"<div style=\"font-size:0.7rem;font-weight:700;color:var(--muted-foreground);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:0.4rem;display:flex;align-items:center;gap:0.35rem;\"><i class=\"{icon}\"></i>{title}</div>");
+            sb.Append("<div style=\"display:flex;flex-wrap:wrap;gap:0.35rem;\">");
+            foreach (var (field, label) in perms)
+            {
+                bool active = RolPerm(rp, field);
+                sb.Append($"<label class=\"grp-toggle {prefix}\" data-field=\"{field}\" style=\"cursor:pointer;display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.6rem;border-radius:1rem;font-size:0.78rem;font-weight:600;user-select:none;background:{(active ? "#dcfce7" : "#f4f4f5")};color:{(active ? "#15803d" : "#71717a")};transition:all 0.15s;\">");
+                sb.Append($"<input type=\"checkbox\" name=\"{field}\" value=\"true\" {(active ? "checked" : "")} style=\"display:none;\" />");
+                sb.Append($"<i class=\"fas fa-circle\" style=\"font-size:0.45rem;\"></i>{label}");
+                sb.Append("</label>");
+            }
+            sb.Append("</div></div>");
+        }
+        return new Microsoft.AspNetCore.Html.HtmlString(sb.ToString());
+    }
+}
+
+@section Scripts {
+<script>
+    // ── Toggle individual ──────────────────────────────────────────
+    document.querySelectorAll('.grp-toggle').forEach(function(lbl) {
+        lbl.addEventListener('click', function() {
+            var cb = lbl.querySelector('input[type=checkbox]');
+            cb.checked = !cb.checked;
+            actualizarVisualLabel(lbl, cb.checked);
+        });
+    });
+
+    function actualizarVisualLabel(lbl, active) {
+        if (active) {
+            lbl.style.background = '#dcfce7';
+            lbl.style.color      = '#15803d';
+        } else {
+            lbl.style.background = '#f4f4f5';
+            lbl.style.color      = '#71717a';
+        }
+    }
+
+    // ── Toggle all in a group ──────────────────────────────────────
+    function toggleAll(prefix, active) {
+        document.querySelectorAll('.grp-toggle.' + prefix).forEach(function(lbl) {
+            var cb = lbl.querySelector('input[type=checkbox]');
+            cb.checked = active;
+            actualizarVisualLabel(lbl, active);
+        });
+    }
+</script>
+}

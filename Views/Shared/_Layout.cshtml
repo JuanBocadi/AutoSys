@@ -1,10 +1,43 @@
 ﻿@inject Microsoft.AspNetCore.Identity.UserManager<Microsoft.AspNetCore.Identity.IdentityUser> UserManager
+@inject AutoSys.Services.IPermissionService PermissionService
+@using System.Security.Claims
 @{
     string currentUsername = "";
+    bool navVerClientes     = false;
+    bool navVerVehiculos    = false;
+    bool navVerIngresos     = false;
+    bool navVerReparaciones = false;
+    bool navVerStock        = false;
+    bool navVerFacturacion  = false;
+    bool navVerReportes     = false;
+    bool navEsAdmin         = false;
+
     if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         var currentUser = await UserManager.GetUserAsync(User);
         currentUsername = currentUser?.UserName ?? User.Identity.Name ?? "";
+
+        navEsAdmin = User.IsInRole("Administrador");
+
+        if (navEsAdmin)
+        {
+            navVerClientes = navVerVehiculos = navVerIngresos = navVerReparaciones =
+            navVerStock = navVerFacturacion = navVerReportes = true;
+        }
+        else
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+            var rol = User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+            var permisos = await PermissionService.ObtenerPermisosEfectivosAsync(userId, rol);
+
+            navVerClientes     = permisos.VerClientes;
+            navVerVehiculos    = permisos.VerVehiculos;
+            navVerIngresos     = permisos.VerIngresos;
+            navVerReparaciones = permisos.VerReparaciones;
+            navVerStock        = permisos.VerStock;
+            navVerFacturacion  = permisos.VerFacturacion;
+            navVerReportes     = permisos.VerReportes;
+        }
     }
 }
 <!DOCTYPE html>
@@ -70,19 +103,23 @@
                         <span>Dashboard</span>
                     </a>
                     
-                    @if (User.IsInRole("Administrador") || User.IsInRole("Recepcionista"))
+                    @if (navVerClientes)
                     {
                         <a asp-controller="Clientes" asp-action="Index" class="nav-item">
                             <i class="fas fa-users"></i>
                             <span>Clientes</span>
                         </a>
+                    }
+
+                    @if (navVerVehiculos)
+                    {
                         <a asp-controller="Vehiculos" asp-action="Index" class="nav-item">
                             <i class="fas fa-car"></i>
                             <span>Vehículos</span>
                         </a>
                     }
                     
-                    @if (User.IsInRole("Administrador") || User.IsInRole("Recepcionista") || User.IsInRole("Mecanico"))
+                    @if (navVerIngresos)
                     {
                         <a asp-controller="Ingreso" asp-action="Index" class="nav-item">
                             <i class="fas fa-clipboard-list"></i>
@@ -90,19 +127,23 @@
                         </a>
                     }
                     
-                    @if (User.IsInRole("Administrador") || User.IsInRole("Mecanico"))
+                    @if (navVerReparaciones)
                     {
                         <a asp-controller="Reparaciones" asp-action="Index" class="nav-item">
                             <i class="fas fa-tools"></i>
                             <span>Reparaciones</span>
                         </a>
+                    }
+
+                    @if (navVerStock)
+                    {
                         <a asp-controller="Stock" asp-action="Index" class="nav-item">
                             <i class="fas fa-boxes"></i>
                             <span>Stock</span>
                         </a>
                     }
                     
-                    @if (User.IsInRole("Administrador") || User.IsInRole("Recepcionista"))
+                    @if (navVerFacturacion)
                     {
                         <a asp-controller="Facturacion" asp-action="Index" class="nav-item">
                             <i class="fas fa-receipt"></i>
@@ -110,12 +151,16 @@
                         </a>
                     }
                     
-                    @if (User.IsInRole("Administrador"))
+                    @if (navVerReportes)
                     {
                         <a asp-controller="Reportes" asp-action="Index" class="nav-item">
                             <i class="fas fa-chart-bar"></i>
                             <span>Reportes</span>
                         </a>
+                    }
+
+                    @if (navEsAdmin)
+                    {
                         <a asp-controller="Usuarios" asp-action="Index" class="nav-item">
                             <i class="fas fa-user-cog"></i>
                             <span>Usuarios</span>

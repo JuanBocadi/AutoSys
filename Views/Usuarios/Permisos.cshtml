@@ -1,0 +1,372 @@
+@model AutoSys.ViewModels.PermisosUsuarioViewModel
+
+@{
+    ViewData["Title"] = $"Permisos - {Model.UserName}";
+
+    string rolColor = Model.Rol switch
+    {
+        "Administrador" => "#b45309",
+        "Recepcionista" => "#1e40af",
+        "Mecanico"      => "#15803d",
+        _ => "#4b5563"
+    };
+    string rolIcon = Model.Rol switch
+    {
+        "Administrador" => "fa-user-shield",
+        "Recepcionista" => "fa-user-tie",
+        "Mecanico"      => "fa-tools",
+        _ => "fa-user"
+    };
+}
+
+@functions {
+    bool RolDaPermiso(string nombre)
+    {
+        var prop = typeof(AutoSys.Models.UserPermission).GetProperty(nombre);
+        if (prop == null) return false;
+        return (bool)(prop.GetValue(Model.DefaultsDelRol) ?? false);
+    }
+    bool PermisoActivo(string nombre)
+    {
+        var prop = typeof(AutoSys.Models.UserPermission).GetProperty(nombre);
+        if (prop == null) return false;
+        return (bool)(prop.GetValue(Model.Permisos) ?? false);
+    }
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+        <a asp-controller="Usuarios" asp-action="Index"
+           style="color: var(--muted-foreground); text-decoration: none; font-size: 0.875rem; display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fas fa-arrow-left"></i> Volver a Usuarios
+        </a>
+    </div>
+    <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+        <i class="fas fa-shield-alt" style="color: #6366f1;"></i>
+        Control de Permisos
+    </h1>
+    <p style="color: var(--muted-foreground); margin: 0;">
+        Gestion de accesos para <strong>@Model.UserName</strong>
+    </p>
+</div>
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+@if (TempData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+}
+
+<form asp-action="GuardarPermisos" asp-controller="Usuarios" method="post" id="permisosForm">
+    @Html.AntiForgeryToken()
+    <input type="hidden" name="userId" value="@Model.UserId" />
+
+    <div style="display: grid; grid-template-columns: 300px 1fr; gap: 1.5rem; align-items: start;">
+
+        <!-- PANEL IZQUIERDO -->
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+
+            <div class="card">
+                <div class="card-body" style="text-align: center; padding: 2rem 1.5rem;">
+                    <div style="width: 5rem; height: 5rem; background: #e0e7ff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 2rem; color: #6366f1; margin: 0 auto 1rem;">
+                        @Model.UserName.Substring(0, 1).ToUpper()
+                    </div>
+                    <h4 style="font-weight: 700; margin-bottom: 0.25rem;">@Model.UserName</h4>
+                    <p style="color: var(--muted-foreground); font-size: 0.875rem; margin-bottom: 1rem;">@Model.Email</p>
+                    <span style="color: @rolColor; font-weight: 700; font-size: 0.875rem; display: inline-flex; align-items: center; gap: 0.4rem; background: #f9fafb; padding: 0.4rem 0.75rem; border-radius: var(--radius);">
+                        <i class="fas @rolIcon" id="rolIcon"></i>
+                        <span id="rolLabel">@Model.Rol</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cambio de Rol Base -->
+            <div class="card">
+                <div class="card-body">
+                    <h6 style="font-weight: 700; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-exchange-alt" style="color: #6366f1;"></i>
+                        Rol Base
+                    </h6>
+                    <p style="font-size: 0.8rem; color: var(--muted-foreground); margin-bottom: 0.75rem;">
+                        Al cambiar el rol se recalculan los permisos predeterminados.
+                    </p>
+                    <select name="nuevoRol" id="selectRol" class="form-select form-select-sm" onchange="onRolChange(this.value)">
+                        @foreach (var r in Model.RolesDisponibles)
+                        {
+                            if (r == Model.Rol)
+                            {
+                                <option value="@r" selected>@r</option>
+                            }
+                            else
+                            {
+                                <option value="@r">@r</option>
+                            }
+                        }
+                    </select>
+                </div>
+            </div>
+
+            <!-- Leyenda -->
+            <div class="card">
+                <div class="card-body" style="font-size: 0.8rem;">
+                    <h6 style="font-weight: 700; margin-bottom: 0.75rem;">Leyenda</h6>
+                    <div style="display: flex; flex-direction: column; gap: 0.5rem; color: var(--muted-foreground);">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="width: 0.7rem; height: 0.7rem; background: #6366f1; border-radius: 50%; display: inline-block;"></span>
+                            <span><strong>Violeta</strong> = permiso del rol base</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <span style="width: 0.7rem; height: 0.7rem; background: #10b981; border-radius: 50%; display: inline-block;"></span>
+                            <span><strong>Verde</strong> = permiso extra delegado</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; opacity: 0.5;">
+                            <span style="width: 0.7rem; height: 0.7rem; background: #d1d5db; border-radius: 50%; display: inline-block;"></span>
+                            <span><strong>Gris</strong> = desactivado</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            @if (Model.Permisos.UltimaModificacion != default)
+            {
+                <div class="card">
+                    <div class="card-body" style="font-size: 0.8rem; color: var(--muted-foreground);">
+                        <i class="fas fa-clock me-1"></i>Ultima modificacion:<br />
+                        <strong>@Model.Permisos.UltimaModificacion.ToString("dd/MM/yyyy HH:mm")</strong>
+                        @if (!string.IsNullOrEmpty(Model.Permisos.ModificadoPor))
+                        {
+                            <div><i class="fas fa-user me-1"></i> Por: <strong>@Model.Permisos.ModificadoPor</strong></div>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- PANEL DERECHO -->
+        <div class="card">
+            <div class="card-body" style="padding: 1.75rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border);">
+                    <h5 style="font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                        <i class="fas fa-sliders-h" style="color: #6366f1;"></i>
+                        Permisos por Modulo
+                    </h5>
+                    <div style="display: flex; gap: 0.5rem;">
+                        <button type="button" onclick="toggleAll(true)" class="btn btn-sm" style="background: #dcfce7; color: #15803d; border: none; font-size: 0.8rem;">
+                            <i class="fas fa-check-double me-1"></i>Todos
+                        </button>
+                        <button type="button" onclick="toggleAll(false)" class="btn btn-sm" style="background: #fee2e2; color: #dc2626; border: none; font-size: 0.8rem;">
+                            <i class="fas fa-times me-1"></i>Ninguno
+                        </button>
+                    </div>
+                </div>
+
+                @{
+                    var modulos = new[]
+                    {
+                        new { Nombre = "Clientes",     Icono = "fa-users",               Color = "#6366f1", BgColor = "#e0e7ff",
+                              Items = new[] { ("VerClientes","Ver listado de clientes"), ("CrearClientes","Crear clientes"), ("EditarClientes","Editar clientes") } },
+                        new { Nombre = "Vehiculos",    Icono = "fa-car",                  Color = "#0284c7", BgColor = "#e0f2fe",
+                              Items = new[] { ("VerVehiculos","Ver vehiculos"), ("CrearVehiculos","Registrar vehiculos") } },
+                        new { Nombre = "Ingresos",     Icono = "fa-clipboard-list",       Color = "#d97706", BgColor = "#fef3c7",
+                              Items = new[] { ("VerIngresos","Ver listado de ingresos"), ("CrearIngresos","Crear nuevos ingresos"), ("ActualizarEstadoIngresos","Actualizar estado de ingresos") } },
+                        new { Nombre = "Reparaciones", Icono = "fa-wrench",               Color = "#7c3aed", BgColor = "#ede9fe",
+                              Items = new[] { ("VerReparaciones","Ver panel de reparaciones") } },
+                        new { Nombre = "Stock",        Icono = "fa-boxes",                Color = "#0f766e", BgColor = "#ccfbf1",
+                              Items = new[] { ("VerStock","Ver inventario"), ("CrearStock","Agregar items al stock"), ("EditarStock","Editar items del stock"), ("AjustarStock","Ajustar cantidades") } },
+                        new { Nombre = "Facturacion",  Icono = "fa-file-invoice-dollar",  Color = "#15803d", BgColor = "#dcfce7",
+                              Items = new[] { ("VerFacturacion","Ver facturas"), ("CrearFacturas","Emitir facturas") } },
+                        new { Nombre = "Reportes",     Icono = "fa-chart-bar",            Color = "#be185d", BgColor = "#fce7f3",
+                              Items = new[] { ("VerReportes","Acceder a reportes y estadisticas") } }
+                    };
+                }
+
+                <div style="display: flex; flex-direction: column; gap: 1.25rem;">
+                    @foreach (var modulo in modulos)
+                    {
+                        <div style="border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden;">
+                            <div style="background: @modulo.BgColor; padding: 0.75rem 1rem; display: flex; align-items: center; gap: 0.6rem;">
+                                <i class="fas @modulo.Icono" style="color: @modulo.Color; width: 1.1rem;"></i>
+                                <span style="font-weight: 700; font-size: 0.9rem; color: @modulo.Color;">@modulo.Nombre</span>
+                            </div>
+                            <div style="padding: 0.75rem 1rem; display: flex; flex-wrap: wrap; gap: 0.75rem;">
+                                @foreach (var (propNombre, etiqueta) in modulo.Items)
+                                {
+                                    bool activo  = PermisoActivo(propNombre);
+                                    bool esDeRol = RolDaPermiso(propNombre);
+
+                                    string borderCol = activo ? (esDeRol ? "#6366f1" : "#10b981") : "var(--border)";
+                                    string bgCol     = activo ? (esDeRol ? "#e0e7ff"  : "#dcfce7") : "transparent";
+                                    string txtCol    = activo ? (esDeRol ? "#6366f1"  : "#10b981") : "var(--muted-foreground)";
+                                    string iconCls   = activo ? "fa-check-circle" : "fa-circle";
+
+                                    <label class="permiso-toggle"
+                                           style="display: flex; align-items: center; gap: 0.6rem; cursor: pointer; padding: 0.5rem 0.9rem; border: 1.5px solid @borderCol; border-radius: 2rem; background: @bgCol; font-size: 0.85rem; font-weight: 500; transition: all 0.2s; color: @txtCol;"
+                                           data-prop="@propNombre"
+                                           data-esderol="@esDeRol.ToString().ToLower()">
+                                        <input type="checkbox" name="permisos.@propNombre" value="true" @(activo ? "checked" : "") style="display: none;" class="permiso-checkbox" />
+                                        <span class="toggle-icon"><i class="fas @iconCls" style="font-size: 0.85rem;"></i></span>
+                                        @etiqueta
+                                        @if (esDeRol)
+                                        {
+                                            <span class="rol-badge" style="font-size: 0.7rem; opacity: 0.7;">(rol)</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="rol-badge" style="font-size: 0.7rem; opacity: 0.7;"></span>
+                                        }
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div style="margin-top: 2rem; padding-top: 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.75rem;">
+                    <a asp-controller="Usuarios" asp-action="Index" class="btn btn-secondary">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </a>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-1"></i>Guardar Cambios
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- ===== Restablecer contraseña ===== -->
+@if (Model.UserId != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
+{
+<div class="card" style="margin-top: 2rem; border: 1px solid #fca5a5;">
+    <div class="card-body" style="padding: 1.5rem;">
+        <details>
+            <summary style="cursor: pointer; font-size: 1rem; font-weight: 700; color: #dc2626;
+                            display: flex; align-items: center; gap: 0.5rem; list-style: none;">
+                <i class="fas fa-key"></i>
+                Restablecer Contraseña del Usuario
+                <span style="font-size: 0.75rem; font-weight: 400; color: var(--muted-foreground); margin-left: 0.5rem;">
+                    (haga clic para expandir)
+                </span>
+            </summary>
+
+            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #fca5a5;">
+                <div class="alert" style="background: #fff7ed; border: 1px solid #fed7aa;
+                                        border-radius: var(--radius); padding: 0.875rem 1rem;
+                                        font-size: 0.875rem; color: #9a3412; margin-bottom: 1.25rem;">
+                    <i class="fas fa-exclamation-triangle me-1"></i>
+                    Esta acción reemplaza la contraseña actual de <strong>@Model.UserName</strong> de forma inmediata.
+                    El usuario deberá usar la nueva contraseña en su próximo inicio de sesión.
+                </div>
+
+                <form asp-action="RestablecerPassword" asp-controller="Usuarios" method="post">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" value="@Model.UserId" />
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                        <div>
+                            <label class="form-label" style="font-size: 0.875rem; font-weight: 600;">
+                                <i class="fas fa-lock me-1" style="color: var(--muted-foreground);"></i>
+                                Nueva Contraseña
+                            </label>
+                            <input type="password" name="nuevaPassword" class="form-control"
+                                   placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6" />
+                        </div>
+                        <div>
+                            <label class="form-label" style="font-size: 0.875rem; font-weight: 600;">
+                                <i class="fas fa-lock me-1" style="color: var(--muted-foreground);"></i>
+                                Confirmar Contraseña
+                            </label>
+                            <input type="password" name="confirmarPassword" class="form-control"
+                                   placeholder="Repetir contraseña" autocomplete="new-password" required minlength="6" />
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger"
+                            onclick="return confirm('\u00bfConfirma que desea restablecer la contraseña de @Model.UserName?');">
+                        <i class="fas fa-key me-1"></i> Confirmar Restablecimiento
+                    </button>
+                </form>
+            </div>
+        </details>
+    </div>
+</div>
+}
+
+<script id="roleDefaultsData" type="application/json">
+{
+    "Administrador": { "VerClientes":true,"CrearClientes":true,"EditarClientes":true,"VerVehiculos":true,"CrearVehiculos":true,"VerIngresos":true,"CrearIngresos":true,"ActualizarEstadoIngresos":true,"VerReparaciones":true,"VerStock":true,"CrearStock":true,"EditarStock":true,"AjustarStock":true,"VerFacturacion":true,"CrearFacturas":true,"VerReportes":true },
+    "Recepcionista": { "VerClientes":true,"CrearClientes":true,"EditarClientes":true,"VerVehiculos":true,"CrearVehiculos":true,"VerIngresos":true,"CrearIngresos":true,"ActualizarEstadoIngresos":true,"VerReparaciones":false,"VerStock":false,"CrearStock":false,"EditarStock":false,"AjustarStock":false,"VerFacturacion":true,"CrearFacturas":true,"VerReportes":false },
+    "Mecanico":      { "VerClientes":false,"CrearClientes":false,"EditarClientes":false,"VerVehiculos":false,"CrearVehiculos":false,"VerIngresos":true,"CrearIngresos":false,"ActualizarEstadoIngresos":false,"VerReparaciones":true,"VerStock":true,"CrearStock":false,"EditarStock":false,"AjustarStock":false,"VerFacturacion":false,"CrearFacturas":false,"VerReportes":false }
+}
+</script>
+
+@section Scripts {
+<script>
+    var roleDefaults = JSON.parse(document.getElementById('roleDefaultsData').textContent);
+
+    document.querySelectorAll('.permiso-toggle').forEach(function (label) {
+        label.addEventListener('click', function () {
+            var checkbox = label.querySelector('.permiso-checkbox');
+            setTimeout(function () { actualizarVisual(label, checkbox.checked); }, 0);
+        });
+    });
+
+    function actualizarVisual(label, activo) {
+        var prop     = label.getAttribute('data-prop');
+        var rol      = document.getElementById('selectRol').value;
+        var esDeRol  = roleDefaults[rol] && roleDefaults[rol][prop] === true;
+        var icon     = label.querySelector('.toggle-icon i');
+        var badge    = label.querySelector('.rol-badge');
+
+        if (activo) {
+            var color = esDeRol ? '#6366f1' : '#10b981';
+            var bg    = esDeRol ? '#e0e7ff' : '#dcfce7';
+            label.style.borderColor = color;
+            label.style.background  = bg;
+            label.style.color       = color;
+            icon.className          = 'fas fa-check-circle';
+            if (badge) badge.textContent = esDeRol ? '(rol)' : '';
+        } else {
+            label.style.borderColor = 'var(--border)';
+            label.style.background  = 'transparent';
+            label.style.color       = 'var(--muted-foreground)';
+            icon.className          = 'fas fa-circle';
+            if (badge) badge.textContent = '';
+        }
+    }
+
+    function toggleAll(activar) {
+        document.querySelectorAll('.permiso-toggle').forEach(function (label) {
+            var checkbox = label.querySelector('.permiso-checkbox');
+            checkbox.checked = activar;
+            actualizarVisual(label, activar);
+        });
+    }
+
+    function onRolChange(nuevoRol) {
+        var defaults = roleDefaults[nuevoRol] || {};
+
+        document.querySelectorAll('.permiso-toggle').forEach(function (label) {
+            var prop     = label.getAttribute('data-prop');
+            var checkbox = label.querySelector('.permiso-checkbox');
+            var activo   = defaults[prop] === true;
+            checkbox.checked = activo;
+            actualizarVisual(label, activo);
+        });
+
+        var iconMap = { 'Administrador':'fa-user-shield', 'Recepcionista':'fa-user-tie', 'Mecanico':'fa-tools' };
+        document.getElementById('rolLabel').textContent = nuevoRol;
+        var iconEl = document.getElementById('rolIcon');
+        if (iconEl) iconEl.className = 'fas ' + (iconMap[nuevoRol] || 'fa-user');
+    }
+</script>
+}
