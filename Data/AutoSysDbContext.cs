@@ -19,6 +19,7 @@ namespace AutoSys.Data
         public DbSet<DetalleFactura> DetallesFactura { get; set; }
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
+        public DbSet<AuditLog> AuditLogs { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -141,6 +142,22 @@ namespace AutoSys.Data
                     .WithMany(f => f.Detalles)
                     .HasForeignKey(d => d.FacturaId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // AuditLogs
+            modelBuilder.Entity<AuditLog>(entity =>
+            {
+                entity.Property(e => e.Usuario).HasMaxLength(256).IsRequired();
+                entity.Property(e => e.Rol).HasMaxLength(50);
+                entity.Property(e => e.Categoria).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Accion).HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Descripcion).HasMaxLength(500).IsRequired();
+                entity.Property(e => e.EntidadNombre).HasMaxLength(200);
+                entity.Property(e => e.DireccionIP).HasMaxLength(50);
+
+                entity.HasIndex(e => e.Fecha);
+                entity.HasIndex(e => e.Categoria);
+                entity.HasIndex(e => e.Usuario);
             });
         }
     }

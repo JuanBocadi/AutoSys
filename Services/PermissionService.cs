@@ -30,7 +30,7 @@ namespace AutoSys.Services
                 {
                     UserId = userId,
                     VerClientes = true,  CrearClientes = true,  EditarClientes = true,
-                    VerVehiculos = true, CrearVehiculos = true,
+                    VerVehiculos = true, CrearVehiculos = true, EditarVehiculos = true,
                     VerIngresos = true,  CrearIngresos = true,  ActualizarEstadoIngresos = true,
                     VerReparaciones = true,
                     VerStock = true,     CrearStock = true,  EditarStock = true,  AjustarStock = true,
@@ -41,7 +41,7 @@ namespace AutoSys.Services
                 {
                     UserId = userId,
                     VerClientes = true,  CrearClientes = true,  EditarClientes = true,
-                    VerVehiculos = true, CrearVehiculos = true,
+                    VerVehiculos = true, CrearVehiculos = true, EditarVehiculos = true,
                     VerIngresos = true,  CrearIngresos = true,  ActualizarEstadoIngresos = true,
                     VerReparaciones = false,
                     VerStock = false,    CrearStock = false, EditarStock = false, AjustarStock = false,
@@ -52,7 +52,7 @@ namespace AutoSys.Services
                 {
                     UserId = userId,
                     VerClientes = false, CrearClientes = false, EditarClientes = false,
-                    VerVehiculos = false, CrearVehiculos = false,
+                    VerVehiculos = false, CrearVehiculos = false, EditarVehiculos = false,
                     VerIngresos = true,  CrearIngresos = false, ActualizarEstadoIngresos = false,
                     VerReparaciones = true,
                     VerStock = true,     CrearStock = false, EditarStock = false, AjustarStock = false,
@@ -92,6 +92,7 @@ namespace AutoSys.Services
                 EditarClientes            = rp.EditarClientes,
                 VerVehiculos              = rp.VerVehiculos,
                 CrearVehiculos            = rp.CrearVehiculos,
+                EditarVehiculos           = rp.EditarVehiculos,
                 VerIngresos               = rp.VerIngresos,
                 CrearIngresos             = rp.CrearIngresos,
                 ActualizarEstadoIngresos  = rp.ActualizarEstadoIngresos,
@@ -140,6 +141,7 @@ namespace AutoSys.Services
                 existente.EditarClientes           = permisos.EditarClientes;
                 existente.VerVehiculos             = permisos.VerVehiculos;
                 existente.CrearVehiculos           = permisos.CrearVehiculos;
+                existente.EditarVehiculos          = permisos.EditarVehiculos;
                 existente.VerIngresos              = permisos.VerIngresos;
                 existente.CrearIngresos            = permisos.CrearIngresos;
                 existente.ActualizarEstadoIngresos = permisos.ActualizarEstadoIngresos;
@@ -189,6 +191,7 @@ namespace AutoSys.Services
                 existente.EditarClientes            = permisos.EditarClientes;
                 existente.VerVehiculos              = permisos.VerVehiculos;
                 existente.CrearVehiculos            = permisos.CrearVehiculos;
+                existente.EditarVehiculos           = permisos.EditarVehiculos;
                 existente.VerIngresos               = permisos.VerIngresos;
                 existente.CrearIngresos             = permisos.CrearIngresos;
                 existente.ActualizarEstadoIngresos  = permisos.ActualizarEstadoIngresos;
@@ -226,6 +229,20 @@ namespace AutoSys.Services
                 _logger.LogInformation(
                     "Eliminados {Count} permisos individuales al propagar cambio de grupo.",
                     registros.Count);
+            }
+        }
+
+        // ── Eliminar permisos de rol (al eliminar un grupo) ──
+        public async Task EliminarPermisosRolAsync(string rolNombre)
+        {
+            var registro = await _context.RolePermissions
+                .FirstOrDefaultAsync(p => p.RolNombre == rolNombre);
+
+            if (registro != null)
+            {
+                _context.RolePermissions.Remove(registro);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Permisos del rol {Rol} eliminados de la BD.", rolNombre);
             }
         }
     }

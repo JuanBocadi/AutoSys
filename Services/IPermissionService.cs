@@ -42,5 +42,10 @@ namespace AutoSys.Services
         /// forzando que hereden los permisos del grupo.
         /// </summary>
         Task EliminarPermisosIndividualesAsync(IEnumerable<string> userIds);
+
+        /// <summary>
+        /// Elimina los permisos configurados de un rol en la BD (al eliminar un grupo).
+        /// </summary>
+        Task EliminarPermisosRolAsync(string rolNombre);
     }
 }

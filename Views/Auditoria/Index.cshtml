@@ -1,0 +1,218 @@
+@model List<AutoSys.Models.AuditLog>
+@{
+    ViewData["Title"] = "Auditoría";
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-clipboard-check" style="margin-right: 0.5rem; color: #8b5cf6;"></i>
+                Auditoría del Sistema
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Registro de acciones importantes realizadas por los usuarios</p>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card" style="margin-bottom: 1.5rem;">
+    <div class="card-body">
+        <form method="get" asp-action="Index" style="display: flex; flex-wrap: wrap; gap: 1rem; align-items: flex-end;">
+            <div>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">
+                    <i class="fas fa-calendar me-1"></i>Desde
+                </label>
+                <input type="date" name="desde" value="@ViewBag.Desde" class="form-control" style="width: 170px;" />
+            </div>
+            <div>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">
+                    <i class="fas fa-calendar me-1"></i>Hasta
+                </label>
+                <input type="date" name="hasta" value="@ViewBag.Hasta" class="form-control" style="width: 170px;" />
+            </div>
+            <div>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">
+                    <i class="fas fa-filter me-1"></i>Categoría
+                </label>
+                <select name="categoria" class="form-select" style="width: 170px;">
+                    <option value="">Todas</option>
+                    @foreach (var cat in (List<string>)ViewBag.Categorias)
+                    {
+                        <option value="@cat" selected="@(ViewBag.CategoriaSeleccionada == cat)">@cat</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label" style="font-size: 0.8rem; font-weight: 600;">
+                    <i class="fas fa-user me-1"></i>Usuario
+                </label>
+                <input type="text" name="usuario" value="@ViewBag.UsuarioFiltro" class="form-control" placeholder="Buscar usuario..." style="width: 170px;" />
+            </div>
+            <div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-search me-1"></i>Filtrar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Stats -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #ede9fe; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-list" style="color: #8b5cf6;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Registros</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@ViewBag.TotalRegistros</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-plus-circle" style="color: #10b981;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Creaciones</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(l => l.Accion == "Crear")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fef3c7; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-edit" style="color: #f59e0b;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Ediciones</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(l => l.Accion == "Editar")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card-body">
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="width: 2.5rem; height: 2.5rem; background: #fee2e2; border-radius: var(--radius); display: flex; align-items: center; justify-content: center;">
+                    <i class="fas fa-trash" style="color: #ef4444;"></i>
+                </div>
+                <div>
+                    <p style="font-size: 0.75rem; color: var(--muted-foreground); margin: 0;">Eliminaciones</p>
+                    <h4 style="font-size: 1.5rem; font-weight: 700; margin: 0;">@Model.Count(l => l.Accion == "Eliminar")</h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        @if (Model.Any())
+        {
+            <div class="table-responsive">
+                <table class="table" id="auditTable">
+                    <thead>
+                        <tr>
+                            <th>Fecha</th>
+                            <th>Usuario</th>
+                            <th>Categoría</th>
+                            <th>Acción</th>
+                            <th>Descripción</th>
+                            <th>IP</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var log in Model)
+                        {
+                            var accionColor = log.Accion switch
+                            {
+                                "Crear" => "#10b981",
+                                "Editar" => "#f59e0b",
+                                "Eliminar" => "#ef4444",
+                                "CambioEstado" => "#3b82f6",
+                                "Login" => "#8b5cf6",
+                                "Logout" => "#6b7280",
+                                _ => "#6b7280"
+                            };
+                            var catIcon = log.Categoria switch
+                            {
+                                "Cliente" => "fa-users",
+                                "Vehiculo" => "fa-car",
+                                "Ingreso" => "fa-clipboard-list",
+                                "Stock" => "fa-boxes",
+                                "Factura" => "fa-receipt",
+                                "Usuario" => "fa-user-cog",
+                                "Permiso" => "fa-key",
+                                "Backup" => "fa-shield-alt",
+                                "Sesion" => "fa-sign-in-alt",
+                                _ => "fa-circle"
+                            };
+                            <tr>
+                                <td>
+                                    <div style="font-size: 0.875rem;">@log.Fecha.ToString("dd/MM/yyyy")</div>
+                                    <div style="font-size: 0.75rem; color: var(--muted-foreground);">@log.Fecha.ToString("HH:mm:ss")</div>
+                                </td>
+                                <td>
+                                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                                        <div style="width: 1.75rem; height: 1.75rem; background: #f4f4f5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 0.65rem; color: #71717a;">
+                                            @(log.Usuario.Length >= 2 ? log.Usuario.Substring(0, 2).ToUpper() : log.Usuario.ToUpper())
+                                        </div>
+                                        <div>
+                                            <div style="font-weight: 600; font-size: 0.875rem;">@log.Usuario</div>
+                                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">@log.Rol</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span style="display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.8rem; color: var(--muted-foreground);">
+                                        <i class="fas @catIcon"></i> @log.Categoria
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge" style="background: @accionColor; font-size: 0.75rem;">
+                                        @log.Accion
+                                    </span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.85rem;">
+                                        @if (log.Descripcion.Length > 80)
+                                        {
+                                            @(log.Descripcion.Substring(0, 80))@:...
+                                        }
+                                        else
+                                        {
+                                            @log.Descripcion
+                                        }
+                                    </span>
+                                </td>
+                                <td>
+                                    <span style="font-size: 0.75rem; color: var(--muted-foreground); font-family: monospace;">
+                                        @(log.DireccionIP ?? "-")
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div style="padding: 3rem; text-align: center; color: var(--muted-foreground);">
+                <i class="fas fa-clipboard-check" style="font-size: 3rem; margin-bottom: 1rem; opacity: 0.3;"></i>
+                <p style="margin: 0;">No se encontraron registros de auditoría para los filtros seleccionados</p>
+            </div>
+        }
+    </div>
+</div>

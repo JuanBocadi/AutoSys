@@ -11,6 +11,34 @@
         var prop = typeof(AutoSys.Models.RolePermission).GetProperty(nombre);
         return prop != null && (bool)(prop.GetValue(rp) ?? false);
     }
+
+    string GetRolColor(string rol) => rol switch
+    {
+        "Mecanico"      => "#15803d",
+        "Recepcionista" => "#1e40af",
+        _ => "#7c3aed"
+    };
+
+    string GetRolBgColor(string rol) => rol switch
+    {
+        "Mecanico"      => "#dcfce7",
+        "Recepcionista" => "#dbeafe",
+        _ => "#ede9fe"
+    };
+
+    string GetRolBorderColor(string rol) => rol switch
+    {
+        "Mecanico"      => "#bbf7d0",
+        "Recepcionista" => "#bfdbfe",
+        _ => "#c4b5fd"
+    };
+
+    string GetRolIcon(string rol) => rol switch
+    {
+        "Mecanico"      => "fa-tools",
+        "Recepcionista" => "fa-user-tie",
+        _ => "fa-user-tag"
+    };
 }
 
 <!-- Header -->
@@ -21,13 +49,20 @@
             <i class="fas fa-arrow-left"></i> Volver a Usuarios
         </a>
     </div>
-    <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
-        <i class="fas fa-users-cog" style="color: #6366f1;"></i>
-        Permisos de Grupos
-    </h1>
-    <p style="color: var(--muted-foreground); margin: 0;">
-        Define los permisos predeterminados para cada grupo. Se aplican a usuarios sin configuración individual.
-    </p>
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.5rem;">
+                <i class="fas fa-users-cog" style="color: #6366f1;"></i>
+                Permisos de Grupos
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">
+                Define los permisos predeterminados para cada grupo. Se aplican a usuarios sin configuración individual.
+            </p>
+        </div>
+        <button type="button" class="btn btn-primary" onclick="document.getElementById('modalCrearGrupo').style.display='flex'">
+            <i class="fas fa-plus me-1"></i> Nuevo Grupo
+        </button>
+    </div>
 </div>
 
 @if (TempData["SuccessMessage"] != null)
@@ -53,125 +88,111 @@
     <span>
         Los permisos aquí configurados son los <strong>defaults del grupo</strong>.
         Los usuarios con permisos <strong>individuales</strong> configurados no se ven afectados por estos cambios.
+        El grupo <strong>Administrador</strong> tiene todos los permisos por defecto y no es configurable.
     </span>
 </div>
 
-<!-- Two-column panel -->
-<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
-
-    @* ── Mecánicos ─────────────────────────────────────────────────── *@
-    <div class="card" style="border: 1px solid var(--border);">
-        <div class="card-body" style="padding: 0;">
-
-            <!-- Role header -->
-            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
-                        display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div style="width: 2.5rem; height: 2.5rem; background: #dcfce7; border-radius: 50%;
-                                display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-tools" style="color: #15803d;"></i>
-                    </div>
-                    <div>
-                        <div style="font-weight: 700; font-size: 1rem; color: #15803d;">Mecánicos</div>
-                        @if (Model.UltimaModifMecanico.HasValue)
-                        {
-                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">
-                                Modificado @Model.UltimaModifMecanico.Value.ToString("dd/MM/yyyy HH:mm")
-                                @if (!string.IsNullOrEmpty(Model.ModifPorMecanico)) { <text>por @Model.ModifPorMecanico</text> }
-                            </div>
-                        }
-                        else
-                        {
-                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">Usando defaults del sistema</div>
-                        }
-                    </div>
-                </div>
-                <div style="display: flex; gap: 0.4rem; flex-direction: column; align-items: flex-end;">
-                    <button type="button" onclick="toggleAll('mecanico', true)"
-                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
-                            background:#dcfce7; color:#15803d; border:1px solid #bbf7d0;">
-                        <i class="fas fa-check-double"></i> Todos
-                    </button>
-                    <button type="button" onclick="toggleAll('mecanico', false)"
-                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
-                            background:#f4f4f5; color:#71717a; border:1px solid #e4e4e7;">
-                        <i class="fas fa-times"></i> Ninguno
-                    </button>
-                </div>
-            </div>
-
-            <form asp-action="GuardarPermisosGrupo" method="post" style="padding: 1.5rem;">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="rolNombre" value="Mecanico" />
-
-                @RenderModules("mecanico", Model.PermisosMecanico)
-
-                <div style="margin-top: 1.5rem; text-align: right;">
-                    <button type="submit" class="btn btn-primary" style="background: #15803d; border-color: #15803d;">
-                        <i class="fas fa-save me-1"></i> Guardar Mecánicos
-                    </button>
-                </div>
-            </form>
+@if (!Model.Grupos.Any())
+{
+    <div class="card">
+        <div class="card-body" style="text-align: center; padding: 3rem;">
+            <i class="fas fa-users-cog" style="font-size: 3rem; color: var(--muted-foreground); opacity: 0.4; margin-bottom: 1rem;"></i>
+            <h5 style="color: var(--muted-foreground);">No hay grupos configurables</h5>
+            <p style="color: var(--muted-foreground); font-size: 0.875rem;">
+                Cree un nuevo grupo para empezar a configurar permisos.
+            </p>
         </div>
     </div>
+}
+else
+{
+    <!-- Dynamic grid of group cards -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(480px, 1fr)); gap: 1.5rem;">
+        @foreach (var grupo in Model.Grupos)
+        {
+            var color = GetRolColor(grupo.RolNombre);
+            var bgColor = GetRolBgColor(grupo.RolNombre);
+            var borderColor = GetRolBorderColor(grupo.RolNombre);
+            var icon = GetRolIcon(grupo.RolNombre);
+            var prefix = grupo.RolNombre.ToLower().Replace(" ", "_");
 
-    @* ── Recepcionistas ─────────────────────────────────────────────── *@
-    <div class="card" style="border: 1px solid var(--border);">
-        <div class="card-body" style="padding: 0;">
+            <div class="card" style="border: 1px solid var(--border);">
+                <div class="card-body" style="padding: 0;">
 
-            <!-- Role header -->
-            <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
-                        display: flex; align-items: center; justify-content: space-between;">
-                <div style="display: flex; align-items: center; gap: 0.75rem;">
-                    <div style="width: 2.5rem; height: 2.5rem; background: #dbeafe; border-radius: 50%;
-                                display: flex; align-items: center; justify-content: center;">
-                        <i class="fas fa-user-tie" style="color: #1e40af;"></i>
-                    </div>
-                    <div>
-                        <div style="font-weight: 700; font-size: 1rem; color: #1e40af;">Recepcionistas</div>
-                        @if (Model.UltimaModifRecepcionista.HasValue)
-                        {
-                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">
-                                Modificado @Model.UltimaModifRecepcionista.Value.ToString("dd/MM/yyyy HH:mm")
-                                @if (!string.IsNullOrEmpty(Model.ModifPorRecepcionista)) { <text>por @Model.ModifPorRecepcionista</text> }
+                    <!-- Role header -->
+                    <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border);
+                                display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="width: 2.5rem; height: 2.5rem; background: @bgColor; border-radius: 50%;
+                                        display: flex; align-items: center; justify-content: center;">
+                                <i class="fas @icon" style="color: @color;"></i>
                             </div>
-                        }
-                        else
-                        {
-                            <div style="font-size: 0.7rem; color: var(--muted-foreground);">Usando defaults del sistema</div>
-                        }
+                            <div>
+                                <div style="font-weight: 700; font-size: 1rem; color: @color; display: flex; align-items: center; gap: 0.5rem;">
+                                    @grupo.RolNombre
+                                    <span style="font-size: 0.7rem; font-weight: 500; color: var(--muted-foreground); background: var(--bg-light); padding: 0.15rem 0.5rem; border-radius: 1rem;">
+                                        @grupo.CantidadUsuarios usuario(s)
+                                    </span>
+                                </div>
+                                @if (grupo.UltimaModificacion.HasValue)
+                                {
+                                    <div style="font-size: 0.7rem; color: var(--muted-foreground);">
+                                        Modificado @grupo.UltimaModificacion.Value.ToString("dd/MM/yyyy HH:mm")
+                                        @if (!string.IsNullOrEmpty(grupo.ModificadoPor)) { <text>por @grupo.ModificadoPor</text> }
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div style="font-size: 0.7rem; color: var(--muted-foreground);">Usando defaults del sistema</div>
+                                }
+                            </div>
+                        </div>
+                        <div style="display: flex; gap: 0.4rem; flex-direction: column; align-items: flex-end;">
+                            <div style="display: flex; gap: 0.3rem;">
+                                <button type="button" onclick="toggleAll('@prefix', true)"
+                                        class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
+                                        background:@bgColor; color:@color; border:1px solid @borderColor;">
+                                    <i class="fas fa-check-double"></i> Todos
+                                </button>
+                                <button type="button" onclick="toggleAll('@prefix', false)"
+                                        class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
+                                        background:#f4f4f5; color:#71717a; border:1px solid #e4e4e7;">
+                                    <i class="fas fa-times"></i> Ninguno
+                                </button>
+                            </div>
+                            @if (!grupo.EsRolSistema)
+                            {
+                                <form asp-action="EliminarGrupo" method="post" style="margin: 0;"
+                                      onsubmit="return confirm('¿Seguro que desea eliminar el grupo \'@grupo.RolNombre\'? Esta acción es irreversible.');">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="nombreGrupo" value="@grupo.RolNombre" />
+                                    <button type="submit" class="btn btn-sm"
+                                            style="font-size:0.7rem; padding:0.2rem 0.5rem; background:#fee2e2; color:#dc2626; border:1px solid #fca5a5;"
+                                            title="Eliminar grupo @grupo.RolNombre">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </form>
+                            }
+                        </div>
                     </div>
-                </div>
-                <div style="display: flex; gap: 0.4rem; flex-direction: column; align-items: flex-end;">
-                    <button type="button" onclick="toggleAll('recepcionista', true)"
-                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
-                            background:#dbeafe; color:#1e40af; border:1px solid #bfdbfe;">
-                        <i class="fas fa-check-double"></i> Todos
-                    </button>
-                    <button type="button" onclick="toggleAll('recepcionista', false)"
-                            class="btn btn-sm" style="font-size:0.7rem; padding:0.2rem 0.5rem;
-                            background:#f4f4f5; color:#71717a; border:1px solid #e4e4e7;">
-                        <i class="fas fa-times"></i> Ninguno
-                    </button>
+
+                    <form asp-action="GuardarPermisosGrupo" method="post" style="padding: 1.5rem;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="rolNombre" value="@grupo.RolNombre" />
+
+                        @RenderModules(prefix, grupo.Permisos)
+
+                        <div style="margin-top: 1.5rem; text-align: right;">
+                            <button type="submit" class="btn btn-primary" style="background: @color; border-color: @color;">
+                                <i class="fas fa-save me-1"></i> Guardar @grupo.RolNombre
+                            </button>
+                        </div>
+                    </form>
                 </div>
             </div>
-
-            <form asp-action="GuardarPermisosGrupo" method="post" style="padding: 1.5rem;">
-                @Html.AntiForgeryToken()
-                <input type="hidden" name="rolNombre" value="Recepcionista" />
-
-                @RenderModules("recepcionista", Model.PermisosRecepcionista)
-
-                <div style="margin-top: 1.5rem; text-align: right;">
-                    <button type="submit" class="btn btn-primary" style="background: #1e40af; border-color: #1e40af;">
-                        <i class="fas fa-save me-1"></i> Guardar Recepcionistas
-                    </button>
-                </div>
-            </form>
-        </div>
+        }
     </div>
-
-</div>
+}
 
 @* ─── Legend ───────────────────────────────────────────────────────────── *@
 <div class="card" style="margin-top: 1.5rem;">
@@ -184,6 +205,50 @@
             <span style="background: #f4f4f5; color: #71717a; padding: 0.2rem 0.6rem; border-radius: 1rem; font-weight: 600;">
                 <i class="fas fa-circle" style="font-size:0.45rem; vertical-align:middle;"></i> Inactivo
             </span>
+            <span style="color: var(--muted-foreground);">
+                <i class="fas fa-shield-alt me-1" style="color: #6366f1;"></i>
+                <strong>Administrador</strong> tiene todos los permisos por defecto
+            </span>
+        </div>
+    </div>
+</div>
+
+@* ─── Modal Crear Grupo ─────────────────────────────────────────────── *@
+<div id="modalCrearGrupo"
+     style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center;">
+    <div class="card" style="width: 100%; max-width: 440px; border: none;">
+        <div class="card-body" style="padding: 0;">
+            <div style="padding: 1.5rem; border-bottom: 1px solid var(--border);">
+                <h5 style="font-weight: 700; margin: 0; display: flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-plus-circle" style="color: #6366f1;"></i>
+                    Crear Nuevo Grupo
+                </h5>
+            </div>
+            <form asp-action="CrearGrupo" method="post" style="padding: 1.5rem;">
+                @Html.AntiForgeryToken()
+                <div class="form-group" style="margin-bottom: 1.25rem;">
+                    <label class="form-label" style="font-weight: 600;">
+                        <i class="fas fa-tag me-1" style="color: var(--muted-foreground);"></i>
+                        Nombre del grupo
+                    </label>
+                    <input type="text" name="nombreGrupo" class="form-control"
+                           placeholder="Ej: Supervisor, Auditor, Gerente..."
+                           required minlength="3" maxlength="50" />
+                    <small style="color: var(--muted-foreground); font-size: 0.75rem;">
+                        Entre 3 y 50 caracteres. El grupo se creará con todos los permisos desactivados.
+                    </small>
+                </div>
+                <div style="display: flex; gap: 0.75rem; justify-content: flex-end;">
+                    <button type="button" class="btn btn-secondary"
+                            onclick="document.getElementById('modalCrearGrupo').style.display='none'">
+                        <i class="fas fa-times me-1"></i>Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-plus me-1"></i>Crear Grupo
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -195,7 +260,7 @@
         var modules = new[]
         {
             ("fas fa-users", "Clientes",    new[] { ("VerClientes","Ver"),("CrearClientes","Crear"),("EditarClientes","Editar") }),
-            ("fas fa-car",   "Vehículos",   new[] { ("VerVehiculos","Ver"),("CrearVehiculos","Crear") }),
+            ("fas fa-car",   "Vehículos",   new[] { ("VerVehiculos","Ver"),("CrearVehiculos","Crear"),("EditarVehiculos","Editar") }),
             ("fas fa-clipboard-list","Ingresos", new[] { ("VerIngresos","Ver"),("CrearIngresos","Crear"),("ActualizarEstadoIngresos","Actualizar Estado") }),
             ("fas fa-wrench","Reparaciones",new[] { ("VerReparaciones","Ver") }),
             ("fas fa-boxes", "Stock",        new[] { ("VerStock","Ver"),("CrearStock","Crear"),("EditarStock","Editar"),("AjustarStock","Ajustar") }),
@@ -213,7 +278,7 @@
             {
                 bool active = RolPerm(rp, field);
                 sb.Append($"<label class=\"grp-toggle {prefix}\" data-field=\"{field}\" style=\"cursor:pointer;display:inline-flex;align-items:center;gap:0.3rem;padding:0.25rem 0.6rem;border-radius:1rem;font-size:0.78rem;font-weight:600;user-select:none;background:{(active ? "#dcfce7" : "#f4f4f5")};color:{(active ? "#15803d" : "#71717a")};transition:all 0.15s;\">");
-                sb.Append($"<input type=\"checkbox\" name=\"{field}\" value=\"true\" {(active ? "checked" : "")} style=\"display:none;\" />");
+                sb.Append($"<input type=\"checkbox\" name=\"permisos.{field}\" value=\"true\" {(active ? "checked" : "")} style=\"display:none;\" />");
                 sb.Append($"<i class=\"fas fa-circle\" style=\"font-size:0.45rem;\"></i>{label}");
                 sb.Append("</label>");
             }
@@ -252,5 +317,10 @@
             actualizarVisualLabel(lbl, active);
         });
     }
+
+    // ── Close modal on outside click ───────────────────────────────
+    document.getElementById('modalCrearGrupo').addEventListener('click', function(e) {
+        if (e.target === this) this.style.display = 'none';
+    });
 </script>
 }

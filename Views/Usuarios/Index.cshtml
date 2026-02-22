@@ -343,7 +343,7 @@
 <script>
     // ── Variables para la verificación ──
     var _targetUserId = '';
-    var _modalUserId = '';       // para poder abrir reset desde el modal de detalles
+    var _modalUserId = '';
     var _modalUserName = '';
 
     function abrirResetPassword(userId, userName) {
@@ -360,7 +360,6 @@
     }
 
     function abrirResetDesdeModal() {
-        // Cierra el modal de detalles y abre el de reset
         var detailModal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
         if (detailModal) detailModal.hide();
         document.getElementById('userModal').addEventListener('hidden.bs.modal', function() {
@@ -469,7 +468,6 @@
             var email = button.getAttribute('data-email');
             var rol = button.getAttribute('data-rol');
 
-            // Guardar para abrirResetDesdeModal()
             _modalUserId   = userId;
             _modalUserName = userName;
 

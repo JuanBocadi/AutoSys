@@ -6,6 +6,7 @@ using AutoSys.Models;
 using AutoSys.Filters;
 using AutoSys.Patterns.Factory;
 using AutoSys.Patterns.Singleton;
+using AutoSys.Services;
 using System.Text.Json;
 
 namespace AutoSys.Controllers
@@ -15,10 +16,12 @@ namespace AutoSys.Controllers
     public class ReportesController : Controller
     {
         private readonly AutoSysDbContext _context;
+        private readonly IPdfExportService _pdfService;
 
-        public ReportesController(AutoSysDbContext context)
+        public ReportesController(AutoSysDbContext context, IPdfExportService pdfService)
         {
             _context = context;
+            _pdfService = pdfService;
         }
 
         public async Task<IActionResult> Index()
@@ -196,6 +199,122 @@ namespace AutoSys.Controllers
             ViewBag.MesesData = data["MesesData"];
 
             return View();
+        }
+
+        // ═══════════════════════════════════════════════════════════
+        //  EXPORTACIÓN A PDF
+        // ═══════════════════════════════════════════════════════════
+
+        public IActionResult ExportarIngresosPdf(DateTime? desde, DateTime? hasta)
+        {
+            desde ??= DateTime.Now.AddMonths(-1);
+            hasta ??= DateTime.Now;
+
+            var reportFactory = new IngresosPeriodoReportFactory(_context, desde.Value, hasta.Value);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            var pdf = _pdfService.GenerarReporteIngresosPdf(
+                desde.Value, hasta.Value,
+                (int)data["TotalIngresos"],
+                (int)data["EnProceso"],
+                (int)data["Finalizados"],
+                (List<Ingreso>)data["Ingresos"]);
+
+            return File(pdf, "application/pdf", $"Reporte_Ingresos_{desde:yyyyMMdd}_{hasta:yyyyMMdd}.pdf");
+        }
+
+        public IActionResult ExportarFacturacionPdf(DateTime? desde, DateTime? hasta)
+        {
+            desde ??= DateTime.Now.AddMonths(-1);
+            hasta ??= DateTime.Now;
+
+            var reportFactory = new FacturacionPeriodoReportFactory(_context, desde.Value, hasta.Value);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            var pdf = _pdfService.GenerarReporteFacturacionPdf(
+                desde.Value, hasta.Value,
+                (int)data["TotalFacturas"],
+                (int)data["TotalPagadas"],
+                (decimal)data["TotalRecaudado"],
+                (decimal)data["TotalPendiente"],
+                (List<Factura>)data["Facturas"]);
+
+            return File(pdf, "application/pdf", $"Reporte_Facturacion_{desde:yyyyMMdd}_{hasta:yyyyMMdd}.pdf");
+        }
+
+        public IActionResult ExportarStockBajoPdf()
+        {
+            var reportFactory = new StockBajoReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            var items = (List<Stock>)data["Items"];
+            var itemsBajo = items.Count(s => s.Cantidad >= s.StockMinimo && s.Cantidad <= s.StockMinimo * 2);
+
+            var pdf = _pdfService.GenerarReporteStockBajoPdf(
+                (int)data["TotalItems"],
+                (int)data["ItemsCriticos"],
+                itemsBajo,
+                items);
+
+            return File(pdf, "application/pdf", $"Reporte_StockBajo_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+
+        public IActionResult ExportarTiemposReparacionPdf()
+        {
+            var reportFactory = new TiemposReparacionReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            var ingresos = (List<Ingreso>)data["Ingresos"];
+
+            var pdf = _pdfService.GenerarReporteTiemposReparacionPdf(
+                (int)data["TotalReparaciones"],
+                Convert.ToDouble(data["TiempoPromedioHoras"]) / 24,
+                Convert.ToDouble(data["TiempoMinimoDias"]),
+                Convert.ToDouble(data["TiempoMaximoDias"]),
+                ingresos.OrderByDescending(i => i.FechaEgreso).Take(100).ToList());
+
+            return File(pdf, "application/pdf", $"Reporte_TiemposReparacion_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+
+        public IActionResult ExportarRentabilidadPdf()
+        {
+            var reportFactory = new RentabilidadClientesReportFactory(_context);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            var pdf = _pdfService.GenerarReporteRentabilidadPdf(
+                (int)data["TotalClientes"],
+                (int)data["ClientesConFactura"],
+                (decimal)data["TotalRecaudadoGlobal"],
+                (decimal)data["TicketPromedioGlobal"],
+                data["Rentabilidad"]);
+
+            return File(pdf, "application/pdf", $"Reporte_Rentabilidad_{DateTime.Now:yyyyMMdd}.pdf");
+        }
+
+        public IActionResult ExportarProductividadPdf(int? meses)
+        {
+            var cantMeses = meses ?? 12;
+            if (cantMeses < 3) cantMeses = 3;
+            if (cantMeses > 24) cantMeses = 24;
+
+            var reportFactory = new ProductividadTallerReportFactory(_context, cantMeses);
+            var report = reportFactory.CreateReport();
+            var data = report.GenerateData();
+
+            var pdf = _pdfService.GenerarReporteProductividadPdf(
+                (int)data["TotalIngresosPeriodo"],
+                (decimal)data["TotalFacturadoPeriodo"],
+                (double)data["PromedioIngresosMes"],
+                (decimal)data["PromedioFacturacionMes"],
+                (double)data["TasaFinalizacion"],
+                data["MesesData"]);
+
+            return File(pdf, "application/pdf", $"Reporte_Productividad_{DateTime.Now:yyyyMMdd}.pdf");
         }
     }
 }

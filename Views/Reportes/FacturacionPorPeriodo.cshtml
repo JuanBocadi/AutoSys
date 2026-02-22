@@ -136,9 +136,12 @@
                 </div>
             }
 
-            <div class="mt-4">
+            <div class="mt-4 d-flex gap-2">
                 <a asp-action="Index" class="btn btn-secondary">
                     <i class="fas fa-arrow-left me-1"></i>Volver al Dashboard
+                </a>
+                <a asp-action="ExportarFacturacionPdf" asp-route-desde="@desde.ToString("yyyy-MM-dd")" asp-route-hasta="@hasta.ToString("yyyy-MM-dd")" class="btn btn-danger">
+                    <i class="fas fa-file-pdf me-1"></i>Exportar a PDF
                 </a>
             </div>
         </div>

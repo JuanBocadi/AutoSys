@@ -13,9 +13,14 @@
             </h1>
             <p style="color: var(--muted-foreground); margin: 0;">Análisis de tiempos de permanencia en taller y distribución de rendimiento</p>
         </div>
-        <a asp-action="Index" class="btn btn-outline">
-            <i class="fas fa-arrow-left"></i> Volver
-        </a>
+        <div style="display: flex; gap: 0.5rem;">
+            <a asp-action="Index" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Volver
+            </a>
+            <a asp-action="ExportarTiemposReparacionPdf" class="btn" style="background: #ef4444; color: white;">
+                <i class="fas fa-file-pdf"></i> Exportar a PDF
+            </a>
+        </div>
     </div>
 </div>
 

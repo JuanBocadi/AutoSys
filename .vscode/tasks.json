@@ -34,58 +34,6 @@
                     "endsPattern": "^.*Now listening on.*$"
                 }
             }
-        },
-        {
-            "label": "start-ngrok",
-            "type": "shell",
-            "command": "ngrok",
-            "args": [
-                "http",
-                "5206"
-            ],
-            "isBackground": true,
-            "problemMatcher": {
-                "owner": "custom",
-                "pattern": {
-                    "regexp": "^.*$"
-                },
-                "background": {
-                    "activeOnStart": true,
-                    "beginsPattern": "^.*$",
-                    "endsPattern": "^.*started tunnel.*$"
-                }
-            }
-        },
-        {
-            "label": "Run AutoSys + ngrok",
-            "dependsOn": [
-                "run",
-                "start-ngrok"
-            ],
-            "dependsOrder": "sequence",
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "Run AutoSys + ngrok (script)",
-            "type": "shell",
-            "command": "powershell",
-            "args": [
-                "-NoProfile",
-                "-ExecutionPolicy",
-                "Bypass",
-                "-File",
-                "${workspaceFolder}\\scripts\\run-with-ngrok.ps1",
-                "-Port",
-                "5206",
-                "-Region",
-                "us"
-            ],
-            "isBackground": false,
-            "problemMatcher": []
         }
     ]
 }

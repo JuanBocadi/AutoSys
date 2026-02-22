@@ -11,5 +11,18 @@
     "IncludesFiles": true,
     "Notes": "",
     "CreatedBy": "admin"
+  },
+  {
+    "Id": "67de5c20-03ba-4d35-8cc9-f22ebf1b9d60",
+    "FileName": "AutoSysDB_20260222_124702.bak",
+    "FilesZipName": null,
+    "CreatedAt": "2026-02-22T12:47:02.7274519-03:00",
+    "SizeBytes": 8376320,
+    "Type": "Completo",
+    "Status": "Exitoso",
+    "Origin": "Autom\u00E1tico",
+    "IncludesFiles": true,
+    "Notes": "Backup completo autom\u00E1tico programado",
+    "CreatedBy": "Sistema (Autom\u00E1tico)"
   }
 ]

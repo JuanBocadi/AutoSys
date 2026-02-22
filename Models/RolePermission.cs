@@ -22,6 +22,7 @@ namespace AutoSys.Models
         // ── VEHÍCULOS ─────────────────────────────────────────
         public bool VerVehiculos { get; set; } = false;
         public bool CrearVehiculos { get; set; } = false;
+        public bool EditarVehiculos { get; set; } = false;
 
         // ── INGRESOS ──────────────────────────────────────────
         public bool VerIngresos { get; set; } = false;

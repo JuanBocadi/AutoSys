@@ -18,16 +18,19 @@ namespace AutoSys.Controllers
         private readonly ILogger<StockController> _logger;
         private readonly EventSubject _eventSubject;
         private readonly INotificationService _notificationService;
+        private readonly IAuditService _auditService;
 
         public StockController(AutoSysDbContext context, 
                               ILogger<StockController> logger,
                               EventSubject eventSubject,
-                              INotificationService notificationService)
+                              INotificationService notificationService,
+                              IAuditService auditService)
         {
             _context = context;
             _logger = logger;
             _eventSubject = eventSubject;
             _notificationService = notificationService;
+            _auditService = auditService;
 
             // PATRÓN OBSERVER: Adjuntar observadores
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -82,6 +85,13 @@ namespace AutoSys.Controllers
                 stock.FechaActualizacion = DateTime.Now;
                 _context.Stock.Add(stock);
                 await _context.SaveChangesAsync();
+
+                // AUDITORÍA
+                var rolActual = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolActual, "Stock", "Crear",
+                    $"Item creado: {stock.Nombre} (Cantidad: {stock.Cantidad} {stock.Unidad})",
+                    stock.Id, stock.Nombre, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 TempData["SuccessMessage"] = "Item agregado al inventario correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -114,6 +124,13 @@ namespace AutoSys.Controllers
                     _context.Update(stock);
                     await _context.SaveChangesAsync();
                     _logger.LogInformation("Stock editado: {Id} - {Nombre}", stock.Id, stock.Nombre);
+
+                    // AUDITORÍA
+                    var rolEdit = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+                    await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolEdit, "Stock", "Editar",
+                        $"Item editado: {stock.Nombre}",
+                        stock.Id, stock.Nombre, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                     TempData["SuccessMessage"] = "Item actualizado correctamente.";
                     return RedirectToAction(nameof(Index));
                 }
@@ -198,6 +215,12 @@ namespace AutoSys.Controllers
                 _logger.LogInformation("Stock ajustado exitosamente. Item: {Nombre}, Nueva cantidad: {Cantidad}", 
                     stock.Nombre, stock.Cantidad);
 
+                // AUDITORÍA
+                var rolAjuste = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolAjuste, "Stock", "CambioEstado",
+                    $"Ajuste de stock: {stock.Nombre} - {tipo} {cantidad} unidades (Anterior: {cantidadAnterior}, Nuevo: {stock.Cantidad})",
+                    stock.Id, stock.Nombre, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 // PATRÓN OBSERVER: Notificar si el stock está bajo
                 if (stock.Cantidad < stock.StockMinimo)
                 {
@@ -250,6 +273,12 @@ namespace AutoSys.Controllers
                     _context.Stock.Remove(stock);
                     await _context.SaveChangesAsync();
                     _logger.LogInformation("Stock eliminado exitosamente. Id: {Id}, Nombre: {Nombre}", id, stock.Nombre);
+
+                    // AUDITORÍA
+                    await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", "Administrador", "Stock", "Eliminar",
+                        $"Item eliminado: {stock.Nombre}",
+                        id, stock.Nombre, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                     TempData["SuccessMessage"] = "Item eliminado del inventario correctamente.";
                 }
                 else

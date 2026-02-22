@@ -1,0 +1,102 @@
+@model AutoSys.Models.Cliente
+@{
+    ViewData["Title"] = "Editar Cliente";
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-user-edit" style="margin-right: 0.5rem; color: #f59e0b;"></i>
+                Editar Cliente
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Modificar los datos de <strong>@Model.Nombre @Model.Apellido</strong></p>
+        </div>
+        <a asp-action="Index" class="btn btn-outline">
+            <i class="fas fa-arrow-left"></i> Volver
+        </a>
+    </div>
+</div>
+
+<!-- Formulario -->
+<div class="card">
+    <div class="card-body">
+        <form asp-action="Edit" method="post">
+            <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="FechaRegistro" />
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            
+            <div class="row g-3">
+                <!-- Nombre -->
+                <div class="col-md-6">
+                    <label asp-for="Nombre" class="form-label">
+                        <i class="fas fa-user me-1"></i> Nombre
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Nombre" class="form-control" placeholder="Nombre del cliente" required />
+                    <span asp-validation-for="Nombre" class="text-danger"></span>
+                </div>
+
+                <!-- Apellido -->
+                <div class="col-md-6">
+                    <label asp-for="Apellido" class="form-label">
+                        <i class="fas fa-user me-1"></i> Apellido
+                        <span class="text-danger">*</span>
+                    </label>
+                    <input asp-for="Apellido" class="form-control" placeholder="Apellido del cliente" required />
+                    <span asp-validation-for="Apellido" class="text-danger"></span>
+                </div>
+
+                <!-- DNI -->
+                <div class="col-md-4">
+                    <label asp-for="DNI" class="form-label">
+                        <i class="fas fa-id-card me-1"></i> DNI
+                    </label>
+                    <input asp-for="DNI" class="form-control" placeholder="Ej: 12345678" maxlength="20" />
+                    <span asp-validation-for="DNI" class="text-danger"></span>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="col-md-4">
+                    <label asp-for="Telefono" class="form-label">
+                        <i class="fas fa-phone me-1"></i> Teléfono
+                    </label>
+                    <input asp-for="Telefono" class="form-control" placeholder="Ej: 11-1234-5678" />
+                    <span asp-validation-for="Telefono" class="text-danger"></span>
+                </div>
+
+                <!-- Email -->
+                <div class="col-md-4">
+                    <label asp-for="Email" class="form-label">
+                        <i class="fas fa-envelope me-1"></i> Email
+                    </label>
+                    <input asp-for="Email" class="form-control" type="email" placeholder="correo@ejemplo.com" />
+                    <span asp-validation-for="Email" class="text-danger"></span>
+                </div>
+
+                <!-- Info de registro -->
+                <div class="col-12">
+                    <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 1rem; border-radius: var(--radius);">
+                        <i class="fas fa-info-circle" style="color: #3b82f6; margin-right: 0.5rem;"></i>
+                        <strong>Fecha de registro:</strong> @Model.FechaRegistro.ToString("dd/MM/yyyy HH:mm")
+                    </div>
+                </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <a asp-action="Index" class="btn btn-outline">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-save me-2"></i>Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

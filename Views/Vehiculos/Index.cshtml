@@ -157,14 +157,36 @@
                                     }
                                 </td>
                                 <td style="text-align: right;">
-                                    @if (_p.VerIngresos)
-                                    {
-                                        <a asp-action="ReparacionesDelVehiculo" asp-route-id="@v.Id" 
-                                           class="btn btn-sm btn-primary"
-                                           title="Ver historial de reparaciones">
-                                            <i class="fas fa-tools"></i> Ver Reparaciones
-                                        </a>
-                                    }
+                                    <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                        @if (_p.VerIngresos)
+                                        {
+                                            <a asp-action="ReparacionesDelVehiculo" asp-route-id="@v.Id" 
+                                               class="btn btn-sm btn-primary"
+                                               title="Ver historial de reparaciones">
+                                                <i class="fas fa-tools"></i> Reparaciones
+                                            </a>
+                                        }
+                                        @if (_p.EditarVehiculos)
+                                        {
+                                            <a asp-action="Edit" asp-route-id="@v.Id"
+                                               class="btn btn-sm btn-warning"
+                                               title="Editar vehículo">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                        }
+                                        @if (User.IsInRole("Administrador") && !v.Ingresos.Any())
+                                        {
+                                            <button type="button" class="btn btn-sm btn-danger btn-eliminar-vehiculo"
+                                                    data-vehiculo-id="@v.Id"
+                                                    data-vehiculo-patente="@v.Patente"
+                                                    data-vehiculo-marca="@v.Marca"
+                                                    data-vehiculo-modelo="@v.Modelo"
+                                                    data-vehiculo-cliente="@(v.Cliente != null ? $"{v.Cliente.Nombre} {v.Cliente.Apellido}" : "Sin cliente")"
+                                                    title="Eliminar vehículo">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        }
+                                    </div>
                                 </td>
                             </tr>
                         }
@@ -180,6 +202,58 @@
     </div>
 </div>
 
+<!-- Modal para eliminar vehículo -->
+<div class="modal fade" id="eliminarVehiculoModal" tabindex="-1" aria-labelledby="eliminarVehiculoModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="formEliminarVehiculo" asp-action="DeleteConfirmed" asp-controller="Vehiculos" method="post">
+                <input type="hidden" id="deleteVehiculoId" name="Id" />
+                <div class="modal-header" style="background: var(--accent-red, #dc2626); color: white;">
+                    <h5 class="modal-title" id="eliminarVehiculoModalLabel">
+                        <i class="fas fa-trash" style="margin-right: 0.5rem;"></i>
+                        Eliminar Vehículo
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-danger">
+                        <h6 class="alert-heading">
+                            <i class="fas fa-exclamation-triangle me-2"></i>¿Está seguro que desea eliminar este vehículo?
+                        </h6>
+                        <p class="mb-0">Esta acción no se puede deshacer.</p>
+                    </div>
+                    <div class="card">
+                        <div class="card-body">
+                            <dl class="row mb-0">
+                                <dt class="col-sm-4">Patente:</dt>
+                                <dd class="col-sm-8"><strong id="deletePatente" style="font-family: monospace; font-size: 1.1rem;"></strong></dd>
+
+                                <dt class="col-sm-4">Vehículo:</dt>
+                                <dd class="col-sm-8"><span id="deleteMarcaModelo"></span></dd>
+
+                                <dt class="col-sm-4">Cliente:</dt>
+                                <dd class="col-sm-8"><span id="deleteCliente"></span></dd>
+                            </dl>
+                        </div>
+                    </div>
+                    <div id="deleteWarningIngresos" class="alert alert-warning mt-3" style="display: none;">
+                        <i class="fas fa-info-circle me-2"></i>
+                        Este vehículo tiene ingreso(s) asociado(s) y <strong>no puede ser eliminado</strong>.
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times"></i> Cancelar
+                    </button>
+                    <button type="submit" class="btn btn-danger" id="btnConfirmarEliminar">
+                        <i class="fas fa-trash"></i> Confirmar Eliminación
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         // Búsqueda en tiempo real
@@ -190,6 +264,18 @@
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Modal eliminar vehículo
+        document.querySelectorAll('.btn-eliminar-vehiculo').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.getElementById('deleteVehiculoId').value = this.dataset.vehiculoId;
+                document.getElementById('deletePatente').textContent = this.dataset.vehiculoPatente;
+                document.getElementById('deleteMarcaModelo').textContent = this.dataset.vehiculoMarca + ' ' + this.dataset.vehiculoModelo;
+                document.getElementById('deleteCliente').textContent = this.dataset.vehiculoCliente;
+
+                new bootstrap.Modal(document.getElementById('eliminarVehiculoModal')).show();
             });
         });
 

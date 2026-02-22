@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
 using AutoSys.Filters;
+using AutoSys.Services;
 
 namespace AutoSys.Controllers
 {
@@ -13,10 +14,12 @@ namespace AutoSys.Controllers
     public class FacturacionController : Controller
     {
         private readonly AutoSysDbContext _context;
+        private readonly IAuditService _auditService;
 
-        public FacturacionController(AutoSysDbContext context)
+        public FacturacionController(AutoSysDbContext context, IAuditService auditService)
         {
             _context = context;
+            _auditService = auditService;
         }
 
         public async Task<IActionResult> Index(string buscar = "", string estado = "")
@@ -118,6 +121,12 @@ namespace AutoSys.Controllers
                 }
                 await _context.SaveChangesAsync();
 
+                // AUDITORÍA
+                var rolActual = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolActual, "Facturacion", "Crear",
+                    $"Factura {factura.NumeroFactura} creada - Total: ${factura.Total:N2}",
+                    factura.Id, factura.NumeroFactura, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 TempData["SuccessMessage"] = $"Factura {factura.NumeroFactura} creada correctamente.";
                 return RedirectToAction(nameof(Detalle), new { id = factura.Id });
             }
@@ -157,6 +166,13 @@ namespace AutoSys.Controllers
             }
 
             await _context.SaveChangesAsync();
+
+            // AUDITORÍA
+            var rolCambio = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+            await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolCambio, "Facturacion", "CambioEstado",
+                $"Estado de factura #{factura.Id} cambiado a {estado}",
+                factura.Id, factura.NumeroFactura, HttpContext.Connection.RemoteIpAddress?.ToString());
+
             TempData["SuccessMessage"] = $"Estado de factura actualizado a {estado}.";
             
             return RedirectToAction(nameof(Detalle), new { id });

@@ -3,21 +3,27 @@ using AutoSys.Models;
 namespace AutoSys.ViewModels
 {
     /// <summary>
-    /// ViewModel para la página de permisos de grupos (roles Mecanico y Recepcionista).
+    /// ViewModel para la página de permisos de grupos (roles dinámicos).
     /// </summary>
     public class GrupoPermisosViewModel
     {
-        public RolePermission PermisosMecanico { get; set; } = new() { RolNombre = "Mecanico" };
-        public RolePermission PermisosRecepcionista { get; set; } = new() { RolNombre = "Recepcionista" };
+        /// <summary>Lista dinámica de grupos con sus permisos.</summary>
+        public List<GrupoPermisoItem> Grupos { get; set; } = new();
+    }
 
-        // Defaults hardcodeados del sistema (para la leyenda comparativa)
-        public UserPermission DefaultsMecanico { get; set; } = new();
-        public UserPermission DefaultsRecepcionista { get; set; } = new();
+    /// <summary>
+    /// Representa un grupo/rol con sus permisos configurados.
+    /// </summary>
+    public class GrupoPermisoItem
+    {
+        public string RolNombre { get; set; } = string.Empty;
+        public RolePermission Permisos { get; set; } = new();
+        public UserPermission Defaults { get; set; } = new();
+        public DateTime? UltimaModificacion { get; set; }
+        public string? ModificadoPor { get; set; }
+        public int CantidadUsuarios { get; set; }
 
-        // Fecha de última modificación de cada rol (null si nunca se guardaron en BD)
-        public DateTime? UltimaModifMecanico { get; set; }
-        public DateTime? UltimaModifRecepcionista { get; set; }
-        public string? ModifPorMecanico { get; set; }
-        public string? ModifPorRecepcionista { get; set; }
+        /// <summary>Indica si es un rol predeterminado del sistema (no eliminable).</summary>
+        public bool EsRolSistema { get; set; }
     }
 }

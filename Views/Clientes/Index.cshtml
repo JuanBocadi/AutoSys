@@ -138,12 +138,22 @@
                                 <div style="font-size: 0.75rem; color: var(--muted-foreground);">@c.FechaRegistro.ToString("HH:mm")</div>
                             </td>
                             <td style="text-align: right;">
-                                @if (_p.VerVehiculos)
-                                {
-                                    <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" class="btn btn-sm btn-secondary">
-                                        <i class="fas fa-car"></i> Ver Vehículos
-                                    </a>
-                                }
+                                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    @if (_p.VerVehiculos)
+                                    {
+                                        <a asp-action="VehiculosDelCliente" asp-route-id="@c.Id" class="btn btn-sm btn-secondary">
+                                            <i class="fas fa-car"></i> Vehículos
+                                        </a>
+                                    }
+                                    @if (_p.EditarClientes)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@c.Id"
+                                           class="btn btn-sm btn-warning"
+                                           title="Editar cliente">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }

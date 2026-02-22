@@ -20,13 +20,15 @@ namespace AutoSys.Controllers
         private readonly INotificationService _notificationService;
         private readonly ILogger<IngresoController> _logger;
         private readonly IPermissionService _permissionService;
+        private readonly IAuditService _auditService;
 
         public IngresoController(AutoSysDbContext context,
                                  IWebHostEnvironment env,
                                  EventSubject eventSubject,
                                  INotificationService notificationService,
                                  ILogger<IngresoController> logger,
-                                 IPermissionService permissionService)
+                                 IPermissionService permissionService,
+                                 IAuditService auditService)
         {
             _context = context;
             _env = env;
@@ -34,6 +36,7 @@ namespace AutoSys.Controllers
             _notificationService = notificationService;
             _logger = logger;
             _permissionService = permissionService;
+            _auditService = auditService;
 
             // PATRÓN OBSERVER: Adjuntar observadores al sujeto
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
@@ -162,6 +165,13 @@ namespace AutoSys.Controllers
             _context.Ingresos.Add(ingreso);
             await _context.SaveChangesAsync();
 
+            // AUDITORÍA
+            var rolActual = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+            var vehiculoInfo = await _context.Vehiculos.Include(v => v.Cliente).FirstOrDefaultAsync(v => v.Id == ingreso.VehiculoId);
+            await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolActual, "Ingreso", "Crear",
+                $"Ingreso creado para vehículo {vehiculoInfo?.Patente ?? "N/A"} - {vehiculoInfo?.Cliente?.Nombre} {vehiculoInfo?.Cliente?.Apellido}",
+                ingreso.Id, vehiculoInfo?.Patente, HttpContext.Connection.RemoteIpAddress?.ToString());
+
             if (!string.IsNullOrEmpty(ingreso.FotoPath))
             {
                 var foto = new FotoVehiculo
@@ -268,6 +278,12 @@ namespace AutoSys.Controllers
             };
 
             await _eventSubject.NotifyAsync("IngresoStateChanged", eventData);
+
+            // AUDITORÍA
+            var rolCambio = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+            await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolCambio, "Ingreso", "CambioEstado",
+                $"Estado de ingreso #{ingreso.Id} cambiado: {estadoAnterior} → {estado} (Vehículo: {ingreso.Vehiculo?.Patente ?? "N/A"})",
+                ingreso.Id, ingreso.Vehiculo?.Patente, HttpContext.Connection.RemoteIpAddress?.ToString());
 
             TempData["SuccessMessage"] = "Estado actualizado correctamente.";
             return RedirectToAction("Detalle", new { id });

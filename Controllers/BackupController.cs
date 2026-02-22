@@ -16,15 +16,18 @@ namespace AutoSys.Controllers
         private readonly IBackupService _backupService;
         private readonly BackupSchedulerService _scheduler;
         private readonly ILogger<BackupController> _logger;
+        private readonly IAuditService _auditService;
 
         public BackupController(
             IBackupService backupService,
             BackupSchedulerService scheduler,
-            ILogger<BackupController> logger)
+            ILogger<BackupController> logger,
+            IAuditService auditService)
         {
             _backupService = backupService;
             _scheduler = scheduler;
             _logger = logger;
+            _auditService = auditService;
         }
 
         // ───────────────────── LISTADO DE BACKUPS ─────────────────────
@@ -74,6 +77,11 @@ namespace AutoSys.Controllers
 
             if (record.Status == "Exitoso")
             {
+                // AUDITORÍA
+                await _auditService.RegistrarAsync(username, "Administrador", "Backup", "Crear",
+                    $"Backup {record.Type} creado: {record.FileName} ({FormatBytes(record.SizeBytes)})",
+                    null, record.FileName, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 TempData["SuccessMessage"] = $"Backup {record.Type} creado exitosamente: {record.FileName} ({FormatBytes(record.SizeBytes)})";
             }
             else
@@ -150,6 +158,11 @@ namespace AutoSys.Controllers
 
             if (result)
             {
+                // AUDITORÍA
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "admin", "Administrador", "Backup", "Eliminar",
+                    $"Backup eliminado: {record?.FileName}",
+                    null, record?.FileName, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 TempData["SuccessMessage"] = $"Backup eliminado: {record?.FileName}";
             }
             else
@@ -180,6 +193,11 @@ namespace AutoSys.Controllers
 
             if (result)
             {
+                // AUDITORÍA
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "admin", "Administrador", "Backup", "CambioEstado",
+                    $"Base de datos restaurada desde: {record.FileName}",
+                    null, record.FileName, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 TempData["SuccessMessage"] = $"Base de datos restaurada exitosamente desde: {record.FileName}. Se recomienda reiniciar la aplicación.";
             }
             else

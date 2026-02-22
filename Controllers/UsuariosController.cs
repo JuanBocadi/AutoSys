@@ -7,6 +7,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace AutoSys.Controllers
@@ -16,19 +18,28 @@ namespace AutoSys.Controllers
     {
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IPermissionService _permissionService;
         private readonly ILogger<UsuariosController> _logger;
+        private readonly IAuditService _auditService;
+
+        /// <summary>Roles del sistema que no se pueden eliminar.</summary>
+        private static readonly string[] RolesSistema = { "Administrador", "Recepcionista", "Mecanico" };
 
         public UsuariosController(
             UserManager<IdentityUser> userManager,
             SignInManager<IdentityUser> signInManager,
+            RoleManager<IdentityRole> roleManager,
             IPermissionService permissionService,
-            ILogger<UsuariosController> logger)
+            ILogger<UsuariosController> logger,
+            IAuditService auditService)
         {
             _userManager = userManager;
             _signInManager = signInManager;
+            _roleManager = roleManager;
             _permissionService = permissionService;
             _logger = logger;
+            _auditService = auditService;
         }
 
         public async Task<IActionResult> Index()
@@ -106,6 +117,11 @@ namespace AutoSys.Controllers
             }
             else
             {
+                // AUDITORÍA
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", "Administrador", "Usuario", "Eliminar",
+                    $"Usuario eliminado: {user.UserName}",
+                    null, user.UserName, HttpContext.Connection.RemoteIpAddress?.ToString());
+
                 TempData["SuccessMessage"] = "Usuario eliminado correctamente.";
             }
 
@@ -167,6 +183,9 @@ namespace AutoSys.Controllers
             var permisos = await _permissionService.ObtenerPermisosEfectivosAsync(id, rol);
             permisos.UserId = id;
 
+            // Obtener todos los roles dinámicamente
+            var todosLosRoles = await _roleManager.Roles.Select(r => r.Name!).ToListAsync();
+
             var vm = new PermisosUsuarioViewModel
             {
                 UserId = id,
@@ -175,9 +194,12 @@ namespace AutoSys.Controllers
                 Rol = rol,
                 NuevoRol = rol,
                 Permisos = permisos,
-                RolesDisponibles = new List<string> { "Administrador", "Recepcionista", "Mecanico" },
+                RolesDisponibles = todosLosRoles,
                 DefaultsDelRol = _permissionService.GetDefaultsByRole(rol, id)
             };
+
+            // Generar roleDefaults JSON dinámico para el JavaScript del front
+            ViewBag.RoleDefaultsJson = GenerarRoleDefaultsJson(todosLosRoles);
 
             return View(vm);
         }
@@ -202,8 +224,7 @@ namespace AutoSys.Controllers
             }
 
             // ── Cambio de rol base ────────────────────────────────────────
-            var rolesValidos = new[] { "Administrador", "Recepcionista", "Mecanico" };
-            if (!string.IsNullOrEmpty(nuevoRol) && rolesValidos.Contains(nuevoRol))
+            if (!string.IsNullOrEmpty(nuevoRol) && await _roleManager.RoleExistsAsync(nuevoRol))
             {
                 var rolesActuales = await _userManager.GetRolesAsync(targetUser);
                 var rolActual = rolesActuales.FirstOrDefault();
@@ -227,32 +248,48 @@ namespace AutoSys.Controllers
             _logger.LogInformation("Permisos actualizados para {TargetUser} por {Admin}",
                 targetUser.UserName, adminUser?.UserName);
 
+            // AUDITORÍA
+            await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", "Administrador", "Usuario", "Editar",
+                $"Permisos actualizados para {targetUser.UserName} (Rol: {nuevoRol})",
+                null, targetUser.UserName, HttpContext.Connection.RemoteIpAddress?.ToString());
+
             TempData["SuccessMessage"] = $"Permisos y rol de {targetUser.UserName} actualizados correctamente.";
             return RedirectToAction(nameof(Permisos), new { id = userId });
         }
 
         // ──────────────────────────────────────────────────────────────
-        // PERMISOS DE GRUPOS (roles Mecanico / Recepcionista)
+        // PERMISOS DE GRUPOS (dinámico, todos los roles excepto Administrador)
         // ──────────────────────────────────────────────────────────────
 
         [HttpGet]
         public async Task<IActionResult> GrupoPermisos()
         {
-            var mecDB  = await _permissionService.ObtenerPermisosRolAsync("Mecanico");
-            var recDB  = await _permissionService.ObtenerPermisosRolAsync("Recepcionista");
+            var todosLosRoles = await _roleManager.Roles
+                .Where(r => r.Name != "Administrador")
+                .Select(r => r.Name!)
+                .ToListAsync();
 
-            var vm = new AutoSys.ViewModels.GrupoPermisosViewModel
+            var grupos = new List<GrupoPermisoItem>();
+
+            foreach (var rolNombre in todosLosRoles)
             {
-                PermisosMecanico      = mecDB  ?? ToRolePermission(_permissionService.GetDefaultsByRole("Mecanico", ""),      "Mecanico"),
-                PermisosRecepcionista = recDB  ?? ToRolePermission(_permissionService.GetDefaultsByRole("Recepcionista", ""), "Recepcionista"),
-                DefaultsMecanico      = _permissionService.GetDefaultsByRole("Mecanico", ""),
-                DefaultsRecepcionista = _permissionService.GetDefaultsByRole("Recepcionista", ""),
-                UltimaModifMecanico      = mecDB?.UltimaModificacion,
-                UltimaModifRecepcionista = recDB?.UltimaModificacion,
-                ModifPorMecanico         = mecDB?.ModificadoPor,
-                ModifPorRecepcionista    = recDB?.ModificadoPor,
-            };
+                var permisosDB = await _permissionService.ObtenerPermisosRolAsync(rolNombre);
+                var defaults = _permissionService.GetDefaultsByRole(rolNombre, "");
+                var usersEnRol = await _userManager.GetUsersInRoleAsync(rolNombre);
 
+                grupos.Add(new GrupoPermisoItem
+                {
+                    RolNombre = rolNombre,
+                    Permisos = permisosDB ?? ToRolePermission(defaults, rolNombre),
+                    Defaults = defaults,
+                    UltimaModificacion = permisosDB?.UltimaModificacion,
+                    ModificadoPor = permisosDB?.ModificadoPor,
+                    CantidadUsuarios = usersEnRol.Count,
+                    EsRolSistema = RolesSistema.Contains(rolNombre)
+                });
+            }
+
+            var vm = new GrupoPermisosViewModel { Grupos = grupos };
             return View(vm);
         }
 
@@ -260,8 +297,8 @@ namespace AutoSys.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> GuardarPermisosGrupo(string rolNombre, AutoSys.Models.RolePermission permisos)
         {
-            var rolesValidos = new[] { "Mecanico", "Recepcionista" };
-            if (!rolesValidos.Contains(rolNombre))
+            // Validar que el rol exista y no sea Administrador
+            if (string.IsNullOrEmpty(rolNombre) || !await _roleManager.RoleExistsAsync(rolNombre) || rolNombre == "Administrador")
             {
                 TempData["ErrorMessage"] = "Rol no válido.";
                 return RedirectToAction(nameof(GrupoPermisos));
@@ -282,6 +319,115 @@ namespace AutoSys.Controllers
             TempData["SuccessMessage"] = $"Permisos del grupo \"{rolNombre}\" actualizados y aplicados a {userIds.Count} usuario(s) del grupo.";
             return RedirectToAction(nameof(GrupoPermisos));
         }
+
+        // ──────────────────────────────────────────────────────────────
+        // CRUD DE GRUPOS (crear / eliminar roles)
+        // ──────────────────────────────────────────────────────────────
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CrearGrupo(string nombreGrupo)
+        {
+            if (string.IsNullOrWhiteSpace(nombreGrupo) || nombreGrupo.Length < 3 || nombreGrupo.Length > 50)
+            {
+                TempData["ErrorMessage"] = "El nombre del grupo debe tener entre 3 y 50 caracteres.";
+                return RedirectToAction(nameof(GrupoPermisos));
+            }
+
+            // Sanitizar: primera letra mayúscula, sin espacios extra
+            nombreGrupo = nombreGrupo.Trim();
+            nombreGrupo = char.ToUpper(nombreGrupo[0]) + nombreGrupo.Substring(1);
+
+            if (await _roleManager.RoleExistsAsync(nombreGrupo))
+            {
+                TempData["ErrorMessage"] = $"Ya existe un grupo con el nombre \"{nombreGrupo}\".";
+                return RedirectToAction(nameof(GrupoPermisos));
+            }
+
+            var result = await _roleManager.CreateAsync(new IdentityRole(nombreGrupo));
+            if (result.Succeeded)
+            {
+                var adminUser = await _userManager.GetUserAsync(User);
+                _logger.LogInformation("Grupo \"{Grupo}\" creado por {Admin}", nombreGrupo, adminUser?.UserName);
+
+                // AUDITORÍA
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", "Administrador", "Usuario", "Crear",
+                    $"Grupo/Rol creado: {nombreGrupo}",
+                    null, nombreGrupo, HttpContext.Connection.RemoteIpAddress?.ToString());
+
+                TempData["SuccessMessage"] = $"Grupo \"{nombreGrupo}\" creado correctamente. Configure sus permisos a continuación.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"No se pudo crear el grupo: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+
+            return RedirectToAction(nameof(GrupoPermisos));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EliminarGrupo(string nombreGrupo)
+        {
+            if (string.IsNullOrEmpty(nombreGrupo))
+            {
+                TempData["ErrorMessage"] = "Debe especificar un grupo.";
+                return RedirectToAction(nameof(GrupoPermisos));
+            }
+
+            // No permitir eliminar roles del sistema
+            if (RolesSistema.Contains(nombreGrupo))
+            {
+                TempData["ErrorMessage"] = $"El grupo \"{nombreGrupo}\" es un rol del sistema y no se puede eliminar.";
+                return RedirectToAction(nameof(GrupoPermisos));
+            }
+
+            // Verificar que no tenga usuarios asignados
+            var usersEnRol = await _userManager.GetUsersInRoleAsync(nombreGrupo);
+            if (usersEnRol.Any())
+            {
+                TempData["ErrorMessage"] = $"No se puede eliminar el grupo \"{nombreGrupo}\" porque tiene {usersEnRol.Count} usuario(s) asignado(s). Reasígnelos primero.";
+                return RedirectToAction(nameof(GrupoPermisos));
+            }
+
+            var role = await _roleManager.FindByNameAsync(nombreGrupo);
+            if (role == null)
+            {
+                TempData["ErrorMessage"] = "El grupo no existe.";
+                return RedirectToAction(nameof(GrupoPermisos));
+            }
+
+            // Eliminar permisos del rol en BD
+            var permisosRol = await _permissionService.ObtenerPermisosRolAsync(nombreGrupo);
+            if (permisosRol != null)
+            {
+                await _permissionService.EliminarPermisosRolAsync(nombreGrupo);
+            }
+
+            var result = await _roleManager.DeleteAsync(role);
+            if (result.Succeeded)
+            {
+                var adminUser = await _userManager.GetUserAsync(User);
+                _logger.LogInformation("Grupo \"{Grupo}\" eliminado por {Admin}", nombreGrupo, adminUser?.UserName);
+
+                // AUDITORÍA
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", "Administrador", "Usuario", "Eliminar",
+                    $"Grupo/Rol eliminado: {nombreGrupo}",
+                    null, nombreGrupo, HttpContext.Connection.RemoteIpAddress?.ToString());
+
+                TempData["SuccessMessage"] = $"Grupo \"{nombreGrupo}\" eliminado correctamente.";
+            }
+            else
+            {
+                TempData["ErrorMessage"] = $"No se pudo eliminar el grupo: {string.Join(", ", result.Errors.Select(e => e.Description))}";
+            }
+
+            return RedirectToAction(nameof(GrupoPermisos));
+        }
+
+        // ──────────────────────────────────────────────────────────────
+        // HELPERS
+        // ──────────────────────────────────────────────────────────────
 
         private static AutoSys.Models.RolePermission ToRolePermission(AutoSys.Models.UserPermission up, string rolNombre) =>
             new()
@@ -304,6 +450,33 @@ namespace AutoSys.Controllers
                 CrearFacturas            = up.CrearFacturas,
                 VerReportes              = up.VerReportes,
             };
+
+        /// <summary>
+        /// Genera JSON con los defaults de permisos por rol, para el JavaScript del front.
+        /// </summary>
+        private string GenerarRoleDefaultsJson(List<string> roles)
+        {
+            var permProps = typeof(UserPermission).GetProperties(BindingFlags.Public | BindingFlags.Instance)
+                .Where(p => p.PropertyType == typeof(bool))
+                .Select(p => p.Name)
+                .ToList();
+
+            var result = new Dictionary<string, Dictionary<string, bool>>();
+
+            foreach (var rol in roles)
+            {
+                var defaults = _permissionService.GetDefaultsByRole(rol, "");
+                var dict = new Dictionary<string, bool>();
+                foreach (var prop in permProps)
+                {
+                    var val = typeof(UserPermission).GetProperty(prop)?.GetValue(defaults);
+                    dict[prop] = val is true;
+                }
+                result[rol] = dict;
+            }
+
+            return JsonSerializer.Serialize(result);
+        }
 
         // ──────────────────────────────────────────────────────────────
         // RESTABLECIMIENTO DE CONTRASEÑA

@@ -175,7 +175,7 @@
                         new { Nombre = "Clientes",     Icono = "fa-users",               Color = "#6366f1", BgColor = "#e0e7ff",
                               Items = new[] { ("VerClientes","Ver listado de clientes"), ("CrearClientes","Crear clientes"), ("EditarClientes","Editar clientes") } },
                         new { Nombre = "Vehiculos",    Icono = "fa-car",                  Color = "#0284c7", BgColor = "#e0f2fe",
-                              Items = new[] { ("VerVehiculos","Ver vehiculos"), ("CrearVehiculos","Registrar vehiculos") } },
+                              Items = new[] { ("VerVehiculos","Ver vehiculos"), ("CrearVehiculos","Registrar vehiculos"), ("EditarVehiculos","Editar vehiculos") } },
                         new { Nombre = "Ingresos",     Icono = "fa-clipboard-list",       Color = "#d97706", BgColor = "#fef3c7",
                               Items = new[] { ("VerIngresos","Ver listado de ingresos"), ("CrearIngresos","Crear nuevos ingresos"), ("ActualizarEstadoIngresos","Actualizar estado de ingresos") } },
                         new { Nombre = "Reparaciones", Icono = "fa-wrench",               Color = "#7c3aed", BgColor = "#ede9fe",
@@ -243,70 +243,8 @@
     </div>
 </form>
 
-<!-- ===== Restablecer contraseña ===== -->
-@if (Model.UserId != User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value)
-{
-<div class="card" style="margin-top: 2rem; border: 1px solid #fca5a5;">
-    <div class="card-body" style="padding: 1.5rem;">
-        <details>
-            <summary style="cursor: pointer; font-size: 1rem; font-weight: 700; color: #dc2626;
-                            display: flex; align-items: center; gap: 0.5rem; list-style: none;">
-                <i class="fas fa-key"></i>
-                Restablecer Contraseña del Usuario
-                <span style="font-size: 0.75rem; font-weight: 400; color: var(--muted-foreground); margin-left: 0.5rem;">
-                    (haga clic para expandir)
-                </span>
-            </summary>
-
-            <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #fca5a5;">
-                <div class="alert" style="background: #fff7ed; border: 1px solid #fed7aa;
-                                        border-radius: var(--radius); padding: 0.875rem 1rem;
-                                        font-size: 0.875rem; color: #9a3412; margin-bottom: 1.25rem;">
-                    <i class="fas fa-exclamation-triangle me-1"></i>
-                    Esta acción reemplaza la contraseña actual de <strong>@Model.UserName</strong> de forma inmediata.
-                    El usuario deberá usar la nueva contraseña en su próximo inicio de sesión.
-                </div>
-
-                <form asp-action="RestablecerPassword" asp-controller="Usuarios" method="post">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="userId" value="@Model.UserId" />
-
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
-                        <div>
-                            <label class="form-label" style="font-size: 0.875rem; font-weight: 600;">
-                                <i class="fas fa-lock me-1" style="color: var(--muted-foreground);"></i>
-                                Nueva Contraseña
-                            </label>
-                            <input type="password" name="nuevaPassword" class="form-control"
-                                   placeholder="Mínimo 6 caracteres" autocomplete="new-password" required minlength="6" />
-                        </div>
-                        <div>
-                            <label class="form-label" style="font-size: 0.875rem; font-weight: 600;">
-                                <i class="fas fa-lock me-1" style="color: var(--muted-foreground);"></i>
-                                Confirmar Contraseña
-                            </label>
-                            <input type="password" name="confirmarPassword" class="form-control"
-                                   placeholder="Repetir contraseña" autocomplete="new-password" required minlength="6" />
-                        </div>
-                    </div>
-
-                    <button type="submit" class="btn btn-danger"
-                            onclick="return confirm('\u00bfConfirma que desea restablecer la contraseña de @Model.UserName?');">
-                        <i class="fas fa-key me-1"></i> Confirmar Restablecimiento
-                    </button>
-                </form>
-            </div>
-        </details>
-    </div>
-</div>
-}
-
 <script id="roleDefaultsData" type="application/json">
-{
-    "Administrador": { "VerClientes":true,"CrearClientes":true,"EditarClientes":true,"VerVehiculos":true,"CrearVehiculos":true,"VerIngresos":true,"CrearIngresos":true,"ActualizarEstadoIngresos":true,"VerReparaciones":true,"VerStock":true,"CrearStock":true,"EditarStock":true,"AjustarStock":true,"VerFacturacion":true,"CrearFacturas":true,"VerReportes":true },
-    "Recepcionista": { "VerClientes":true,"CrearClientes":true,"EditarClientes":true,"VerVehiculos":true,"CrearVehiculos":true,"VerIngresos":true,"CrearIngresos":true,"ActualizarEstadoIngresos":true,"VerReparaciones":false,"VerStock":false,"CrearStock":false,"EditarStock":false,"AjustarStock":false,"VerFacturacion":true,"CrearFacturas":true,"VerReportes":false },
-    "Mecanico":      { "VerClientes":false,"CrearClientes":false,"EditarClientes":false,"VerVehiculos":false,"CrearVehiculos":false,"VerIngresos":true,"CrearIngresos":false,"ActualizarEstadoIngresos":false,"VerReparaciones":true,"VerStock":true,"CrearStock":false,"EditarStock":false,"AjustarStock":false,"VerFacturacion":false,"CrearFacturas":false,"VerReportes":false }
-}
+@Html.Raw(ViewBag.RoleDefaultsJson)
 </script>
 
 @section Scripts {
