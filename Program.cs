@@ -3,7 +3,6 @@ using AutoSys.Data;
 using AutoSys.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -44,9 +43,6 @@ builder.Services.ConfigureApplicationCookie(options =>
 
 builder.Services.AddAuthorization(options =>
 {
-    options.AddPolicy("PuedeGestionarIngresos", policy => policy.RequireRole("Administrador", "Recepcionista"));
-    options.AddPolicy("PuedeEditarUsuarios", policy => policy.RequireRole("Administrador"));
-    options.AddPolicy("PuedeVerReportes", policy => policy.RequireRole("Administrador"));
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
         .Build();
@@ -55,7 +51,6 @@ builder.Services.AddAuthorization(options =>
 // Servicios y patrones de diseño
 builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<IPdfExportService, PdfExportService>();
-builder.Services.AddScoped<IFileStorage, LocalFileStorage>();
 builder.Services.AddScoped<AutoSys.Services.IPermissionService, AutoSys.Services.PermissionService>();
 builder.Services.AddScoped<IBackupService, BackupService>();
 builder.Services.AddScoped<IAuditService, AuditService>();

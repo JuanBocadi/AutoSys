@@ -28,3 +28,6 @@ node_modules/
 # Publicación / despliegue
 publish/
 wwwroot/lib/
+
+# Windows reserved names
+nul

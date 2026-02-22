@@ -174,7 +174,7 @@
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                         }
-                                        @if (User.IsInRole("Administrador") && !v.Ingresos.Any())
+                                        @if (User.IsInRole("Administrador") && !(v.Ingresos?.Any() ?? false))
                                         {
                                             <button type="button" class="btn btn-sm btn-danger btn-eliminar-vehiculo"
                                                     data-vehiculo-id="@v.Id"
@@ -195,7 +195,7 @@
             </div>
         }
         
-        @if (!Model.Any())
+        @if (Model == null || !Model.Any())
         {
             <div id="emptyStateContainer"></div>
         }
@@ -280,7 +280,7 @@
         });
 
         // Mostrar empty state si no hay vehículos
-        @if (!Model.Any())
+        @if (Model == null || !Model.Any())
         {
             <text>
             const container = document.getElementById('emptyStateContainer');

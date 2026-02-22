@@ -1,6 +1,5 @@
-﻿// Data/AutoSysDbContext.cs
-using Microsoft.AspNetCore.Identity; // <-- AÑADE ESTE
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore; // <-- Y ESTE
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using AutoSys.Models;
 

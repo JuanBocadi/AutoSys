@@ -46,7 +46,7 @@ namespace AutoSys.Controllers
             return View();
         }
 
-        public async Task<IActionResult> IngresosPorPeriodo(DateTime? desde, DateTime? hasta)
+        public IActionResult IngresosPorPeriodo(DateTime? desde, DateTime? hasta)
         {
             desde ??= DateTime.Now.AddMonths(-1);
             hasta ??= DateTime.Now;
@@ -67,7 +67,7 @@ namespace AutoSys.Controllers
         }
 
         // Reporte de facturación por período
-        public async Task<IActionResult> FacturacionPorPeriodo(DateTime? desde, DateTime? hasta)
+        public IActionResult FacturacionPorPeriodo(DateTime? desde, DateTime? hasta)
         {
             desde ??= DateTime.Now.AddMonths(-1);
             hasta ??= DateTime.Now;
@@ -88,7 +88,7 @@ namespace AutoSys.Controllers
             return View(facturas);
         }
 
-        public async Task<IActionResult> StockBajo()
+        public IActionResult StockBajo()
         {
             // PATRÓN FACTORY METHOD: Crear reporte de stock bajo usando factory
             // PATRÓN SINGLETON: Obtener configuración del nivel de alerta
@@ -108,7 +108,7 @@ namespace AutoSys.Controllers
             return View(items);
         }
 
-        public async Task<IActionResult> TiemposReparacion()
+        public IActionResult TiemposReparacion()
         {
             // PATRÓN FACTORY METHOD: Crear reporte de tiempos de reparación usando factory
             var reportFactory = new TiemposReparacionReportFactory(_context);
@@ -133,7 +133,7 @@ namespace AutoSys.Controllers
 
         // Reporte de Rentabilidad por Cliente (CRUZA: Clientes + Vehículos + Ingresos + Facturas + Detalles)
         // Contiene GRÁFICO de barras con los clientes más rentables
-        public async Task<IActionResult> RentabilidadClientes()
+        public IActionResult RentabilidadClientes()
         {
             // PATRÓN FACTORY METHOD: Crear reporte de rentabilidad usando factory
             var reportFactory = new RentabilidadClientesReportFactory(_context);
@@ -167,7 +167,7 @@ namespace AutoSys.Controllers
 
         // Reporte de Productividad del Taller (CRUZA: Ingresos + Facturas por mes)
         // Contiene GRÁFICOS de líneas (tendencias) y torta (distribución de estados)
-        public async Task<IActionResult> ProductividadTaller(int? meses)
+        public IActionResult ProductividadTaller(int? meses)
         {
             var cantMeses = meses ?? 12;
             if (cantMeses < 3) cantMeses = 3;
