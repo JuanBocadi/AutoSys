@@ -7,6 +7,7 @@ using AutoSys.Patterns.Singleton;
 using AutoSys.Services;
 using System.Threading.Tasks;
 using System.Linq;
+using System.Web;
 
 namespace AutoSys.Controllers
 {
@@ -16,16 +17,22 @@ namespace AutoSys.Controllers
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly RoleManager<IdentityRole> _roleManager;
         private readonly IAuditService _auditService;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<AccountController> _logger;
 
         public AccountController(UserManager<IdentityUser> userManager,
                                  SignInManager<IdentityUser> signInManager,
                                  RoleManager<IdentityRole> roleManager,
-                                 IAuditService auditService)
+                                 IAuditService auditService,
+                                 IEmailService emailService,
+                                 ILogger<AccountController> logger)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _roleManager = roleManager;
             _auditService = auditService;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         [HttpGet]
@@ -236,25 +243,66 @@ namespace AutoSys.Controllers
         {
             if (string.IsNullOrWhiteSpace(email))
             {
-                ViewBag.Error = "Debe ingresar su correo electrónico o nombre de usuario.";
+                ViewBag.Error = "Debe ingresar su correo electrónico.";
                 return View();
             }
 
-            var user = await _userManager.FindByEmailAsync(email)
-                    ?? await _userManager.FindByNameAsync(email);
+            // Solo buscar por email (más seguro que aceptar también username)
+            var user = await _userManager.FindByEmailAsync(email);
 
-            if (user == null)
+            if (user != null && !string.IsNullOrEmpty(user.Email))
             {
-                ViewBag.Error = "No se encontró una cuenta asociada a esos datos. Contacte al administrador.";
-                return View();
+                try
+                {
+                    // Generar token de restablecimiento
+                    var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+                    // Construir enlace de restablecimiento
+                    var resetLink = Url.Action(
+                        "RestablecerConToken",
+                        "Account",
+                        new { userId = user.Id, token },
+                        protocol: Request.Scheme);
+
+                    // Enviar correo con el enlace
+                    var htmlBody = $@"
+                        <div style='font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;'>
+                            <div style='background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;'>
+                                <h1 style='color: white; margin: 0; font-size: 24px;'>AutoSys</h1>
+                                <p style='color: #bfdbfe; margin: 5px 0 0;'>Sistema de Gestión de Taller Mecánico</p>
+                            </div>
+                            <div style='background: #ffffff; padding: 30px; border: 1px solid #e5e7eb; border-top: none;'>
+                                <h2 style='color: #1f2937; margin-top: 0;'>Restablecimiento de Contraseña</h2>
+                                <p style='color: #4b5563;'>Hola <strong>{user.UserName}</strong>,</p>
+                                <p style='color: #4b5563;'>Recibimos una solicitud para restablecer la contraseña de su cuenta. Haga clic en el siguiente botón para crear una nueva contraseña:</p>
+                                <div style='text-align: center; margin: 30px 0;'>
+                                    <a href='{resetLink}' style='background-color: #1e40af; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; display: inline-block;'>Restablecer Contraseña</a>
+                                </div>
+                                <p style='color: #6b7280; font-size: 14px;'>Si no solicitó este cambio, puede ignorar este correo. Su contraseña no será modificada.</p>
+                                <p style='color: #6b7280; font-size: 14px;'>Este enlace expirará en función de la configuración de seguridad del sistema.</p>
+                                <hr style='border: none; border-top: 1px solid #e5e7eb; margin: 20px 0;' />
+                                <p style='color: #9ca3af; font-size: 12px;'>Si el botón no funciona, copie y pegue este enlace en su navegador:</p>
+                                <p style='color: #3b82f6; font-size: 12px; word-break: break-all;'>{resetLink}</p>
+                            </div>
+                            <div style='background: #f9fafb; padding: 20px; border-radius: 0 0 10px 10px; border: 1px solid #e5e7eb; border-top: none; text-align: center;'>
+                                <p style='color: #9ca3af; font-size: 12px; margin: 0;'>© 2025 AutoSys - Sistema de Gestión de Taller</p>
+                            </div>
+                        </div>";
+
+                    await _emailService.SendEmailAsync(user.Email, "Restablecer contraseña - AutoSys", htmlBody);
+                    _logger.LogInformation("Correo de restablecimiento enviado a {Email}", user.Email);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error al enviar correo de restablecimiento a {Email}", email);
+                    // No revelar error específico al usuario por seguridad
+                }
             }
 
-            // Generar token de restablecimiento
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-            // En un entorno de producción se enviaría por email.
-            // Al ser un sistema local, redirigimos directamente al formulario de reset.
-            return RedirectToAction("RestablecerConToken", new { userId = user.Id, token });
+            // Siempre mostrar el mismo mensaje (previene enumeración de emails)
+            ViewBag.EmailEnviado = true;
+            ViewBag.EmailIngresado = email;
+            return View();
         }
 
         [HttpGet]
