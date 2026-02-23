@@ -5,11 +5,7 @@ using System.Reflection;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Gestiona permisos granulares por usuario.
-    /// Si existe un registro en BD → usa ese valor (puede quitar o agregar respecto al rol).
-    /// Si no existe en BD → retorna los defaults del rol.
-    /// </summary>
+    /// Gestiona permisos granulares por usuario. Usa BD si existe registro, sino defaults del rol.
     public class PermissionService : IPermissionService
     {
         private readonly AutoSysDbContext _context;

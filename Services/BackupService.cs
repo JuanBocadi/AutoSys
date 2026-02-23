@@ -4,12 +4,7 @@ using System.Text.Json;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Implementación del servicio de resguardo y restauración.
-    /// Utiliza los comandos T-SQL nativos de SQL Server para las operaciones
-    /// de BACKUP / RESTORE, y administra un catálogo JSON local con el
-    /// historial de backups (independiente de la BD para sobrevivir a un restore).
-    /// </summary>
+    /// Implementación del servicio de backup usando T-SQL nativo y catálogo JSON local
     public class BackupService : IBackupService
     {
         private readonly IConfiguration _configuration;

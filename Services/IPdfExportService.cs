@@ -1,9 +1,6 @@
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Servicio de exportación de reportes a PDF.
-    /// Permite generar archivos PDF a partir de los datos del Factory Method de reportes.
-    /// </summary>
+    /// Interfaz para generar reportes en PDF a partir de los datos del sistema
     public interface IPdfExportService
     {
         byte[] GenerarReporteIngresosPdf(DateTime desde, DateTime hasta, int totalIngresos, int enProceso, int finalizados, IEnumerable<Models.Ingreso> ingresos);

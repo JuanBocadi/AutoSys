@@ -2,10 +2,7 @@ using System.Text.Json;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Estado persistido del scheduler de backups automáticos.
-    /// Se guarda en un archivo JSON junto al catálogo de backups.
-    /// </summary>
+    /// Estado persistido del scheduler de backups automáticos (guardado en JSON)
     public class BackupScheduleState
     {
         public bool Enabled { get; set; } = true;
@@ -15,16 +12,7 @@ namespace AutoSys.Services
         public DateTime? LastAutoDiffBackup { get; set; }
     }
 
-    /// <summary>
-    /// Servicio en segundo plano que programa y ejecuta backups automáticos.
-    /// 
-    /// - Backup Completo: cada X horas (configurable, por defecto 24h)
-    /// - Backup Diferencial: cada Y horas (configurable, por defecto 6h)
-    /// - El cronograma automático es independiente de los backups manuales.
-    /// - Se puede habilitar/deshabilitar desde la interfaz web.
-    /// 
-    /// Utiliza IServiceScopeFactory para crear scopes de DI y obtener IBackupService.
-    /// </summary>
+    /// Servicio en segundo plano que ejecuta backups automáticos (completo cada 24h, diferencial cada 6h)
     public class BackupSchedulerService : BackgroundService
     {
         private readonly IServiceScopeFactory _scopeFactory;
@@ -202,9 +190,7 @@ namespace AutoSys.Services
             }
         }
 
-        /// <summary>
-        /// Habilita o deshabilita el scheduler. Si se habilita, recalcula los próximos backups.
-        /// </summary>
+        /// Habilita o deshabilita el scheduler de backups automáticos
         public void SetEnabled(bool enabled)
         {
             var state = LoadState();

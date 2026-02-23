@@ -1,9 +1,6 @@
 namespace AutoSys.Patterns.Strategy
 {
-    /// <summary>
-    /// Patrón Strategy: Contexto que usa las estrategias de notificación
-    /// Permite cambiar dinámicamente el tipo de notificación
-    /// </summary>
+    /// Contexto que mantiene la estrategia de notificación activa y delega el envío
     public class NotificationContext
     {
         private INotificationStrategy _strategy;

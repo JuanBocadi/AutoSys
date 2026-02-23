@@ -4,9 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AutoSys.Patterns.Factory
 {
-    /// <summary>
-    /// Patrón Factory Method: Productos concretos - Diferentes tipos de reportes
-    /// </summary>
+    /// Reportes concretos que implementan IReport con sus consultas específicas a la BD
     public class ClientesActivosReport : IReport
     {
         private readonly AutoSysDbContext _context;
@@ -224,11 +222,7 @@ namespace AutoSys.Patterns.Factory
         }
     }
 
-    /// <summary>
-    /// Patrón Factory Method: Reporte de Rentabilidad por Cliente
-    /// Cruza datos de Clientes + Vehículos + Ingresos + Facturas + DetallesFactura
-    /// para calcular métricas de valor de cada cliente y asistir en la toma de decisiones.
-    /// </summary>
+    /// Reporte de rentabilidad por cliente - cruza datos de facturación e ingresos por cliente
     public class RentabilidadClientesReport : IReport
     {
         private readonly AutoSysDbContext _context;
@@ -333,11 +327,7 @@ namespace AutoSys.Patterns.Factory
         }
     }
 
-    /// <summary>
-    /// Patrón Factory Method: Reporte de Productividad del Taller
-    /// Cruza datos de Ingresos + Facturas agrupados por mes para mostrar tendencias
-    /// de volumen de trabajo, facturación y distribución de estados.
-    /// </summary>
+    /// Reporte de productividad del taller - tendencias mensuales de ingresos y facturación
     public class ProductividadTallerReport : IReport
     {
         private readonly AutoSysDbContext _context;

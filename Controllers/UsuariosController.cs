@@ -23,7 +23,7 @@ namespace AutoSys.Controllers
         private readonly ILogger<UsuariosController> _logger;
         private readonly IAuditService _auditService;
 
-        /// <summary>Roles del sistema que no se pueden eliminar.</summary>
+        /// Roles del sistema que no se pueden eliminar
         private static readonly string[] RolesSistema = { "Administrador", "Recepcionista", "Mecanico" };
 
         public UsuariosController(
@@ -132,10 +132,7 @@ namespace AutoSys.Controllers
         // VERIFICACIÓN DE CONTRASEÑA (AJAX)
         // ──────────────────────────────────────────────────────────────
 
-        /// <summary>
-        /// Verifica la contraseña del administrador activo antes de mostrar permisos.
-        /// Retorna JSON { success: true/false }.
-        /// </summary>
+        /// Verifica la contraseña del admin antes de mostrar permisos (retorna JSON)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerificarPassword([FromBody] VerificarPasswordRequest request)
@@ -451,9 +448,7 @@ namespace AutoSys.Controllers
                 VerReportes              = up.VerReportes,
             };
 
-        /// <summary>
-        /// Genera JSON con los defaults de permisos por rol, para el JavaScript del front.
-        /// </summary>
+        /// Genera JSON con los defaults de permisos por rol para el JavaScript del front
         private string GenerarRoleDefaultsJson(List<string> roles)
         {
             var permProps = typeof(UserPermission).GetProperties(BindingFlags.Public | BindingFlags.Instance)

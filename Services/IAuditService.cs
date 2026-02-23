@@ -2,23 +2,20 @@ using AutoSys.Models;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Interfaz para el servicio de auditoría.
-    /// Registra acciones importantes realizadas por los usuarios del sistema.
-    /// </summary>
+    /// Interfaz del servicio de auditoría - registra acciones importantes de los usuarios
     public interface IAuditService
     {
-        /// <summary>Registra una acción de auditoría</summary>
+        /// Registra una acción de auditoría
         Task RegistrarAsync(string usuario, string rol, string categoria, string accion,
                             string descripcion, int? entidadId = null, string? entidadNombre = null,
                             string? direccionIP = null);
 
-        /// <summary>Obtiene los registros de auditoría con filtros opcionales</summary>
+        /// Obtiene los registros de auditoría con filtros opcionales
         Task<List<AuditLog>> ObtenerLogsAsync(DateTime? desde = null, DateTime? hasta = null,
                                                string? categoria = null, string? usuario = null,
                                                int cantidad = 200);
 
-        /// <summary>Obtiene las categorías disponibles</summary>
+        /// Obtiene las categorías disponibles
         Task<List<string>> ObtenerCategoriasAsync();
     }
 }

@@ -4,10 +4,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Implementación del servicio de auditoría.
-    /// Persiste registros de acciones importantes en la base de datos.
-    /// </summary>
+    /// Registra acciones de auditoría en la base de datos
     public class AuditService : IAuditService
     {
         private readonly AutoSysDbContext _context;

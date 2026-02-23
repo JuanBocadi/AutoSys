@@ -1,8 +1,6 @@
 namespace AutoSys.Patterns.Observer
 {
-    /// <summary>
-    /// Patrón Observer: Sujeto que notifica a los observadores
-    /// </summary>
+    /// Contrato del sujeto que emite eventos y notifica a los observadores
     public interface ISubject
     {
         void Attach(IObserver observer);

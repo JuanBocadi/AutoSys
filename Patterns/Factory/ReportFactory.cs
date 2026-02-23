@@ -2,9 +2,7 @@ using AutoSys.Data;
 
 namespace AutoSys.Patterns.Factory
 {
-    /// <summary>
-    /// Patrón Factory Method: Creador abstracto
-    /// </summary>
+    /// Clase base abstracta para las factories de reportes
     public abstract class ReportFactory
     {
         protected readonly AutoSysDbContext _context;
@@ -25,9 +23,7 @@ namespace AutoSys.Patterns.Factory
         }
     }
 
-    /// <summary>
-    /// Patrón Factory Method: Creadores concretos
-    /// </summary>
+    /// Factories concretas - cada una crea su tipo de reporte
     public class ClientesActivosReportFactory : ReportFactory
     {
         public ClientesActivosReportFactory(AutoSysDbContext context) : base(context) { }
@@ -94,9 +90,7 @@ namespace AutoSys.Patterns.Factory
         }
     }
 
-    /// <summary>
-    /// Patrón Factory Method: Creador concreto para Reporte de Rentabilidad por Cliente
-    /// </summary>
+    /// Factory para el reporte de rentabilidad por cliente
     public class RentabilidadClientesReportFactory : ReportFactory
     {
         public RentabilidadClientesReportFactory(AutoSysDbContext context) : base(context) { }
@@ -107,9 +101,7 @@ namespace AutoSys.Patterns.Factory
         }
     }
 
-    /// <summary>
-    /// Patrón Factory Method: Creador concreto para Reporte de Productividad del Taller
-    /// </summary>
+    /// Factory para el reporte de productividad del taller
     public class ProductividadTallerReportFactory : ReportFactory
     {
         private readonly int _meses;

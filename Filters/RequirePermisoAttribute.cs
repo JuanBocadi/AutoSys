@@ -5,11 +5,7 @@ using System.Security.Claims;
 
 namespace AutoSys.Filters
 {
-    /// <summary>
-    /// Verifica que el usuario tenga el permiso granular requerido (via IPermissionService).
-    /// Admin siempre pasa. Recepcionista y Mecánico consultan la BD / defaults del rol.
-    /// Uso: [RequirePermiso("NombrePermiso")]
-    /// </summary>
+    /// Filtro de autorización que verifica permisos granulares. Uso: [RequirePermiso("NombrePermiso")]
     [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = true)]
     public class RequirePermisoAttribute : TypeFilterAttribute
     {

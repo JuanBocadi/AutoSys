@@ -4,12 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace AutoSys.Controllers
 {
-    /// <summary>
-    /// Controlador de Resguardo y Restauración.
-    /// Accesible únicamente por usuarios con rol Administrador.
-    /// Permite crear, verificar, descargar, eliminar y restaurar backups
-    /// de la base de datos y archivos del sistema.
-    /// </summary>
+    /// Controlador de backup y restauración de BD, accesible solo por Administrador
     [Authorize(Roles = "Administrador")]
     public class BackupController : Controller
     {

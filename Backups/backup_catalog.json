@@ -37,5 +37,18 @@
     "IncludesFiles": false,
     "Notes": "Backup diferencial autom\u00E1tico programado",
     "CreatedBy": "Sistema (Autom\u00E1tico)"
+  },
+  {
+    "Id": "6b433154-a6f8-4588-8099-8d4312aab0e2",
+    "FileName": "AutoSysDB_20260223_194602.bak",
+    "FilesZipName": null,
+    "CreatedAt": "2026-02-23T19:46:02.5658519-03:00",
+    "SizeBytes": 8835072,
+    "Type": "Completo",
+    "Status": "Exitoso",
+    "Origin": "Autom\u00E1tico",
+    "IncludesFiles": true,
+    "Notes": "Backup completo autom\u00E1tico programado",
+    "CreatedBy": "Sistema (Autom\u00E1tico)"
   }
 ]

@@ -2,49 +2,46 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AutoSys.Models
 {
-    /// <summary>
-    /// Registro de auditoría para acciones importantes del sistema.
-    /// Permite trazabilidad completa de quién hizo qué y cuándo.
-    /// </summary>
+    /// Registro de auditoría para trazabilidad de acciones del sistema
     public class AuditLog
     {
         public int Id { get; set; }
 
-        /// <summary>Fecha y hora de la acción</summary>
+        /// Fecha y hora de la acción
         public DateTime Fecha { get; set; } = DateTime.Now;
 
-        /// <summary>Usuario que realizó la acción (username)</summary>
+        /// Usuario que realizó la acción
         [Required]
         [MaxLength(256)]
         public string Usuario { get; set; } = string.Empty;
 
-        /// <summary>Rol del usuario al momento de la acción</summary>
+        /// Rol del usuario al momento de la acción
         [MaxLength(50)]
         public string Rol { get; set; } = string.Empty;
 
-        /// <summary>Categoría de la acción: Cliente, Vehiculo, Ingreso, Stock, Factura, Usuario, Permiso, Backup</summary>
+        /// Categoría: Cliente, Vehiculo, Ingreso, Stock, Factura, Usuario, Permiso, Backup
         [Required]
         [MaxLength(50)]
         public string Categoria { get; set; } = string.Empty;
 
-        /// <summary>Tipo de acción: Crear, Editar, Eliminar, CambioEstado, Login, Logout, etc.</summary>
+        /// Tipo de acción: Crear, Editar, Eliminar, CambioEstado, Login, Logout, etc.
         [Required]
         [MaxLength(50)]
         public string Accion { get; set; } = string.Empty;
 
-        /// <summary>Descripción legible de lo que se hizo</summary>
+        /// Descripción legible de lo que se hizo
         [Required]
         [MaxLength(500)]
         public string Descripcion { get; set; } = string.Empty;
 
-        /// <summary>ID de la entidad afectada (si aplica)</summary>
+        /// ID de la entidad afectada (si aplica)
         public int? EntidadId { get; set; }
 
-        /// <summary>Nombre/identificador de la entidad afectada (ej: patente, nombre cliente)</summary>
+        /// Nombre/identificador de la entidad afectada
         [MaxLength(200)]
         public string? EntidadNombre { get; set; }
 
-        /// <summary>Dirección IP del usuario</summary>
+        /// Dirección IP del usuario
         [MaxLength(50)]
         public string? DireccionIP { get; set; }
     }

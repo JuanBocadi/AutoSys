@@ -5,10 +5,7 @@ using AutoSys.Models;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Implementación del servicio de exportación a PDF usando QuestPDF.
-    /// Genera documentos PDF profesionales para cada tipo de reporte del sistema.
-    /// </summary>
+    /// Genera documentos PDF profesionales para cada tipo de reporte usando QuestPDF
     public class PdfExportService : IPdfExportService
     {
         private const string ColorPrimario = "#1e3a5f";
@@ -509,10 +506,7 @@ namespace AutoSys.Services
             });
         }
 
-        /// <summary>
-        /// Genera celdas de encabezado directamente en el TableDescriptor.
-        /// Compatible con todas las versiones de QuestPDF.
-        /// </summary>
+        /// Genera celdas de encabezado en el TableDescriptor
         private static void HeaderTabla(TableDescriptor table, params string[] columnas)
         {
             foreach (var col in columnas)

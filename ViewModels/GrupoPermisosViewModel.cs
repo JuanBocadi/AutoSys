@@ -2,18 +2,14 @@ using AutoSys.Models;
 
 namespace AutoSys.ViewModels
 {
-    /// <summary>
-    /// ViewModel para la página de permisos de grupos (roles dinámicos).
-    /// </summary>
+    /// ViewModel para la página de permisos de grupos/roles
     public class GrupoPermisosViewModel
     {
-        /// <summary>Lista dinámica de grupos con sus permisos.</summary>
+        /// Lista dinámica de grupos con sus permisos
         public List<GrupoPermisoItem> Grupos { get; set; } = new();
     }
 
-    /// <summary>
-    /// Representa un grupo/rol con sus permisos configurados.
-    /// </summary>
+    /// Representa un grupo/rol con sus permisos configurados
     public class GrupoPermisoItem
     {
         public string RolNombre { get; set; } = string.Empty;
@@ -23,7 +19,7 @@ namespace AutoSys.ViewModels
         public string? ModificadoPor { get; set; }
         public int CantidadUsuarios { get; set; }
 
-        /// <summary>Indica si es un rol predeterminado del sistema (no eliminable).</summary>
+        /// Indica si es un rol predeterminado del sistema (no eliminable)
         public bool EsRolSistema { get; set; }
     }
 }

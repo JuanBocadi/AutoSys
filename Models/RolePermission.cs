@@ -2,10 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AutoSys.Models
 {
-    /// <summary>
-    /// Permisos por defecto a nivel de rol.
-    /// Se aplican a todos los usuarios del rol que no tengan permisos individuales configurados.
-    /// </summary>
+    /// Permisos por defecto a nivel de rol, aplican a usuarios sin permisos individuales
     public class RolePermission
     {
         public int Id { get; set; }

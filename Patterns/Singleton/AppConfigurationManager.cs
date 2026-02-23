@@ -1,9 +1,6 @@
 namespace AutoSys.Patterns.Singleton
 {
-    /// <summary>
-    /// Patrón Singleton: Garantiza una única instancia de la configuración de la aplicación
-    /// Thread-safe usando Lazy<T>
-    /// </summary>
+    /// Configuración global del sistema - instancia única thread-safe con Lazy<T>
     public sealed class AppConfigurationManager
     {
         private static readonly Lazy<AppConfigurationManager> _instance = 

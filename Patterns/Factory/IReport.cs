@@ -1,8 +1,6 @@
 namespace AutoSys.Patterns.Factory
 {
-    /// <summary>
-    /// Patrón Factory Method: Producto base para reportes
-    /// </summary>
+    /// Interfaz base para todos los reportes del sistema
     public interface IReport
     {
         string GetTitle();

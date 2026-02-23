@@ -2,10 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace AutoSys.Models
 {
-    /// <summary>
-    /// Permisos granulares por usuario, independientes del rol base.
-    /// Permiten al administrador delegar funcionalidades específicas.
-    /// </summary>
+    /// Permisos granulares por usuario, independientes del rol base
     public class UserPermission
     {
         public int Id { get; set; }

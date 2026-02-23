@@ -1,8 +1,6 @@
 namespace AutoSys.Patterns.Observer
 {
-    /// <summary>
-    /// Patrón Observer: Observador que reacciona a eventos
-    /// </summary>
+    /// Contrato para los observadores que reaccionan a eventos del sistema
     public interface IObserver
     {
         Task UpdateAsync(string eventType, object data);

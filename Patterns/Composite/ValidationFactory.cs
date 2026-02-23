@@ -1,8 +1,6 @@
 namespace AutoSys.Patterns.Composite
 {
-    /// <summary>
-    /// Factory para crear validaciones compuestas predefinidas
-    /// </summary>
+    /// Crea combinaciones predefinidas de validaciones para login y registro
     public static class ValidationFactory
     {
         public static IValidationComponent CreateLoginValidation()

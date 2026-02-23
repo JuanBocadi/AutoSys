@@ -3,23 +3,20 @@ using AutoSys.Patterns.Strategy;
 
 namespace AutoSys.Services
 {
-    /// <summary>
-    /// Servicio de notificaciones que usa el patrón Strategy
-    /// Permite cambiar el tipo de notificación dinámicamente
-    /// </summary>
+    /// Servicio de notificaciones que usa el patrón Strategy para enviar por diferentes canales
     public class NotificationService : INotificationService
     {
         private readonly ILogger<NotificationService> _logger;
         private readonly NotificationContext _notificationContext;
 
-        public NotificationService(ILogger<NotificationService> logger)
+        public NotificationService(ILogger<NotificationService> logger, IEmailService emailService)
         {
             _logger = logger;
             
-            // Por defecto usa LogNotificationStrategy
+            // Por defecto usa EmailNotificationStrategy (envía emails reales vía SMTP)
             var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            var strategyLogger = loggerFactory.CreateLogger<LogNotificationStrategy>();
-            var defaultStrategy = new LogNotificationStrategy(strategyLogger);
+            var strategyLogger = loggerFactory.CreateLogger<EmailNotificationStrategy>();
+            var defaultStrategy = new EmailNotificationStrategy(emailService, strategyLogger);
             _notificationContext = new NotificationContext(defaultStrategy);
         }
 

@@ -1,8 +1,6 @@
 namespace AutoSys.Patterns.Observer
 {
-    /// <summary>
-    /// Patrón Observer: Sujeto concreto que gestiona observadores
-    /// </summary>
+    /// Sujeto concreto que mantiene la lista de observadores y los notifica ante eventos
     public class EventSubject : ISubject
     {
         private readonly List<IObserver> _observers = new();
