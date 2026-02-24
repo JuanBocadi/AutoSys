@@ -71,6 +71,15 @@ namespace AutoSys.Data
                         Console.WriteLine($"  - {error.Description}");
                 }
             }
+            else if (adminUser.Email != adminEmail)
+            {
+                // Actualizar el email si cambió en la configuración
+                adminUser.Email = adminEmail;
+                adminUser.NormalizedEmail = adminEmail.ToUpper();
+                adminUser.EmailConfirmed = true;
+                await userManager.UpdateAsync(adminUser);
+                Console.WriteLine($"[AutoSys] Email del administrador actualizado a: {adminEmail}");
+            }
         }
     }
 }

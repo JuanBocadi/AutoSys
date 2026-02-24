@@ -57,15 +57,6 @@ namespace AutoSys.Patterns.Observer
                         ingresoData.NuevoEstado);
                 }
             }
-            else if (data is StockBajoEventData stockData)
-            {
-                string destination = "admin@autosys.com";
-                string subject = $"Alerta: Stock bajo - {stockData.NombreProducto}";
-                string message = $"El producto '{stockData.NombreProducto}' tiene stock bajo: {stockData.CantidadActual} unidades. " +
-                                $"Mínimo requerido: {stockData.StockMinimo}.";
-                
-                await _notificationService.SendAsync(destination, subject, message);
-            }
         }
 
         public string GetObserverName() => "Email Notification Observer";
@@ -89,11 +80,7 @@ namespace AutoSys.Patterns.Observer
                 _logger.LogInformation("Ingreso #{Id} cambió de estado a: {Estado} (Vehículo: {Patente})",
                     ingresoData.IngresoId, ingresoData.NuevoEstado, ingresoData.Patente);
             }
-            else if (data is StockBajoEventData stockData)
-            {
-                _logger.LogWarning("⚠️ Stock bajo detectado: {Producto} - Cantidad: {Cantidad}/{Minimo}",
-                    stockData.NombreProducto, stockData.CantidadActual, stockData.StockMinimo);
-            }
+
 
             return Task.CompletedTask;
         }
@@ -112,12 +99,5 @@ namespace AutoSys.Patterns.Observer
         public DateTime FechaCambio { get; set; }
     }
 
-    public class StockBajoEventData
-    {
-        public int ProductoId { get; set; }
-        public string NombreProducto { get; set; } = string.Empty;
-        public int CantidadActual { get; set; }
-        public int StockMinimo { get; set; }
-        public DateTime FechaDeteccion { get; set; }
-    }
+
 }

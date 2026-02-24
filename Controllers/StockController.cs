@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using AutoSys.Data;
 using AutoSys.Models;
 using AutoSys.Filters;
-using AutoSys.Patterns.Observer;
 using AutoSys.Services;
 using System.Linq;
 
@@ -16,27 +15,15 @@ namespace AutoSys.Controllers
     {
         private readonly AutoSysDbContext _context;
         private readonly ILogger<StockController> _logger;
-        private readonly EventSubject _eventSubject;
-        private readonly INotificationService _notificationService;
         private readonly IAuditService _auditService;
 
         public StockController(AutoSysDbContext context, 
                               ILogger<StockController> logger,
-                              EventSubject eventSubject,
-                              INotificationService notificationService,
                               IAuditService auditService)
         {
             _context = context;
             _logger = logger;
-            _eventSubject = eventSubject;
-            _notificationService = notificationService;
             _auditService = auditService;
-
-            // PATRÓN OBSERVER: Adjuntar observadores
-            var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
-            _eventSubject.Attach(new EmailNotificationObserver(_notificationService,
-                loggerFactory.CreateLogger<EmailNotificationObserver>()));
-            _eventSubject.Attach(new LoggerObserver(loggerFactory.CreateLogger<LoggerObserver>()));
         }
 
         public async Task<IActionResult> Index(string buscar = "")
@@ -220,21 +207,6 @@ namespace AutoSys.Controllers
                 await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rolAjuste, "Stock", "CambioEstado",
                     $"Ajuste de stock: {stock.Nombre} - {tipo} {cantidad} unidades (Anterior: {cantidadAnterior}, Nuevo: {stock.Cantidad})",
                     stock.Id, stock.Nombre, HttpContext.Connection.RemoteIpAddress?.ToString());
-
-                // PATRÓN OBSERVER: Notificar si el stock está bajo
-                if (stock.Cantidad < stock.StockMinimo)
-                {
-                    var eventData = new StockBajoEventData
-                    {
-                        ProductoId = stock.Id,
-                        NombreProducto = stock.Nombre,
-                        CantidadActual = stock.Cantidad,
-                        StockMinimo = stock.StockMinimo,
-                        FechaDeteccion = DateTime.Now
-                    };
-
-                    await _eventSubject.NotifyAsync("StockBajo", eventData);
-                }
 
                 TempData["SuccessMessage"] = $"Stock ajustado correctamente. Nueva cantidad: {stock.Cantidad} {stock.Unidad}";
             }
