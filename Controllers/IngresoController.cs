@@ -45,20 +45,50 @@ namespace AutoSys.Controllers
             _eventSubject.Attach(new LoggerObserver(loggerFactory.CreateLogger<LoggerObserver>()));
         }
 
-        [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
-        [RequirePermiso("CrearIngresos")]
-        public IActionResult Create()
+        // ── ENDPOINT API: Búsqueda de vehículos (autocomplete estilo Google) ──
+        [HttpGet]
+        public IActionResult BuscarVehiculos(string? termino)
         {
-            ViewBag.Vehiculos = _context.Vehiculos
+            var query = _context.Vehiculos
                 .Include(v => v.Cliente)
-                .ToList()
+                .AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(termino))
+            {
+                var term = termino.Trim().ToLower();
+                query = query.Where(v =>
+                    v.Patente.ToLower().Contains(term) ||
+                    v.Marca.ToLower().Contains(term) ||
+                    v.Modelo.ToLower().Contains(term) ||
+                    (v.Cliente != null && v.Cliente.Nombre.ToLower().Contains(term)) ||
+                    (v.Cliente != null && v.Cliente.Apellido.ToLower().Contains(term))
+                );
+            }
+
+            var resultados = query
+                .OrderBy(v => v.Patente)
                 .Select(v => new
                 {
-                    v.Id,
-                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
+                    id = v.Id,
+                    patente = v.Patente,
+                    marca = v.Marca,
+                    modelo = v.Modelo,
+                    clienteNombre = v.Cliente != null
+                        ? v.Cliente.Nombre + " " + v.Cliente.Apellido
+                        : "Sin cliente",
+                    descripcion = v.Patente + " - " + v.Marca + " " + v.Modelo +
+                        " (" + (v.Cliente != null ? v.Cliente.Nombre + " " + v.Cliente.Apellido : "Sin cliente") + ")"
                 })
                 .ToList();
 
+            return Json(resultados);
+        }
+
+        [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+        [RequirePermiso("CrearIngresos")]
+        public async Task<IActionResult> Create()
+        {
+            ViewBag.ServiciosFijos = await _context.ServiciosFijos.ToListAsync();
             return View();
         }
 
@@ -82,16 +112,7 @@ namespace AutoSys.Controllers
 
             if (!ModelState.IsValid)
             {
-                ViewBag.Vehiculos = _context.Vehiculos
-                    .Include(v => v.Cliente)
-                    .ToList()
-                    .Select(v => new
-                    {
-                        v.Id,
-                        Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
-                    })
-                    .ToList();
-
+                ViewBag.ServiciosFijos = await _context.ServiciosFijos.ToListAsync();
                 ViewBag.FotoTempPath = FotoTempPath; // Por si vuelve con errores y ya tenía una imagen temporal
                 return View(ingreso);
             }
@@ -186,7 +207,7 @@ namespace AutoSys.Controllers
             }
 
             TempData["SuccessMessage"] = "¡El ingreso del vehículo se ha registrado correctamente!";
-            return RedirectToAction("Detalle", new { id = ingreso.Id });
+            return RedirectToAction("Detalle", "Ingreso", new { id = ingreso.Id });
         }
 
         public async Task<IActionResult> Detalle(int id)
@@ -194,6 +215,7 @@ namespace AutoSys.Controllers
             var ingreso = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                 .ThenInclude(v => v.Cliente)
+                .Include(i => i.ServicioFijo)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (ingreso == null)
@@ -310,25 +332,16 @@ namespace AutoSys.Controllers
             return View(items);
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult EditarDesdeConfirmacion(int VehiculoId, string Diagnostico, string? FotoTempPath)
+        public async Task<IActionResult> EditarDesdeConfirmacion(int VehiculoId, string Diagnostico, int? ServicioFijoId, string? FotoTempPath)
         {
             var ingreso = new Ingreso
             {
                 VehiculoId = VehiculoId,
-                Diagnostico = Diagnostico
+                Diagnostico = Diagnostico,
+                ServicioFijoId = ServicioFijoId
             };
-            ViewBag.Vehiculos = _context.Vehiculos
-                .Include(v => v.Cliente)
-                .ToList()
-                .Select(v => new
-                {
-                    v.Id,
-                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
-                })
-                .ToList();
 
+            ViewBag.ServiciosFijos = await _context.ServiciosFijos.ToListAsync();
             ViewBag.FotoTempPath = FotoTempPath;
 
             return View("Create", ingreso);

@@ -1,0 +1,1550 @@
+﻿diff --git a/Backups/backup_catalog.json b/Backups/backup_catalog.json
+index 3ed4189..5c15b46 100644
+--- a/Backups/backup_catalog.json
++++ b/Backups/backup_catalog.json
+@@ -50,5 +50,31 @@
+     "IncludesFiles": true,
+     "Notes": "Backup completo autom\u00E1tico programado",
+     "CreatedBy": "Sistema (Autom\u00E1tico)"
++  },
++  {
++    "Id": "0ff1f32b-eb0f-40c3-a2ae-8e411d2842c1",
++    "FileName": "AutoSysDB_20260227_114444.bak",
++    "FilesZipName": null,
++    "CreatedAt": "2026-02-27T11:44:44.2253356-03:00",
++    "SizeBytes": 6148096,
++    "Type": "Completo",
++    "Status": "Exitoso",
++    "Origin": "Autom\u00E1tico",
++    "IncludesFiles": true,
++    "Notes": "Backup completo autom\u00E1tico programado",
++    "CreatedBy": "Sistema (Autom\u00E1tico)"
++  },
++  {
++    "Id": "a398a794-3f57-4095-b55d-a7a9123525e7",
++    "FileName": "AutoSysDB_DIFF_20260228_043616.bak",
++    "FilesZipName": null,
++    "CreatedAt": "2026-02-28T04:36:16.7500145-03:00",
++    "SizeBytes": 0,
++    "Type": "Diferencial",
++    "Status": "Fallido",
++    "Origin": "Autom\u00E1tico",
++    "IncludesFiles": false,
++    "Notes": "Backup diferencial autom\u00E1tico programado | Error: Cannot perform a differential backup for database \u0022AutoSysDB\u0022, because a current database backup does not exist. Perform a full database backup by reissuing BACKUP DATABASE, omitting the WITH DIFFERENTIAL option.\r\nBACKUP DATABASE is terminating abnormally.",
++    "CreatedBy": "Sistema (Autom\u00E1tico)"
+   }
+ ]
+\ No newline at end of file
+diff --git a/Backups/scheduler_state.json b/Backups/scheduler_state.json
+index 196011e..d77ec96 100644
+--- a/Backups/scheduler_state.json
++++ b/Backups/scheduler_state.json
+@@ -1,7 +1,7 @@
+ {
+   "Enabled": true,
+-  "NextFullBackup": "2026-02-24T19:46:02.6818879-03:00",
+-  "NextDiffBackup": "2026-02-24T01:46:02.6818951-03:00",
+-  "LastAutoFullBackup": "2026-02-23T19:46:02.6818872-03:00",
+-  "LastAutoDiffBackup": "2026-02-22T23:44:08.4467466-03:00"
++  "NextFullBackup": "2026-02-28T11:44:44.3257777-03:00",
++  "NextDiffBackup": "2026-02-28T10:36:17.207593-03:00",
++  "LastAutoFullBackup": "2026-02-27T11:44:44.3257771-03:00",
++  "LastAutoDiffBackup": "2026-02-28T04:36:17.2075921-03:00"
+ }
+\ No newline at end of file
+diff --git a/Controllers/IngresoController.cs b/Controllers/IngresoController.cs
+index 4faf620..c0c16fd 100644
+--- a/Controllers/IngresoController.cs
++++ b/Controllers/IngresoController.cs
+@@ -45,20 +45,49 @@ namespace AutoSys.Controllers
+             _eventSubject.Attach(new LoggerObserver(loggerFactory.CreateLogger<LoggerObserver>()));
+         }
+ 
+-        [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+-        [RequirePermiso("CrearIngresos")]
+-        public IActionResult Create()
++        // ÔöÇÔöÇ ENDPOINT API: B├║squeda de veh├¡culos (autocomplete estilo Google) ÔöÇÔöÇ
++        [HttpGet]
++        public IActionResult BuscarVehiculos(string? termino)
+         {
+-            ViewBag.Vehiculos = _context.Vehiculos
++            var query = _context.Vehiculos
+                 .Include(v => v.Cliente)
+-                .ToList()
++                .AsQueryable();
++
++            if (!string.IsNullOrWhiteSpace(termino))
++            {
++                var term = termino.Trim().ToLower();
++                query = query.Where(v =>
++                    v.Patente.ToLower().Contains(term) ||
++                    v.Marca.ToLower().Contains(term) ||
++                    v.Modelo.ToLower().Contains(term) ||
++                    (v.Cliente != null && v.Cliente.Nombre.ToLower().Contains(term)) ||
++                    (v.Cliente != null && v.Cliente.Apellido.ToLower().Contains(term))
++                );
++            }
++
++            var resultados = query
++                .OrderBy(v => v.Patente)
+                 .Select(v => new
+                 {
+-                    v.Id,
+-                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
++                    id = v.Id,
++                    patente = v.Patente,
++                    marca = v.Marca,
++                    modelo = v.Modelo,
++                    clienteNombre = v.Cliente != null
++                        ? v.Cliente.Nombre + " " + v.Cliente.Apellido
++                        : "Sin cliente",
++                    descripcion = v.Patente + " - " + v.Marca + " " + v.Modelo +
++                        " (" + (v.Cliente != null ? v.Cliente.Nombre + " " + v.Cliente.Apellido : "Sin cliente") + ")"
+                 })
+                 .ToList();
+ 
++            return Json(resultados);
++        }
++
++        [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
++        [RequirePermiso("CrearIngresos")]
++        public IActionResult Create()
++        {
+             return View();
+         }
+ 
+@@ -82,16 +111,6 @@ namespace AutoSys.Controllers
+ 
+             if (!ModelState.IsValid)
+             {
+-                ViewBag.Vehiculos = _context.Vehiculos
+-                    .Include(v => v.Cliente)
+-                    .ToList()
+-                    .Select(v => new
+-                    {
+-                        v.Id,
+-                        Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
+-                    })
+-                    .ToList();
+-
+                 ViewBag.FotoTempPath = FotoTempPath; // Por si vuelve con errores y ya ten├¡a una imagen temporal
+                 return View(ingreso);
+             }
+@@ -319,15 +338,6 @@ namespace AutoSys.Controllers
+                 VehiculoId = VehiculoId,
+                 Diagnostico = Diagnostico
+             };
+-            ViewBag.Vehiculos = _context.Vehiculos
+-                .Include(v => v.Cliente)
+-                .ToList()
+-                .Select(v => new
+-                {
+-                    v.Id,
+-                    Descripcion = $"{v.Patente} - {v.Marca} {v.Modelo} ({v.Cliente?.Nombre} {v.Cliente?.Apellido})"
+-                })
+-                .ToList();
+ 
+             ViewBag.FotoTempPath = FotoTempPath;
+ 
+diff --git a/Views/Ingreso/Create.cshtml b/Views/Ingreso/Create.cshtml
+index 974e18a..03714bf 100644
+--- a/Views/Ingreso/Create.cshtml
++++ b/Views/Ingreso/Create.cshtml
+@@ -27,15 +27,38 @@
+             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+             
+             <div class="row g-3">
+-                <!-- Veh├¡culo -->
++                <!-- Veh├¡culo - B├║squeda estilo Google -->
+                 <div class="col-12">
+                     <label asp-for="VehiculoId" class="form-label">
+                         <i class="fas fa-car me-1"></i> Veh├¡culo
+                         <span class="text-danger">*</span>
+                     </label>
+-                    <select asp-for="VehiculoId" class="form-select" asp-items="@(new SelectList(ViewBag.Vehiculos, "Id", "Descripcion"))" required>
+-                        <option value="">-- Seleccione un veh├¡culo --</option>
+-                    </select>
++
++                    <input type="hidden" asp-for="VehiculoId" id="VehiculoId" />
++
++                    <div class="vehiculo-search-container">
++                        <!-- Badge del veh├¡culo seleccionado -->
++                        <div id="vehiculoSeleccionado" class="vehiculo-selected-badge" style="display: none;">
++                            <i class="fas fa-car"></i>
++                            <span id="vehiculoSeleccionadoTexto"></span>
++                            <button type="button" class="vehiculo-selected-clear" id="limpiarVehiculo" title="Quitar selecci├│n">
++                                <i class="fas fa-times"></i>
++                            </button>
++                        </div>
++
++                        <!-- Input de b├║squeda -->
++                        <input type="text"
++                               id="buscarVehiculoInput"
++                               class="form-control search-input"
++                               placeholder="Buscar por patente, marca, modelo o cliente..."
++                               autocomplete="off" />
++
++                        <!-- Dropdown de resultados -->
++                        <div id="vehiculoResultados" class="vehiculo-search-results" style="display: none;">
++                            <!-- Los resultados se cargan din├ímicamente -->
++                        </div>
++                    </div>
++
+                     <span asp-validation-for="VehiculoId" class="text-danger"></span>
+                     <div class="form-text">
+                         <i class="fas fa-info-circle me-1"></i>
+@@ -92,7 +115,207 @@
+     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+     
+     <script>
+-        // Preview de imagen
++        // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++        // B├ÜSQUEDA DE VEH├ìCULOS - Autocomplete estilo Google
++        // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++        (function () {
++            const inputBuscar = document.getElementById('buscarVehiculoInput');
++            const inputHidden = document.getElementById('VehiculoId');
++            const divResultados = document.getElementById('vehiculoResultados');
++            const divSeleccionado = document.getElementById('vehiculoSeleccionado');
++            const spanTexto = document.getElementById('vehiculoSeleccionadoTexto');
++            const btnLimpiar = document.getElementById('limpiarVehiculo');
++
++            let debounceTimer = null;
++            let resultadosData = [];
++            let indiceActivo = -1;
++
++            // ÔöÇÔöÇ Fetch de veh├¡culos ÔöÇÔöÇ
++            function buscarVehiculos(termino) {
++                const url = '@Url.Action("BuscarVehiculos", "Ingreso")' + 
++                    (termino ? '?termino=' + encodeURIComponent(termino) : '');
++
++                fetch(url)
++                    .then(r => r.json())
++                    .then(data => {
++                        resultadosData = data;
++                        indiceActivo = -1;
++                        renderResultados(data, termino);
++                    })
++                    .catch(() => {
++                        divResultados.innerHTML = '<div class="vehiculo-search-empty"><i class="fas fa-exclamation-triangle me-1"></i>Error al buscar veh├¡culos</div>';
++                        divResultados.style.display = 'block';
++                    });
++            }
++
++            // ÔöÇÔöÇ Renderizar resultados ÔöÇÔöÇ
++            function renderResultados(datos, termino) {
++                if (datos.length === 0) {
++                    divResultados.innerHTML = '<div class="vehiculo-search-empty"><i class="fas fa-search me-1"></i>No se encontraron veh├¡culos</div>';
++                    divResultados.style.display = 'block';
++                    return;
++                }
++
++                let html = '';
++                datos.forEach(function (v, i) {
++                    const textoResaltado = termino ? resaltarCoincidencia(v.descripcion, termino) : v.descripcion;
++                    html += '<div class="vehiculo-search-item" data-index="' + i + '" data-id="' + v.id + '" data-descripcion="' + escapeHtml(v.descripcion) + '">'
++                        + '<div class="vehiculo-search-item-main">'
++                        + '<i class="fas fa-car vehiculo-search-item-icon"></i>'
++                        + '<div>'
++                        + '<div class="vehiculo-search-item-patente">' + resaltarCoincidencia(v.patente, termino) + '</div>'
++                        + '<div class="vehiculo-search-item-detalle">' + escapeHtml(v.marca) + ' ' + escapeHtml(v.modelo) + '</div>'
++                        + '</div>'
++                        + '</div>'
++                        + '<div class="vehiculo-search-item-cliente"><i class="fas fa-user me-1"></i>' + escapeHtml(v.clienteNombre) + '</div>'
++                        + '</div>';
++                });
++
++                divResultados.innerHTML = html;
++                divResultados.style.display = 'block';
++
++                // Event listeners en los items
++                divResultados.querySelectorAll('.vehiculo-search-item').forEach(function (item) {
++                    item.addEventListener('click', function () {
++                        seleccionarVehiculo(
++                            parseInt(this.dataset.id),
++                            this.dataset.descripcion
++                        );
++                    });
++                    item.addEventListener('mouseenter', function () {
++                        indiceActivo = parseInt(this.dataset.index);
++                        actualizarItemActivo();
++                    });
++                });
++            }
++
++            // ÔöÇÔöÇ Seleccionar veh├¡culo ÔöÇÔöÇ
++            function seleccionarVehiculo(id, descripcion) {
++                inputHidden.value = id;
++                spanTexto.textContent = descripcion;
++                divSeleccionado.style.display = 'flex';
++                inputBuscar.style.display = 'none';
++                inputBuscar.value = '';
++                cerrarResultados();
++            }
++
++            // ÔöÇÔöÇ Limpiar selecci├│n ÔöÇÔöÇ
++            function limpiarSeleccion() {
++                inputHidden.value = '';
++                spanTexto.textContent = '';
++                divSeleccionado.style.display = 'none';
++                inputBuscar.style.display = '';
++                inputBuscar.value = '';
++                inputBuscar.focus();
++            }
++
++            // ÔöÇÔöÇ Cerrar dropdown ÔöÇÔöÇ
++            function cerrarResultados() {
++                divResultados.style.display = 'none';
++                indiceActivo = -1;
++            }
++
++            // ÔöÇÔöÇ Navegaci├│n con teclado ÔöÇÔöÇ
++            function actualizarItemActivo() {
++                const items = divResultados.querySelectorAll('.vehiculo-search-item');
++                items.forEach(function (el, i) {
++                    el.classList.toggle('active', i === indiceActivo);
++                });
++                // Scroll al item activo
++                if (indiceActivo >= 0 && items[indiceActivo]) {
++                    items[indiceActivo].scrollIntoView({ block: 'nearest' });
++                }
++            }
++
++            // ÔöÇÔöÇ Utilidades ÔöÇÔöÇ
++            function escapeHtml(str) {
++                if (!str) return '';
++                const div = document.createElement('div');
++                div.textContent = str;
++                return div.innerHTML;
++            }
++
++            function resaltarCoincidencia(texto, termino) {
++                if (!termino || !texto) return escapeHtml(texto);
++                const escaped = escapeHtml(texto);
++                const regex = new RegExp('(' + termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
++                return escaped.replace(regex, '<mark>$1</mark>');
++            }
++
++            // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++            // EVENT LISTENERS
++            // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++
++            // Focus ÔåÆ mostrar todos si est├í vac├¡o
++            inputBuscar.addEventListener('focus', function () {
++                buscarVehiculos(this.value.trim());
++            });
++
++            // Input ÔåÆ debounce de b├║squeda
++            inputBuscar.addEventListener('input', function () {
++                clearTimeout(debounceTimer);
++                const val = this.value.trim();
++                debounceTimer = setTimeout(function () {
++                    buscarVehiculos(val);
++                }, 300);
++            });
++
++            // Teclado (flechas, enter, escape)
++            inputBuscar.addEventListener('keydown', function (e) {
++                const items = divResultados.querySelectorAll('.vehiculo-search-item');
++                if (!items.length) return;
++
++                if (e.key === 'ArrowDown') {
++                    e.preventDefault();
++                    indiceActivo = Math.min(indiceActivo + 1, items.length - 1);
++                    actualizarItemActivo();
++                } else if (e.key === 'ArrowUp') {
++                    e.preventDefault();
++                    indiceActivo = Math.max(indiceActivo - 1, 0);
++                    actualizarItemActivo();
++                } else if (e.key === 'Enter') {
++                    e.preventDefault();
++                    if (indiceActivo >= 0 && items[indiceActivo]) {
++                        items[indiceActivo].click();
++                    }
++                } else if (e.key === 'Escape') {
++                    cerrarResultados();
++                    inputBuscar.blur();
++                }
++            });
++
++            // Clic fuera ÔåÆ cerrar
++            document.addEventListener('click', function (e) {
++                if (!e.target.closest('.vehiculo-search-container')) {
++                    cerrarResultados();
++                }
++            });
++
++            // Bot├│n limpiar
++            btnLimpiar.addEventListener('click', limpiarSeleccion);
++
++            // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++            // PRESELECCI├ôN (volver de Confirmar)
++            // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++            (function () {
++                const vehiculoIdPrecargado = inputHidden.value;
++                if (vehiculoIdPrecargado && vehiculoIdPrecargado !== '0' && vehiculoIdPrecargado !== '') {
++                    // Buscar la descripci├│n del veh├¡culo precargado
++                    fetch('@Url.Action("BuscarVehiculos", "Ingreso")')
++                        .then(r => r.json())
++                        .then(data => {
++                            const vehiculo = data.find(v => v.id === parseInt(vehiculoIdPrecargado));
++                            if (vehiculo) {
++                                seleccionarVehiculo(vehiculo.id, vehiculo.descripcion);
++                            }
++                        });
++                }
++            })();
++        })();
++
++        // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
++        // PREVIEW DE IMAGEN (existente)
++        // ÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉÔòÉ
+         function previewImage(event) {
+             const imagePreview = document.getElementById('imagePreview');
+             const file = event.target.files[0];
+diff --git a/wwwroot/css/site.css b/wwwroot/css/site.css
+index 1b3abed..b9d5246 100644
+--- a/wwwroot/css/site.css
++++ b/wwwroot/css/site.css
+@@ -5,14 +5,14 @@
+ 
+ :root {
+     /* ===== MODO CLARO (Light Mode) - Paleta v0.dev ===== */
+-    
++
+     /* Colores Principales */
+     --bg-primary: #FFFFFF;
+     --text-primary: #0A0A0A;
+     --text-secondary: #737373;
+     --bg-card: #FFFFFF;
+     --text-card: #0A0A0A;
+-    
++
+     /* Sidebar */
+     --sidebar-bg: #FAFAFA;
+     --sidebar-text: #424242;
+@@ -23,14 +23,14 @@
+     --sidebar-hover: #F5F5F5;
+     --sidebar-active: #161616;
+     --sidebar-border: #E5E5E5;
+-    
++
+     /* Bordes e Inputs */
+     --border-color: #E5E5E5;
+     --border: #E5E5E5;
+     --input-bg: #E5E5E5;
+     --input-border: #D4D4D4;
+     --input-focus-border: #161616;
+-    
++
+     /* Estados */
+     --success: #16A34A;
+     --warning: #EA580C;
+@@ -38,14 +38,14 @@
+     --danger: #DC2626;
+     --destructive-text: #FFFFFF;
+     --info: #0EA5E9;
+-    
++
+     /* Backgrounds */
+     --background: #FFFFFF;
+     --bg-light: #FAFAFA;
+     --foreground: #0A0A0A;
+     --muted-foreground: #737373;
+     --accent: #F5F5F5;
+-    
++
+     /* Compatibilidad hacia atr├ís */
+     --white: #FFFFFF;
+     --black: #0A0A0A;
+@@ -59,14 +59,19 @@
+     --secondary-gray: #737373;
+     --secondary-gray-light: #F5F5F5;
+     --secondary-gray-dark: #424242;
+-    
++
+     /* Gr├íficos - Light Mode */
+-    --chart-1: #F97316; /* Naranja */
+-    --chart-2: #0D9488; /* Verde Azulado */
+-    --chart-3: #1E3A8A; /* Azul Oscuro */
+-    --chart-4: #FBBF24; /* Amarillo */
+-    --chart-5: #FB923C; /* Coral */
+-    
++    --chart-1: #F97316;
++    /* Naranja */
++    --chart-2: #0D9488;
++    /* Verde Azulado */
++    --chart-3: #1E3A8A;
++    /* Azul Oscuro */
++    --chart-4: #FBBF24;
++    /* Amarillo */
++    --chart-5: #FB923C;
++    /* Coral */
++
+     /* Espacios */
+     --spacing-xs: 0.25rem;
+     --spacing-sm: 0.5rem;
+@@ -74,14 +79,14 @@
+     --spacing-lg: 1.5rem;
+     --spacing-xl: 2rem;
+     --spacing-2xl: 3rem;
+-    
++
+     /* Border Radius */
+     --radius: 0.5rem;
+     --radius-sm: 0.375rem;
+     --radius-md: 0.5rem;
+     --radius-lg: 0.75rem;
+     --radius-full: 9999px;
+-    
++
+     /* Sombras - Light Mode */
+     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+     --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+@@ -90,7 +95,7 @@
+ }
+ 
+ /* Transiciones suaves para el cambio de tema y interacciones */
+-body, 
++body,
+ .autosys-sidebar,
+ .autosys-main,
+ .nav-item,
+@@ -105,11 +110,11 @@ body,
+ input,
+ textarea,
+ select {
+-    transition: background-color 0.3s ease, 
+-                color 0.3s ease, 
+-                border-color 0.3s ease,
+-                box-shadow 0.2s ease,
+-                transform 0.2s ease;
++    transition: background-color 0.3s ease,
++        color 0.3s ease,
++        border-color 0.3s ease,
++        box-shadow 0.2s ease,
++        transform 0.2s ease;
+ }
+ 
+ /* Optimizaci├│n de transiciones para elementos interactivos */
+@@ -126,7 +131,8 @@ a {
+     box-sizing: border-box;
+ }
+ 
+-html, body {
++html,
++body {
+     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+     background-color: var(--bg-primary);
+     color: var(--text-primary);
+@@ -280,7 +286,8 @@ html, body {
+ 
+ /* Theme Toggle in Sidebar - Top Right Corner */
+ .theme-toggle-sidebar {
+-    display: none; /* Oculto por defecto */
++    display: none;
++    /* Oculto por defecto */
+     position: absolute;
+     top: 1rem;
+     right: 1rem;
+@@ -400,6 +407,7 @@ html, body {
+         opacity: 0;
+         transform: scale(0.8);
+     }
++
+     to {
+         opacity: 1;
+         transform: scale(1);
+@@ -447,8 +455,15 @@ html, body {
+ }
+ 
+ @keyframes slideDown {
+-    from { opacity: 0; transform: translateY(-10px); }
+-    to { opacity: 1; transform: translateY(0); }
++    from {
++        opacity: 0;
++        transform: translateY(-10px);
++    }
++
++    to {
++        opacity: 1;
++        transform: translateY(0);
++    }
+ }
+ 
+ .autosys-alert-success {
+@@ -697,8 +712,8 @@ html, body {
+     margin-bottom: var(--spacing-sm);
+ }
+ 
+-.form-control, 
+-.form-select, 
++.form-control,
++.form-select,
+ input[type="text"],
+ input[type="email"],
+ input[type="password"],
+@@ -719,7 +734,7 @@ textarea {
+     transition: all 0.2s ease;
+ }
+ 
+-.form-control:focus, 
++.form-control:focus,
+ .form-select:focus,
+ input:focus,
+ select:focus,
+@@ -750,7 +765,7 @@ select option {
+ 
+ /* Search inputs */
+ .search-input {
+-    padding-left: 2.5rem;
++    padding-left: 2.5rem !important;
+     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.35-4.35'/%3E%3C/svg%3E");
+     background-repeat: no-repeat;
+     background-position: 0.75rem center;
+@@ -924,16 +939,22 @@ select option {
+ }
+ 
+ @keyframes fadeIn {
+-    from { opacity: 0; }
+-    to { opacity: 1; }
++    from {
++        opacity: 0;
++    }
++
++    to {
++        opacity: 1;
++    }
+ }
+ 
+ @keyframes slideUp {
+-    from { 
++    from {
+         opacity: 0;
+         transform: translateY(20px);
+     }
+-    to { 
++
++    to {
+         opacity: 1;
+         transform: translateY(0);
+     }
+@@ -1007,87 +1028,246 @@ select option {
+     animation: pulse 2s infinite;
+ }
+ 
+-.semaforo-success { color: var(--accent-green); }
+-.semaforo-warning { color: var(--accent-orange); }
+-.semaforo-danger { color: var(--accent-red); }
++.semaforo-success {
++    color: var(--accent-green);
++}
++
++.semaforo-warning {
++    color: var(--accent-orange);
++}
++
++.semaforo-danger {
++    color: var(--accent-red);
++}
+ 
+ @keyframes pulse {
+-    0%, 100% { opacity: 1; }
+-    50% { opacity: 0.7; }
++
++    0%,
++    100% {
++        opacity: 1;
++    }
++
++    50% {
++        opacity: 0.7;
++    }
+ }
+ 
+ /* ========== UTILITY CLASSES ========== */
+ /* Spacing */
+-.m-0 { margin: 0; }
+-.mt-1 { margin-top: var(--spacing-xs); }
+-.mt-2 { margin-top: var(--spacing-sm); }
+-.mt-3 { margin-top: var(--spacing-md); }
+-.mt-4 { margin-top: var(--spacing-lg); }
+-.mb-1 { margin-bottom: var(--spacing-xs); }
+-.mb-2 { margin-bottom: var(--spacing-sm); }
+-.mb-3 { margin-bottom: var(--spacing-md); }
+-.mb-4 { margin-bottom: var(--spacing-lg); }
+-
+-.p-0 { padding: 0; }
+-.p-1 { padding: var(--spacing-xs); }
+-.p-2 { padding: var(--spacing-sm); }
+-.p-3 { padding: var(--spacing-md); }
+-.p-4 { padding: var(--spacing-lg); }
++.m-0 {
++    margin: 0;
++}
++
++.mt-1 {
++    margin-top: var(--spacing-xs);
++}
++
++.mt-2 {
++    margin-top: var(--spacing-sm);
++}
++
++.mt-3 {
++    margin-top: var(--spacing-md);
++}
++
++.mt-4 {
++    margin-top: var(--spacing-lg);
++}
++
++.mb-1 {
++    margin-bottom: var(--spacing-xs);
++}
++
++.mb-2 {
++    margin-bottom: var(--spacing-sm);
++}
++
++.mb-3 {
++    margin-bottom: var(--spacing-md);
++}
++
++.mb-4 {
++    margin-bottom: var(--spacing-lg);
++}
++
++.p-0 {
++    padding: 0;
++}
++
++.p-1 {
++    padding: var(--spacing-xs);
++}
++
++.p-2 {
++    padding: var(--spacing-sm);
++}
++
++.p-3 {
++    padding: var(--spacing-md);
++}
++
++.p-4 {
++    padding: var(--spacing-lg);
++}
+ 
+ /* Text utilities */
+-.text-center { text-align: center; }
+-.text-left { text-align: left; }
+-.text-right { text-align: right; }
++.text-center {
++    text-align: center;
++}
++
++.text-left {
++    text-align: left;
++}
++
++.text-right {
++    text-align: right;
++}
+ 
+-.text-sm { font-size: 0.875rem; }
+-.text-base { font-size: 1rem; }
+-.text-lg { font-size: 1.125rem; }
+-.text-xl { font-size: 1.25rem; }
+-.text-2xl { font-size: 1.5rem; }
++.text-sm {
++    font-size: 0.875rem;
++}
++
++.text-base {
++    font-size: 1rem;
++}
++
++.text-lg {
++    font-size: 1.125rem;
++}
++
++.text-xl {
++    font-size: 1.25rem;
++}
++
++.text-2xl {
++    font-size: 1.5rem;
++}
++
++.text-primary {
++    color: var(--text-primary);
++}
++
++.text-secondary {
++    color: var(--text-secondary);
++}
++
++.text-muted {
++    color: var(--text-muted);
++}
+ 
+-.text-primary { color: var(--text-primary); }
+-.text-secondary { color: var(--text-secondary); }
+-.text-muted { color: var(--text-muted); }
++.font-bold {
++    font-weight: 700;
++}
+ 
+-.font-bold { font-weight: 700; }
+-.font-semibold { font-weight: 600; }
+-.font-medium { font-weight: 500; }
+-.font-normal { font-weight: 400; }
++.font-semibold {
++    font-weight: 600;
++}
++
++.font-medium {
++    font-weight: 500;
++}
++
++.font-normal {
++    font-weight: 400;
++}
+ 
+ /* Flex utilities */
+-.d-flex { display: flex; }
+-.flex-column { flex-direction: column; }
+-.flex-row { flex-direction: row; }
+-.justify-between { justify-content: space-between; }
+-.justify-center { justify-content: center; }
+-.align-center { align-items: center; }
+-.gap-1 { gap: var(--spacing-xs); }
+-.gap-2 { gap: var(--spacing-sm); }
+-.gap-3 { gap: var(--spacing-md); }
+-.gap-4 { gap: var(--spacing-lg); }
++.d-flex {
++    display: flex;
++}
++
++.flex-column {
++    flex-direction: column;
++}
++
++.flex-row {
++    flex-direction: row;
++}
++
++.justify-between {
++    justify-content: space-between;
++}
++
++.justify-center {
++    justify-content: center;
++}
++
++.align-center {
++    align-items: center;
++}
++
++.gap-1 {
++    gap: var(--spacing-xs);
++}
++
++.gap-2 {
++    gap: var(--spacing-sm);
++}
++
++.gap-3 {
++    gap: var(--spacing-md);
++}
++
++.gap-4 {
++    gap: var(--spacing-lg);
++}
+ 
+ /* Display utilities */
+-.d-none { display: none; }
+-.d-block { display: block; }
+-.d-inline-block { display: inline-block; }
++.d-none {
++    display: none;
++}
++
++.d-block {
++    display: block;
++}
++
++.d-inline-block {
++    display: inline-block;
++}
+ 
+ /* Width utilities */
+-.w-100 { width: 100%; }
+-.w-auto { width: auto; }
++.w-100 {
++    width: 100%;
++}
++
++.w-auto {
++    width: auto;
++}
+ 
+ /* Height utilities */
+-.h-100 { height: 100%; }
+-.h-auto { height: auto; }
++.h-100 {
++    height: 100%;
++}
++
++.h-auto {
++    height: auto;
++}
+ 
+ /* Border utilities */
+-.rounded { border-radius: var(--border-radius-md); }
+-.rounded-lg { border-radius: var(--border-radius-lg); }
+-.rounded-full { border-radius: var(--border-radius-full); }
++.rounded {
++    border-radius: var(--border-radius-md);
++}
++
++.rounded-lg {
++    border-radius: var(--border-radius-lg);
++}
++
++.rounded-full {
++    border-radius: var(--border-radius-full);
++}
+ 
+ /* Shadow utilities */
+-.shadow-sm { box-shadow: var(--shadow-sm); }
+-.shadow-md { box-shadow: var(--shadow-md); }
+-.shadow-lg { box-shadow: var(--shadow-lg); }
++.shadow-sm {
++    box-shadow: var(--shadow-sm);
++}
++
++.shadow-md {
++    box-shadow: var(--shadow-md);
++}
++
++.shadow-lg {
++    box-shadow: var(--shadow-lg);
++}
+ 
+ /* Avatar utilities */
+ .avatar {
+@@ -1236,7 +1416,7 @@ img[loading="lazy"].loaded {
+     align-items: center;
+ }
+ 
+-.breadcrumb-item + .breadcrumb-item::before {
++.breadcrumb-item+.breadcrumb-item::before {
+     content: "/";
+     padding: 0 0.5rem;
+     color: var(--text-secondary);
+@@ -1276,6 +1456,7 @@ img[loading="lazy"].loaded {
+         opacity: 0;
+         transform: translateY(-20px);
+     }
++
+     to {
+         opacity: 1;
+         transform: translateY(0);
+@@ -1378,27 +1559,32 @@ img[loading="lazy"].loaded {
+ }
+ 
+ @keyframes spinner-border {
+-    to { transform: rotate(360deg); }
++    to {
++        transform: rotate(360deg);
++    }
+ }
+ 
+ 
+ 
+ /* ========== SKELETON LOADERS ========== */
+ .skeleton {
+-    background: linear-gradient(
+-        90deg,
+-        var(--sidebar-hover) 0%,
+-        var(--border-color) 50%,
+-        var(--sidebar-hover) 100%
+-    );
++    background: linear-gradient(90deg,
++            var(--sidebar-hover) 0%,
++            var(--border-color) 50%,
++            var(--sidebar-hover) 100%);
+     background-size: 200% 100%;
+     animation: skeleton-loading 1.5s ease-in-out infinite;
+     border-radius: var(--radius-md);
+ }
+ 
+ @keyframes skeleton-loading {
+-    0% { background-position: 200% 0; }
+-    100% { background-position: -200% 0; }
++    0% {
++        background-position: 200% 0;
++    }
++
++    100% {
++        background-position: -200% 0;
++    }
+ }
+ 
+ .skeleton-text {
+@@ -1455,20 +1641,20 @@ img[loading="lazy"].loaded {
+     position: relative;
+ }
+ 
+-.toast-success { 
+-    border-left-color: var(--success); 
++.toast-success {
++    border-left-color: var(--success);
+ }
+ 
+-.toast-error { 
+-    border-left-color: var(--danger); 
++.toast-error {
++    border-left-color: var(--danger);
+ }
+ 
+-.toast-warning { 
+-    border-left-color: var(--warning); 
++.toast-warning {
++    border-left-color: var(--warning);
+ }
+ 
+-.toast-info { 
+-    border-left-color: var(--info); 
++.toast-info {
++    border-left-color: var(--info);
+ }
+ 
+ .toast-icon {
+@@ -1476,10 +1662,21 @@ img[loading="lazy"].loaded {
+     flex-shrink: 0;
+ }
+ 
+-.toast-success .toast-icon { color: var(--success); }
+-.toast-error .toast-icon { color: var(--danger); }
+-.toast-warning .toast-icon { color: var(--warning); }
+-.toast-info .toast-icon { color: var(--info); }
++.toast-success .toast-icon {
++    color: var(--success);
++}
++
++.toast-error .toast-icon {
++    color: var(--danger);
++}
++
++.toast-warning .toast-icon {
++    color: var(--warning);
++}
++
++.toast-info .toast-icon {
++    color: var(--info);
++}
+ 
+ .toast-content {
+     flex: 1;
+@@ -1517,6 +1714,7 @@ img[loading="lazy"].loaded {
+         opacity: 0;
+         transform: translateX(100%);
+     }
++
+     to {
+         opacity: 1;
+         transform: translateX(0);
+@@ -1569,7 +1767,9 @@ img[loading="lazy"].loaded {
+ }
+ 
+ @keyframes spinner-border {
+-    to { transform: rotate(360deg); }
++    to {
++        transform: rotate(360deg);
++    }
+ }
+ 
+ /* Loading overlay para contenedores */
+@@ -1675,6 +1875,7 @@ a:focus-visible {
+ 
+ /* ========== ACCESIBILIDAD - REDUCED MOTION ========== */
+ @media (prefers-reduced-motion: reduce) {
++
+     *,
+     *::before,
+     *::after {
+@@ -1696,11 +1897,13 @@ a:focus-visible {
+ 
+ /* Mobile Menu Toggle Button */
+ .mobile-menu-toggle {
+-    display: none; /* oculto en desktop */
++    display: none;
++    /* oculto en desktop */
+     position: fixed;
+     top: 1rem;
+     left: 1rem;
+-    z-index: 1060; /* Por encima del overlay y sidebar */
++    z-index: 1060;
++    /* Por encima del overlay y sidebar */
+     width: 50px;
+     height: 50px;
+     background: var(--primary-blue);
+@@ -1740,24 +1943,25 @@ a:focus-visible {
+ 
+ /* Tablets y menores (1024px) */
+ @media (max-width: 1024px) {
++
+     /* Sidebar se mantiene pero m├ís estrecho */
+     .autosys-sidebar {
+         width: 240px;
+     }
+-    
++
+     .autosys-main {
+         margin-left: 240px;
+     }
+-    
++
+     .autosys-main main {
+         padding: 1.5rem;
+     }
+-    
++
+     /* Ajustar grids */
+     .grid-4 {
+         grid-template-columns: repeat(2, 1fr);
+     }
+-    
++
+     .stat-card {
+         padding: 1rem;
+     }
+@@ -1765,15 +1969,16 @@ a:focus-visible {
+ 
+ /* Mobile (768px y menores) */
+ @media (max-width: 768px) {
++
+     /* Activar men├║ hamburguesa */
+     .mobile-menu-toggle {
+         display: flex;
+     }
+-    
++
+     .mobile-overlay {
+         display: block;
+     }
+-    
++
+     /* Sidebar: oculto por defecto, se muestra con clase .mobile-open */
+     .autosys-sidebar {
+         position: fixed;
+@@ -1786,45 +1991,46 @@ a:focus-visible {
+         transition: left 0.3s ease;
+         box-shadow: var(--shadow-xl);
+     }
+-    
++
+     .autosys-sidebar.mobile-open {
+         left: 0;
+     }
+-    
++
+     /* Mostrar bot├│n de tema en sidebar cuando est├í abierto en m├│vil */
+     .autosys-sidebar.mobile-open .theme-toggle-sidebar {
+         display: flex;
+     }
+-    
++
+     /* Main ocupa todo el ancho */
+     .autosys-main {
+         margin-left: 0 !important;
+         width: 100%;
+     }
+-    
++
+     .autosys-main main {
+         padding: 1rem;
+-        padding-top: 5rem; /* espacio para bot├│n hamburguesa */
++        padding-top: 5rem;
++        /* espacio para bot├│n hamburguesa */
+     }
+-    
++
+     /* Grids a 1 columna */
+     .grid-2,
+     .grid-3,
+     .grid-4 {
+         grid-template-columns: 1fr;
+     }
+-    
++
+     /* Cards m├ís compactas */
+     .card {
+         margin-bottom: 1rem;
+     }
+-    
++
+     .card-header,
+     .card-body,
+     .card-footer {
+         padding: 1rem;
+     }
+-    
++
+     /* Tablas con scroll horizontal suave */
+     .table-responsive {
+         width: 100%;
+@@ -1833,122 +2039,125 @@ a:focus-visible {
+         border-radius: var(--radius-md);
+         margin-bottom: 1rem;
+     }
+-    
++
+     .table {
+-        min-width: 700px; /* ancho m├¡nimo para scroll horizontal */
++        min-width: 700px;
++        /* ancho m├¡nimo para scroll horizontal */
+         margin-bottom: 0;
+         font-size: 0.9rem;
+     }
+-    
++
+     .table th,
+     .table td {
+         padding: 0.75rem 0.5rem;
+         white-space: nowrap;
+     }
+-    
++
+     /* Formularios a ancho completo */
+     .form-row {
+         flex-direction: column;
+         gap: 0.75rem;
+     }
+-    
++
+     .form-group {
+         width: 100% !important;
+         margin-bottom: 1rem;
+     }
+-    
++
+     .form-control,
+     .form-select {
+         width: 100%;
+-        font-size: 16px; /* evita zoom en iOS */
+-        min-height: 44px; /* touch-friendly */
++        font-size: 16px;
++        /* evita zoom en iOS */
++        min-height: 44px;
++        /* touch-friendly */
+     }
+-    
++
+     /* Botones t├íctiles */
+     .btn {
+         min-height: 44px;
+         padding: 0.75rem 1.25rem;
+         font-size: 1rem;
+     }
+-    
++
+     .btn-group {
+         flex-direction: column;
+         width: 100%;
+         gap: 0.5rem;
+     }
+-    
++
+     .btn-group .btn {
+         width: 100%;
+     }
+-    
++
+     /* Modals ajustados */
+     .modal-dialog {
+         width: 95%;
+         max-width: 95%;
+         margin: 1rem auto;
+     }
+-    
++
+     .modal-content {
+         max-height: 90vh;
+     }
+-    
++
+     .modal-body {
+         max-height: 60vh;
+         overflow-y: auto;
+     }
+-    
++
+     /* Breadcrumbs compactos */
+     .breadcrumb {
+         font-size: 0.85rem;
+         padding: 0.5rem 0.75rem;
+         flex-wrap: wrap;
+     }
+-    
++
+     /* T├¡tulos m├ís peque├▒os */
+     .page-title,
+     h1 {
+         font-size: 1.75rem;
+     }
+-    
++
+     h2 {
+         font-size: 1.5rem;
+     }
+-    
++
+     h3 {
+         font-size: 1.25rem;
+     }
+-    
++
+     /* Stat cards apiladas */
+     .stat-card {
+         padding: 1rem;
+     }
+-    
++
+     .stat-card h3 {
+         font-size: 1.75rem;
+     }
+-    
++
+     /* Paginaci├│n compacta */
+     .pagination {
+         font-size: 0.9rem;
+         flex-wrap: wrap;
+         gap: 0.25rem;
+     }
+-    
++
+     .page-link {
+         padding: 0.5rem 0.75rem;
+     }
+-    
++
+     /* Theme toggle flotante oculto en mobile (sidebar tiene el suyo) */
+     .theme-toggle-floating {
+         display: none;
+     }
+-    
++
+     /* Filtros y b├║squeda a ancho completo */
+     .search-bar,
+     .filter-group {
+         width: 100%;
+     }
+-    
++
+     .search-bar input {
+         width: 100%;
+     }
+@@ -1960,37 +2169,37 @@ a:focus-visible {
+         padding: 0.75rem;
+         padding-top: 4.5rem;
+     }
+-    
++
+     .table {
+         font-size: 0.85rem;
+         min-width: 600px;
+     }
+-    
++
+     .table th,
+     .table td {
+         padding: 0.5rem 0.35rem;
+     }
+-    
++
+     .btn {
+         font-size: 0.9rem;
+         padding: 0.65rem 1rem;
+     }
+-    
++
+     .card-header,
+     .card-body,
+     .card-footer {
+         padding: 0.75rem;
+     }
+-    
++
+     .page-title,
+     h1 {
+         font-size: 1.5rem;
+     }
+-    
++
+     h2 {
+         font-size: 1.25rem;
+     }
+-    
++
+     h3 {
+         font-size: 1.1rem;
+     }
+@@ -1998,6 +2207,7 @@ a:focus-visible {
+ 
+ /* ========== PRINT STYLES ========== */
+ @media print {
++
+     .autosys-sidebar,
+     .mobile-menu-toggle,
+     .mobile-topbar,
+@@ -2008,21 +2218,143 @@ a:focus-visible {
+     .toast-container {
+         display: none !important;
+     }
+-    
++
+     .autosys-main {
+         margin-left: 0 !important;
+         padding: 0 !important;
+     }
+-    
++
+     .card {
+         border: 1px solid #000;
+         page-break-inside: avoid;
+     }
+-    
++
+     body {
+         background: white !important;
+         color: black !important;
+     }
+ }
+ 
++/* ========== B├ÜSQUEDA DE VEH├ìCULOS (Autocomplete) ========== */
++.vehiculo-search-container {
++    position: relative;
++}
++
++.vehiculo-search-results {
++    position: absolute;
++    top: 100%;
++    left: 0;
++    right: 0;
++    z-index: 1050;
++    background-color: var(--bg-card);
++    border: 1px solid var(--border-color);
++    border-top: none;
++    border-radius: 0 0 var(--radius-md) var(--radius-md);
++    box-shadow: var(--shadow-lg);
++    max-height: 300px;
++    overflow-y: auto;
++    animation: slideDown 0.15s ease;
++}
++
++.vehiculo-search-item {
++    display: flex;
++    align-items: center;
++    justify-content: space-between;
++    padding: 0.65rem 1rem;
++    cursor: pointer;
++    transition: background-color 0.15s ease;
++    border-bottom: 1px solid var(--border-color);
++}
++
++.vehiculo-search-item:last-child {
++    border-bottom: none;
++}
++
++.vehiculo-search-item:hover,
++.vehiculo-search-item.active {
++    background-color: var(--sidebar-hover);
++}
++
++.vehiculo-search-item-main {
++    display: flex;
++    align-items: center;
++    gap: 0.75rem;
++}
++
++.vehiculo-search-item-icon {
++    color: var(--text-secondary);
++    font-size: 1rem;
++    width: 1.25rem;
++    text-align: center;
++}
++
++.vehiculo-search-item-patente {
++    font-weight: 600;
++    font-size: 0.95rem;
++    color: var(--text-primary);
++}
++
++.vehiculo-search-item-detalle {
++    font-size: 0.8rem;
++    color: var(--text-secondary);
++}
+ 
++.vehiculo-search-item-cliente {
++    font-size: 0.8rem;
++    color: var(--text-secondary);
++    white-space: nowrap;
++}
++
++.vehiculo-search-item mark {
++    background-color: #FEF08A;
++    color: inherit;
++    padding: 0 1px;
++    border-radius: 2px;
++}
++
++.vehiculo-search-empty {
++    padding: 1rem;
++    text-align: center;
++    color: var(--text-secondary);
++    font-size: 0.9rem;
++}
++
++/* Badge de veh├¡culo seleccionado */
++.vehiculo-selected-badge {
++    display: flex;
++    align-items: center;
++    gap: 0.5rem;
++    padding: 0.5rem 0.75rem;
++    background-color: var(--sidebar-hover);
++    border: 1px solid var(--border-color);
++    border-radius: var(--radius-md);
++    font-size: 0.95rem;
++    color: var(--text-primary);
++    font-weight: 500;
++}
++
++.vehiculo-selected-badge i.fa-car {
++    color: var(--primary-blue);
++}
++
++.vehiculo-selected-badge span {
++    flex: 1;
++}
++
++.vehiculo-selected-clear {
++    background: none;
++    border: none;
++    cursor: pointer;
++    color: var(--text-secondary);
++    padding: 0.25rem;
++    border-radius: var(--radius);
++    transition: all 0.15s ease;
++    display: flex;
++    align-items: center;
++    justify-content: center;
++}
++
++.vehiculo-selected-clear:hover {
++    background-color: var(--accent-red);
++    color: var(--white);
++}
+\ No newline at end of file

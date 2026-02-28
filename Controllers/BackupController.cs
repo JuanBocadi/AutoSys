@@ -1,11 +1,13 @@
 using AutoSys.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using AutoSys.Filters;
 
 namespace AutoSys.Controllers
 {
     /// Controlador de backup y restauración de BD, accesible solo por Administrador
-    [Authorize(Roles = "Administrador")]
+    [Authorize]
+    [RequirePermiso("VerBackups")]
     public class BackupController : Controller
     {
         private readonly IBackupService _backupService;
@@ -54,6 +56,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("GestionarBackups")]
         public async Task<IActionResult> Create(string? notes, bool includeFiles = true, string type = "Completo")
         {
             var username = User.Identity?.Name ?? "admin";
@@ -91,6 +94,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("GestionarBackups")]
         public IActionResult ToggleScheduler(bool enable)
         {
             _scheduler.SetEnabled(enable);
@@ -104,6 +108,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("GestionarBackups")]
         public async Task<IActionResult> Verify(string id)
         {
             var result = await _backupService.VerifyBackupAsync(id);
@@ -146,6 +151,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("GestionarBackups")]
         public async Task<IActionResult> Delete(string id)
         {
             var record = _backupService.GetBackup(id);
@@ -172,6 +178,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [RequirePermiso("GestionarBackups")]
         public async Task<IActionResult> Restore(string id)
         {
             var record = _backupService.GetBackup(id);

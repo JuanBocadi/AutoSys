@@ -1,0 +1,140 @@
+@inject AutoSys.Services.IPermissionService PermissionService
+@using System.Security.Claims
+@model IEnumerable<AutoSys.Models.ServicioFijo>
+@{
+    ViewData["Title"] = "Servicios Fijos";
+    var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    var userRole = User.FindFirstValue(ClaimTypes.Role);
+    var canManage = await PermissionService.TienePermisoEfectivoAsync(userId, userRole, "GestionarServiciosFijos");
+}
+
+<!-- Header -->
+<div style="margin-bottom: 2rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+        <div>
+            <h1 style="font-size: 1.875rem; font-weight: 700; margin-bottom: 0.5rem;">
+                <i class="fas fa-list-check" style="margin-right: 0.5rem; color: #3b82f6;"></i>
+                Servicios Fijos
+            </h1>
+            <p style="color: var(--muted-foreground); margin: 0;">Catálogo de servicios predefinidos para ingresos</p>
+        </div>
+        <div style="display: flex; gap: 0.75rem;">
+            <div style="position: relative;">
+                <input type="text" 
+                       placeholder="Buscar servicio..." 
+                       class="form-control" 
+                       style="padding-left: 2.5rem; width: 300px;"
+                       id="searchInput">
+                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+            </div>
+            @if (canManage)
+            {
+                <a asp-action="Create" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Nuevo Servicio
+                </a>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Table Card -->
+<div class="card">
+    <div class="card-body" style="padding: 0;">
+        <div class="table-responsive">
+            <table class="table" id="serviciosTable">
+                <thead>
+                    <tr>
+                        <th>Servicio</th>
+                        <th>Descripción Predeterminada</th>
+                        <th>Precio Sugerido</th>
+                        <th style="text-align: right;">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td>
+                                <div style="font-weight: 600;">@s.Nombre</div>
+                            </td>
+                            <td>
+                                <div style="font-size: 0.875rem; color: var(--muted-foreground); max-width: 400px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="@s.DescripcionPredeterminada">
+                                    @(string.IsNullOrEmpty(s.DescripcionPredeterminada) ? "Sin descripción" : s.DescripcionPredeterminada)
+                                </div>
+                            </td>
+                            <td>
+                                @if (s.PrecioSugerido.HasValue)
+                                {
+                                    <span class="badge bg-success" style="font-size: 0.875rem;">
+                                        @s.PrecioSugerido.Value.ToString("C")
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="color: var(--muted-foreground); font-size: 0.875rem;">No definido</span>
+                                }
+                            </td>
+                            <td style="text-align: right;">
+                                <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                    @if (canManage)
+                                    {
+                                        <a asp-action="Edit" asp-route-id="@s.Id"
+                                           class="btn btn-sm btn-warning"
+                                           title="Editar servicio">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="Delete" asp-route-id="@s.Id"
+                                           class="btn btn-sm btn-danger"
+                                           title="Eliminar servicio">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        
+        @if (!Model.Any())
+        {
+            <div id="emptyStateContainer"></div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Búsqueda en tiempo real
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#serviciosTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+
+        // Mostrar empty state si no hay servicios
+        @if (!Model.Any())
+        {
+            <text>
+            const container = document.getElementById('emptyStateContainer');
+            if (container) {
+                const emptyState = AutoSysUI.createEmptyState({
+                    icon: 'fas fa-list-check',
+                    title: 'No hay servicios definidos',
+                    description: 'Comienza agregando los servicios más comunes para agilizar el diagnóstico en los ingresos',
+                    actionText: 'Agregar Servicio',
+                    actionCallback: () => {
+                        window.location.href = '@Url.Action("Create", "ServiciosFijos")';
+                    }
+                });
+                container.appendChild(emptyState);
+            }
+            </text>
+        }
+    </script>
+}

@@ -19,6 +19,7 @@ namespace AutoSys.Data
         public DbSet<UserPermission> UserPermissions { get; set; }
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
+        public DbSet<ServicioFijo> ServiciosFijos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -64,7 +65,19 @@ namespace AutoSys.Data
                     .HasForeignKey(i => i.VehiculoId)
                     .OnDelete(DeleteBehavior.Restrict);
 
+                entity.HasOne(i => i.ServicioFijo)
+                    .WithMany(s => s.Ingresos)
+                    .HasForeignKey(i => i.ServicioFijoId)
+                    .OnDelete(DeleteBehavior.SetNull);
+
                 entity.HasIndex(e => new { e.VehiculoId, e.FechaIngreso });
+            });
+
+            // Servicios Fijos
+            modelBuilder.Entity<ServicioFijo>(entity =>
+            {
+                entity.Property(e => e.Nombre).HasMaxLength(100).IsRequired();
+                entity.Property(e => e.PrecioSugerido).HasColumnType("decimal(18,2)");
             });
 
             // FotosVehiculo

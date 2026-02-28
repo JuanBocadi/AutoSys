@@ -196,7 +196,7 @@ namespace AutoSys.Controllers
             };
 
             // Generar roleDefaults JSON dinámico para el JavaScript del front
-            ViewBag.RoleDefaultsJson = GenerarRoleDefaultsJson(todosLosRoles);
+            ViewBag.RoleDefaultsJson = await GenerarRoleDefaultsJsonAsync(todosLosRoles);
 
             return View(vm);
         }
@@ -446,10 +446,13 @@ namespace AutoSys.Controllers
                 VerFacturacion           = up.VerFacturacion,
                 CrearFacturas            = up.CrearFacturas,
                 VerReportes              = up.VerReportes,
+                VerBackups               = up.VerBackups,
+                GestionarBackups         = up.GestionarBackups,
+                VerAuditoria             = up.VerAuditoria,
             };
 
         /// Genera JSON con los defaults de permisos por rol para el JavaScript del front
-        private string GenerarRoleDefaultsJson(List<string> roles)
+        private async Task<string> GenerarRoleDefaultsJsonAsync(List<string> roles)
         {
             var permProps = typeof(UserPermission).GetProperties(BindingFlags.Public | BindingFlags.Instance)
                 .Where(p => p.PropertyType == typeof(bool))
@@ -460,7 +463,13 @@ namespace AutoSys.Controllers
 
             foreach (var rol in roles)
             {
-                var defaults = _permissionService.GetDefaultsByRole(rol, "");
+                // Obtenemos los permisos del rol de la base de datos si existen,
+                // si no, caemos en los defaults hardcodeados.
+                var permisosDB = await _permissionService.ObtenerPermisosRolAsync(rol);
+                var defaults = permisosDB != null
+                    ? RolePermissionToUserPermission(permisosDB, "") // Convertimos temporalmente para leer las props
+                    : _permissionService.GetDefaultsByRole(rol, "");
+                
                 var dict = new Dictionary<string, bool>();
                 foreach (var prop in permProps)
                 {
@@ -471,6 +480,34 @@ namespace AutoSys.Controllers
             }
 
             return JsonSerializer.Serialize(result);
+        }
+
+        private static UserPermission RolePermissionToUserPermission(RolePermission rp, string userId)
+        {
+            return new UserPermission
+            {
+                UserId                    = userId,
+                VerClientes               = rp.VerClientes,
+                CrearClientes             = rp.CrearClientes,
+                EditarClientes            = rp.EditarClientes,
+                VerVehiculos              = rp.VerVehiculos,
+                CrearVehiculos            = rp.CrearVehiculos,
+                EditarVehiculos           = rp.EditarVehiculos,
+                VerIngresos               = rp.VerIngresos,
+                CrearIngresos             = rp.CrearIngresos,
+                ActualizarEstadoIngresos  = rp.ActualizarEstadoIngresos,
+                VerReparaciones           = rp.VerReparaciones,
+                VerStock                  = rp.VerStock,
+                CrearStock                = rp.CrearStock,
+                EditarStock               = rp.EditarStock,
+                AjustarStock              = rp.AjustarStock,
+                VerFacturacion            = rp.VerFacturacion,
+                CrearFacturas             = rp.CrearFacturas,
+                VerReportes               = rp.VerReportes,
+                VerBackups                = rp.VerBackups,
+                GestionarBackups          = rp.GestionarBackups,
+                VerAuditoria              = rp.VerAuditoria,
+            };
         }
 
         // ──────────────────────────────────────────────────────────────

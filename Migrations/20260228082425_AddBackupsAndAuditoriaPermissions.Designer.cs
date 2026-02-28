@@ -4,6 +4,7 @@ using AutoSys.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoSys.Migrations
 {
     [DbContext(typeof(AutoSysDbContext))]
-    partial class AutoSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260228082425_AddBackupsAndAuditoriaPermissions")]
+    partial class AddBackupsAndAuditoriaPermissions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -280,15 +283,10 @@ namespace AutoSys.Migrations
                         .HasMaxLength(512)
                         .HasColumnType("nvarchar(512)");
 
-                    b.Property<int?>("ServicioFijoId")
-                        .HasColumnType("int");
-
                     b.Property<int>("VehiculoId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ServicioFijoId");
 
                     b.HasIndex("VehiculoId", "FechaIngreso");
 
@@ -336,9 +334,6 @@ namespace AutoSys.Migrations
                     b.Property<bool>("GestionarBackups")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("GestionarServiciosFijos")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ModificadoPor")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -373,9 +368,6 @@ namespace AutoSys.Migrations
                     b.Property<bool>("VerReportes")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("VerServiciosFijos")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("VerStock")
                         .HasColumnType("bit");
 
@@ -388,30 +380,6 @@ namespace AutoSys.Migrations
                         .IsUnique();
 
                     b.ToTable("RolePermissions");
-                });
-
-            modelBuilder.Entity("AutoSys.Models.ServicioFijo", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DescripcionPredeterminada")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal?>("PrecioSugerido")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("ServiciosFijos");
                 });
 
             modelBuilder.Entity("AutoSys.Models.Stock", b =>
@@ -496,9 +464,6 @@ namespace AutoSys.Migrations
                     b.Property<bool>("GestionarBackups")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("GestionarServiciosFijos")
-                        .HasColumnType("bit");
-
                     b.Property<string>("ModificadoPor")
                         .IsRequired()
                         .HasMaxLength(256)
@@ -531,9 +496,6 @@ namespace AutoSys.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("VerReportes")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerServiciosFijos")
                         .HasColumnType("bit");
 
                     b.Property<bool>("VerStock")
@@ -827,18 +789,11 @@ namespace AutoSys.Migrations
 
             modelBuilder.Entity("AutoSys.Models.Ingreso", b =>
                 {
-                    b.HasOne("AutoSys.Models.ServicioFijo", "ServicioFijo")
-                        .WithMany("Ingresos")
-                        .HasForeignKey("ServicioFijoId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
                     b.HasOne("AutoSys.Models.Vehiculo", "Vehiculo")
                         .WithMany("Ingresos")
                         .HasForeignKey("VehiculoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ServicioFijo");
 
                     b.Navigation("Vehiculo");
                 });
@@ -918,11 +873,6 @@ namespace AutoSys.Migrations
             modelBuilder.Entity("AutoSys.Models.Ingreso", b =>
                 {
                     b.Navigation("Fotos");
-                });
-
-            modelBuilder.Entity("AutoSys.Models.ServicioFijo", b =>
-                {
-                    b.Navigation("Ingresos");
                 });
 
             modelBuilder.Entity("AutoSys.Models.Vehiculo", b =>

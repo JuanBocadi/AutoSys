@@ -42,6 +42,17 @@ namespace AutoSys.Models
         // ── REPORTES ──────────────────────────────────────────
         public bool VerReportes { get; set; } = false;
 
+        // ── BACKUPS ───────────────────────────────────────────
+        public bool VerBackups { get; set; } = false;
+        public bool GestionarBackups { get; set; } = false;
+
+        // ── AUDITORÍA ─────────────────────────────────────────
+        public bool VerAuditoria { get; set; } = false;
+
+        // ── SERVICIOS FIJOS ───────────────────────────────────
+        public bool VerServiciosFijos { get; set; } = false;
+        public bool GestionarServiciosFijos { get; set; } = false;
+
         public DateTime UltimaModificacion { get; set; } = DateTime.Now;
         public string ModificadoPor { get; set; } = string.Empty;
     }

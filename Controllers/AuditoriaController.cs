@@ -1,10 +1,12 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using AutoSys.Services;
+using AutoSys.Filters;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize]
+    [RequirePermiso("VerAuditoria")]
     public class AuditoriaController : Controller
     {
         private readonly IAuditService _auditService;

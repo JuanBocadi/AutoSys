@@ -61,8 +61,9 @@ namespace AutoSys.Controllers
             var ingresosDisponibles = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                     .ThenInclude(v => v.Cliente)
-                .Where(i => (i.Estado == "Finalizado" || i.Estado == "Entregado") &&
-                           !_context.Facturas.Any(f => f.IngresoId == i.Id))
+                .Where(i => i.Id == ingresoId || 
+                           ((i.Estado == "Finalizado" || i.Estado == "Entregado") &&
+                           !_context.Facturas.Any(f => f.IngresoId == i.Id)))
                 .ToListAsync();
 
             ViewBag.Ingresos = new SelectList(
@@ -79,6 +80,7 @@ namespace AutoSys.Controllers
                 var ingreso = await _context.Ingresos
                     .Include(i => i.Vehiculo!)
                         .ThenInclude(v => v.Cliente)
+                    .Include(i => i.ServicioFijo)
                     .FirstOrDefaultAsync(i => i.Id == ingresoId.Value);
 
                 if (ingreso != null)
@@ -86,6 +88,18 @@ namespace AutoSys.Controllers
                     factura.IngresoId = ingreso.Id;
                     factura.ClienteId = ingreso.Vehiculo!.ClienteId;
                     ViewBag.IngresoSeleccionado = ingreso;
+                    
+                    if (ingreso.ServicioFijo != null)
+                    {
+                        ViewBag.ServicioFijoNombre = ingreso.ServicioFijo.Nombre;
+                        ViewBag.ServicioFijoPrecio = ingreso.ServicioFijo.PrecioSugerido;
+                    }
+                    else
+                    {
+                        // Si no hay servicio fijo, usamos el diagnóstico como descripción
+                        ViewBag.ServicioFijoNombre = "Servicio: " + ingreso.Diagnostico;
+                        ViewBag.ServicioFijoPrecio = 0m;
+                    }
                 }
             }
 
@@ -104,21 +118,87 @@ namespace AutoSys.Controllers
         [RequirePermiso("CrearFacturas")]
         public async Task<IActionResult> Create(Factura factura, List<DetalleFactura> detalles)
         {
-            if (ModelState.IsValid && detalles != null && detalles.Any())
+            // Limpiar cualquier detalle que el ModelBinder haya intentado cargar automáticamente
+            // para evitar duplicidad, ya que procesaremos la lista 'detalles' manualmente.
+            factura.Detalles.Clear();
+
+            if (detalles == null || !detalles.Any())
             {
-                factura.Subtotal = detalles.Sum(d => d.Subtotal);
+                ModelState.AddModelError("", "Debe agregar al menos un detalle a la factura.");
+            }
+
+            if (ModelState.IsValid)
+            {
+                // [BUG FIX CRÍTICO]: Resolvemos el ClienteId desde el IngresoId de forma segura y obligatoria.
+                // Sin un ClienteId válido, la base de datos rechazará el INSERT (FK Conflict).
+                if (factura.IngresoId > 0)
+                {
+                    // Buscamos el ingreso con su vehículo de forma explícita
+                    var dbIngreso = await _context.Ingresos
+                        .Include(i => i.Vehiculo)
+                        .FirstOrDefaultAsync(i => i.Id == factura.IngresoId);
+                        
+                    if (dbIngreso != null && dbIngreso.VehiculoId.HasValue)
+                    {
+                        // Si el Include falló por alguna razón, recargamos el vehículo
+                        var vehiculo = dbIngreso.Vehiculo ?? await _context.Vehiculos.FindAsync(dbIngreso.VehiculoId.Value);
+                        if (vehiculo != null)
+                        {
+                            factura.ClienteId = vehiculo.ClienteId;
+                        }
+                    }
+                }
+
+                if (factura.ClienteId <= 0)
+                {
+                    ModelState.AddModelError("", "No se pudo identificar al cliente asociado a este ingreso. Por favor, seleccione un ingreso válido.");
+                    
+                    // Recargar datos para la vista
+                    ViewBag.Ingresos = new SelectList(await _context.Ingresos
+                        .Include(i => i.Vehiculo!).ThenInclude(v => v.Cliente)
+                        .Where(i => (i.Estado == "Finalizado" || i.Estado == "Entregado") &&
+                                   !_context.Facturas.Any(f => f.IngresoId == i.Id))
+                        .Select(i => new {
+                            i.Id,
+                            Texto = $"Ingreso #{i.Id} - {i.Vehiculo!.Patente}"
+                        }).ToListAsync(), "Id", "Texto", factura.IngresoId);
+                        
+                    return View(factura);
+                }
+
+                factura.Subtotal = 0;
+                for (int i = 0; i < detalles.Count; i++)
+                {
+                    var d = detalles[i];
+                    
+                    // Obtenemos el valor crudo del form para evitar la interpretación cultural del ModelBinder
+                    // El navegador (type=number) envía siempre un punto como decimal.
+                    var precioStr = Request.Form[$"detalles[{i}].PrecioUnitario"].ToString();
+                    
+                    if (!string.IsNullOrEmpty(precioStr))
+                    {
+                        // Limpieza extra por si hay ruido, y parseo invariante
+                        if (decimal.TryParse(precioStr.Replace(",", "."), 
+                            System.Globalization.NumberStyles.Number | System.Globalization.NumberStyles.AllowDecimalPoint, 
+                            System.Globalization.CultureInfo.InvariantCulture, out decimal precioLimpio))
+                        {
+                            d.PrecioUnitario = precioLimpio;
+                        }
+                    }
+
+                    d.Subtotal = d.Cantidad * d.PrecioUnitario;
+                    factura.Subtotal += d.Subtotal;
+                    
+                    // Agregamos el detalle limpio a la colección de la factura
+                    factura.Detalles.Add(d);
+                }
+
                 factura.IVA = factura.Subtotal * 0.21m; // 21% IVA
                 factura.Total = factura.Subtotal + factura.IVA;
                 factura.FechaEmision = DateTime.Now;
 
+                // Al agregar la factura, EF agregará automáticamente todos los items en factura.Detalles
                 _context.Facturas.Add(factura);
-                await _context.SaveChangesAsync();
-
-                foreach (var detalle in detalles)
-                {
-                    detalle.FacturaId = factura.Id;
-                    _context.DetallesFactura.Add(detalle);
-                }
                 await _context.SaveChangesAsync();
 
                 // AUDITORÍA
@@ -130,6 +210,17 @@ namespace AutoSys.Controllers
                 TempData["SuccessMessage"] = $"Factura {factura.NumeroFactura} creada correctamente.";
                 return RedirectToAction(nameof(Detalle), new { id = factura.Id });
             }
+
+            // Recargar datos necesarios para la vista si falla la validación
+            ViewBag.Ingresos = new SelectList(await _context.Ingresos
+                .Include(i => i.Vehiculo!).ThenInclude(v => v.Cliente)
+                .Where(i => i.Id == factura.IngresoId || 
+                           ((i.Estado == "Finalizado" || i.Estado == "Entregado") &&
+                           !_context.Facturas.Any(f => f.IngresoId == i.Id)))
+                .Select(i => new {
+                    i.Id,
+                    Texto = $"Ingreso #{i.Id} - {i.Vehiculo!.Patente}"
+                }).ToListAsync(), "Id", "Texto", factura.IngresoId);
 
             return View(factura);
         }

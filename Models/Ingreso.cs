@@ -24,6 +24,10 @@ namespace AutoSys.Models
         [Required(ErrorMessage = "Debe seleccionar un vehículo.")]
         public int? VehiculoId { get; set; }
         public Vehiculo? Vehiculo { get; set; }
+
+        public int? ServicioFijoId { get; set; }
+        public ServicioFijo? ServicioFijo { get; set; }
+
         public ICollection<FotoVehiculo>? Fotos { get; set; }
 
         [NotMapped]

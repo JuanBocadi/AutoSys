@@ -27,20 +27,61 @@
             <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
             
             <div class="row g-3">
-                <!-- Vehículo -->
+                <!-- Vehículo - Búsqueda estilo Google -->
                 <div class="col-12">
                     <label asp-for="VehiculoId" class="form-label">
                         <i class="fas fa-car me-1"></i> Vehículo
                         <span class="text-danger">*</span>
                     </label>
-                    <select asp-for="VehiculoId" class="form-select" asp-items="@(new SelectList(ViewBag.Vehiculos, "Id", "Descripcion"))" required>
-                        <option value="">-- Seleccione un vehículo --</option>
-                    </select>
+
+                    <input type="hidden" asp-for="VehiculoId" id="VehiculoId" />
+
+                    <div class="vehiculo-search-container">
+                        <!-- Badge del vehículo seleccionado -->
+                        <div id="vehiculoSeleccionado" class="vehiculo-selected-badge" style="display: none;">
+                            <i class="fas fa-car"></i>
+                            <span id="vehiculoSeleccionadoTexto"></span>
+                            <button type="button" class="vehiculo-selected-clear" id="limpiarVehiculo" title="Quitar selección">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+
+                        <!-- Input de búsqueda -->
+                        <input type="text"
+                               id="buscarVehiculoInput"
+                               class="form-control search-input"
+                               placeholder="Buscar por patente, marca, modelo o cliente..."
+                               autocomplete="off" />
+
+                        <!-- Dropdown de resultados -->
+                        <div id="vehiculoResultados" class="vehiculo-search-results" style="display: none;">
+                            <!-- Los resultados se cargan dinámicamente -->
+                        </div>
+                    </div>
+
                     <span asp-validation-for="VehiculoId" class="text-danger"></span>
                     <div class="form-text">
                         <i class="fas fa-info-circle me-1"></i>
                         Si el vehículo no existe, <a asp-controller="Vehiculos" asp-action="Create" target="_blank">créalo aquí primero</a>.
                     </div>
+                </div>
+
+                <!-- Servicio Fijo (Nuevo) -->
+                <div class="col-12">
+                    <label asp-for="ServicioFijoId" class="form-label">
+                        <i class="fas fa-list-check me-1"></i> Servicio Fijo (Opcional)
+                    </label>
+                    <select asp-for="ServicioFijoId" class="form-select" id="servicioFijoSelect">
+                        <option value="">-- Seleccione un servicio predefinido (opcional) --</option>
+                        @if (ViewBag.ServiciosFijos != null)
+                        {
+                            foreach (var s in (IEnumerable<AutoSys.Models.ServicioFijo>)ViewBag.ServiciosFijos)
+                            {
+                                <option value="@s.Id" data-desc="@s.DescripcionPredeterminada">@s.Nombre</option>
+                            }
+                        }
+                    </select>
+                    <div class="form-text">Seleccionar un servicio autocompletará el diagnóstico inicial.</div>
                 </div>
 
                 <!-- Diagnóstico -->
@@ -92,7 +133,207 @@
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     
     <script>
-        // Preview de imagen
+        // ══════════════════════════════════════════════════════
+        // BÚSQUEDA DE VEHÍCULOS - Autocomplete estilo Google
+        // ══════════════════════════════════════════════════════
+        (function () {
+            const inputBuscar = document.getElementById('buscarVehiculoInput');
+            const inputHidden = document.getElementById('VehiculoId');
+            const divResultados = document.getElementById('vehiculoResultados');
+            const divSeleccionado = document.getElementById('vehiculoSeleccionado');
+            const spanTexto = document.getElementById('vehiculoSeleccionadoTexto');
+            const btnLimpiar = document.getElementById('limpiarVehiculo');
+
+            let debounceTimer = null;
+            let resultadosData = [];
+            let indiceActivo = -1;
+
+            // ── Fetch de vehículos ──
+            function buscarVehiculos(termino) {
+                const url = '@Url.Action("BuscarVehiculos", "Ingreso")' + 
+                    (termino ? '?termino=' + encodeURIComponent(termino) : '');
+
+                fetch(url)
+                    .then(r => r.json())
+                    .then(data => {
+                        resultadosData = data;
+                        indiceActivo = -1;
+                        renderResultados(data, termino);
+                    })
+                    .catch(() => {
+                        divResultados.innerHTML = '<div class="vehiculo-search-empty"><i class="fas fa-exclamation-triangle me-1"></i>Error al buscar vehículos</div>';
+                        divResultados.style.display = 'block';
+                    });
+            }
+
+            // ── Renderizar resultados ──
+            function renderResultados(datos, termino) {
+                if (datos.length === 0) {
+                    divResultados.innerHTML = '<div class="vehiculo-search-empty"><i class="fas fa-search me-1"></i>No se encontraron vehículos</div>';
+                    divResultados.style.display = 'block';
+                    return;
+                }
+
+                let html = '';
+                datos.forEach(function (v, i) {
+                    const textoResaltado = termino ? resaltarCoincidencia(v.descripcion, termino) : v.descripcion;
+                    html += '<div class="vehiculo-search-item" data-index="' + i + '" data-id="' + v.id + '" data-descripcion="' + escapeHtml(v.descripcion) + '">'
+                        + '<div class="vehiculo-search-item-main">'
+                        + '<i class="fas fa-car vehiculo-search-item-icon"></i>'
+                        + '<div>'
+                        + '<div class="vehiculo-search-item-patente">' + resaltarCoincidencia(v.patente, termino) + '</div>'
+                        + '<div class="vehiculo-search-item-detalle">' + escapeHtml(v.marca) + ' ' + escapeHtml(v.modelo) + '</div>'
+                        + '</div>'
+                        + '</div>'
+                        + '<div class="vehiculo-search-item-cliente"><i class="fas fa-user me-1"></i>' + escapeHtml(v.clienteNombre) + '</div>'
+                        + '</div>';
+                });
+
+                divResultados.innerHTML = html;
+                divResultados.style.display = 'block';
+
+                // Event listeners en los items
+                divResultados.querySelectorAll('.vehiculo-search-item').forEach(function (item) {
+                    item.addEventListener('click', function () {
+                        seleccionarVehiculo(
+                            parseInt(this.dataset.id),
+                            this.dataset.descripcion
+                        );
+                    });
+                    item.addEventListener('mouseenter', function () {
+                        indiceActivo = parseInt(this.dataset.index);
+                        actualizarItemActivo();
+                    });
+                });
+            }
+
+            // ── Seleccionar vehículo ──
+            function seleccionarVehiculo(id, descripcion) {
+                inputHidden.value = id;
+                spanTexto.textContent = descripcion;
+                divSeleccionado.style.display = 'flex';
+                inputBuscar.style.display = 'none';
+                inputBuscar.value = '';
+                cerrarResultados();
+            }
+
+            // ── Limpiar selección ──
+            function limpiarSeleccion() {
+                inputHidden.value = '';
+                spanTexto.textContent = '';
+                divSeleccionado.style.display = 'none';
+                inputBuscar.style.display = '';
+                inputBuscar.value = '';
+                inputBuscar.focus();
+            }
+
+            // ── Cerrar dropdown ──
+            function cerrarResultados() {
+                divResultados.style.display = 'none';
+                indiceActivo = -1;
+            }
+
+            // ── Navegación con teclado ──
+            function actualizarItemActivo() {
+                const items = divResultados.querySelectorAll('.vehiculo-search-item');
+                items.forEach(function (el, i) {
+                    el.classList.toggle('active', i === indiceActivo);
+                });
+                // Scroll al item activo
+                if (indiceActivo >= 0 && items[indiceActivo]) {
+                    items[indiceActivo].scrollIntoView({ block: 'nearest' });
+                }
+            }
+
+            // ── Utilidades ──
+            function escapeHtml(str) {
+                if (!str) return '';
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            function resaltarCoincidencia(texto, termino) {
+                if (!termino || !texto) return escapeHtml(texto);
+                const escaped = escapeHtml(texto);
+                const regex = new RegExp('(' + termino.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+                return escaped.replace(regex, '<mark>$1</mark>');
+            }
+
+            // ══════════════════════════════════
+            // EVENT LISTENERS
+            // ══════════════════════════════════
+
+            // Focus → mostrar todos si está vacío
+            inputBuscar.addEventListener('focus', function () {
+                buscarVehiculos(this.value.trim());
+            });
+
+            // Input → debounce de búsqueda
+            inputBuscar.addEventListener('input', function () {
+                clearTimeout(debounceTimer);
+                const val = this.value.trim();
+                debounceTimer = setTimeout(function () {
+                    buscarVehiculos(val);
+                }, 300);
+            });
+
+            // Teclado (flechas, enter, escape)
+            inputBuscar.addEventListener('keydown', function (e) {
+                const items = divResultados.querySelectorAll('.vehiculo-search-item');
+                if (!items.length) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    indiceActivo = Math.min(indiceActivo + 1, items.length - 1);
+                    actualizarItemActivo();
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    indiceActivo = Math.max(indiceActivo - 1, 0);
+                    actualizarItemActivo();
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (indiceActivo >= 0 && items[indiceActivo]) {
+                        items[indiceActivo].click();
+                    }
+                } else if (e.key === 'Escape') {
+                    cerrarResultados();
+                    inputBuscar.blur();
+                }
+            });
+
+            // Clic fuera → cerrar
+            document.addEventListener('click', function (e) {
+                if (!e.target.closest('.vehiculo-search-container')) {
+                    cerrarResultados();
+                }
+            });
+
+            // Botón limpiar
+            btnLimpiar.addEventListener('click', limpiarSeleccion);
+
+            // ══════════════════════════════════
+            // PRESELECCIÓN (volver de Confirmar)
+            // ══════════════════════════════════
+            (function () {
+                const vehiculoIdPrecargado = inputHidden.value;
+                if (vehiculoIdPrecargado && vehiculoIdPrecargado !== '0' && vehiculoIdPrecargado !== '') {
+                    // Buscar la descripción del vehículo precargado
+                    fetch('@Url.Action("BuscarVehiculos", "Ingreso")')
+                        .then(r => r.json())
+                        .then(data => {
+                            const vehiculo = data.find(v => v.id === parseInt(vehiculoIdPrecargado));
+                            if (vehiculo) {
+                                seleccionarVehiculo(vehiculo.id, vehiculo.descripcion);
+                            }
+                        });
+                }
+            })();
+        })();
+
+        // ══════════════════════════════════════════════════════
+        // PREVIEW DE IMAGEN (existente)
+        // ══════════════════════════════════════════════════════
         function previewImage(event) {
             const imagePreview = document.getElementById('imagePreview');
             const file = event.target.files[0];
@@ -124,6 +365,33 @@
             
             if (this.checkValidity()) {
                 AutoSysUI.setButtonLoading(submitBtn, true);
+            }
+        });
+
+        // ══════════════════════════════════════════════════════
+        // LÓGICA DE SERVICIOS FIJOS
+        // ══════════════════════════════════════════════════════
+        document.getElementById('servicioFijoSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const descripcion = selectedOption.getAttribute('data-desc');
+            const diagnosticoTextarea = document.getElementById('Diagnostico');
+            
+            if (descripcion && descripcion.trim() !== "") {
+                const currentVal = diagnosticoTextarea.value.trim();
+                if (currentVal === "") {
+                    diagnosticoTextarea.value = descripcion;
+                } else {
+                    // Evitar duplicados si ya contiene la descripción
+                    if (!currentVal.includes(descripcion)) {
+                        diagnosticoTextarea.value = currentVal + "\n- " + descripcion;
+                    }
+                }
+                
+                // Efecto visual sutil para indicar el cambio
+                diagnosticoTextarea.style.backgroundColor = '#ecfdf5';
+                setTimeout(() => {
+                    diagnosticoTextarea.style.backgroundColor = '';
+                }, 500);
             }
         });
     </script>

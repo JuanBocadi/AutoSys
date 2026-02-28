@@ -4,6 +4,7 @@ using AutoSys.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace AutoSys.Migrations
 {
     [DbContext(typeof(AutoSysDbContext))]
-    partial class AutoSysDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260228091942_AddServiciosFijos")]
+    partial class AddServiciosFijos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -373,9 +376,6 @@ namespace AutoSys.Migrations
                     b.Property<bool>("VerReportes")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("VerServiciosFijos")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("VerStock")
                         .HasColumnType("bit");
 
@@ -531,9 +531,6 @@ namespace AutoSys.Migrations
                         .HasColumnType("bit");
 
                     b.Property<bool>("VerReportes")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("VerServiciosFijos")
                         .HasColumnType("bit");
 
                     b.Property<bool>("VerStock")

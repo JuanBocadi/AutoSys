@@ -25,6 +25,17 @@
                         <dt class="col-sm-4">Diagnóstico</dt>
                         <dd class="col-sm-8">@Model.Diagnostico</dd>
 
+                        @if (Model.ServicioFijoId.HasValue)
+                        {
+                            <dt class="col-sm-4">Servicio Fijo</dt>
+                            <dd class="col-sm-8">
+                                <span class="badge bg-info">
+                                    <i class="fas fa-list-check me-1"></i> 
+                                    @(Model.ServicioFijo?.Nombre ?? "Servicio Seleccionado")
+                                </span>
+                            </dd>
+                        }
+
                         @if (ViewBag.FotoTempPath != null)
                         {
                             <dt class="col-sm-4">Foto</dt>
@@ -37,7 +48,10 @@
                     <div class="d-flex justify-content-between mt-4">
                         <!-- Botón EDITAR (redirige al método EditarDesdeConfirmacion del controlador) --> 
                         <form asp-action="EditarDesdeConfirmacion" method="post" class="d-inline">
-                            <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" /> <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" /> @if (ViewBag.FotoTempPath != null) {
+                            <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" /> 
+                            <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" /> 
+                            <input type="hidden" name="ServicioFijoId" value="@Model.ServicioFijoId" />
+                            @if (ViewBag.FotoTempPath != null) {
                             <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
                             }
 
@@ -50,6 +64,7 @@
                         <form asp-action="Confirmado" method="post" class="d-inline">
                             <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" />
                             <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" />
+                            <input type="hidden" name="ServicioFijoId" value="@Model.ServicioFijoId" />
                             <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
 
                             <button type="submit" class="btn btn-primary btn-lg">

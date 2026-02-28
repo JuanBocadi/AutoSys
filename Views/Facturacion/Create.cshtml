@@ -24,6 +24,7 @@
     <div class="card-body">
             <form asp-action="Create" method="post" id="facturaForm">
                 <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+                <input type="hidden" asp-for="ClienteId" />
 
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -49,6 +50,7 @@
                                     <label>Descripción</label>
                                     <input type="text" name="detalles[0].Descripcion" 
                                            class="form-control" required 
+                                           value="@(ViewBag.ServicioFijoNombre ?? "")"
                                            placeholder="Ej: Cambio de aceite">
                                 </div>
                                 <div class="col-md-2 mb-2">
@@ -66,7 +68,8 @@
                                 <div class="col-md-2 mb-2">
                                     <label>Precio Unit.</label>
                                     <input type="number" name="detalles[0].PrecioUnitario" 
-                                           class="form-control precio" step="0.01" min="0" required>
+                                           class="form-control precio" step="0.01" min="0" required
+                                           value="@(ViewBag.ServicioFijoPrecio != null ? ((decimal)ViewBag.ServicioFijoPrecio).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "")">
                                 </div>
                                 <div class="col-md-2 mb-2">
                                     <label>Subtotal</label>
@@ -169,23 +172,38 @@
 
         // Calcular subtotales y total
         function calcularTotales() {
-            let subtotal = 0;
+            let subtotalAcumulado = 0;
             
             document.querySelectorAll('.detalle-item').forEach(detalle => {
-                const cantidad = parseFloat(detalle.querySelector('.cantidad').value) || 0;
-                const precio = parseFloat(detalle.querySelector('.precio').value) || 0;
-                const subtotalItem = cantidad * precio;
+                const cantidadInput = detalle.querySelector('.cantidad');
+                const precioInput = detalle.querySelector('.precio');
+                const subtotalInput = detalle.querySelector('.subtotal');
                 
-                detalle.querySelector('.subtotal').value = subtotalItem.toFixed(2);
-                subtotal += subtotalItem;
+                if (cantidadInput && precioInput && subtotalInput) {
+                    const cantidad = parseFloat(cantidadInput.value) || 0;
+                    // Limpiar el precio por si el navegador envía comas o si el usuario las tipea
+                    let precioStr = precioInput.value.toString().replace(',', '.');
+                    const precio = parseFloat(precioStr) || 0;
+                    
+                    const subtotalItem = cantidad * precio;
+                    subtotalInput.value = subtotalItem.toFixed(2);
+                    subtotalAcumulado += subtotalItem;
+                }
             });
             
-            const iva = subtotal * 0.21;
-            const total = subtotal + iva;
+            const iva = subtotalAcumulado * 0.21;
+            const total = subtotalAcumulado + iva;
             
-            document.getElementById('subtotalTotal').textContent = '$' + subtotal.toFixed(2);
-            document.getElementById('ivaTotal').textContent = '$' + iva.toFixed(2);
-            document.getElementById('totalFinal').textContent = '$' + total.toFixed(2);
+            // Formateo para visualización (es-AR)
+            const formatter = new Intl.NumberFormat('es-AR', {
+                style: 'currency',
+                currency: 'ARS',
+                minimumFractionDigits: 2
+            });
+            
+            document.getElementById('subtotalTotal').textContent = formatter.format(subtotalAcumulado);
+            document.getElementById('ivaTotal').textContent = formatter.format(iva);
+            document.getElementById('totalFinal').textContent = formatter.format(total);
         }
 
         // Event listeners para recalcular
@@ -195,7 +213,9 @@
             }
         });
 
-        // Calcular inicial
-        calcularTotales();
+        // Ejecutar cálculo inicial inmediatamente
+        document.addEventListener('DOMContentLoaded', calcularTotales);
+        // Por las dudas si el DOM ya cargó
+        setTimeout(calcularTotales, 100);
     </script>
 }

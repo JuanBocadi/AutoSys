@@ -31,7 +31,11 @@ namespace AutoSys.Services
                     VerReparaciones = true,
                     VerStock = true,     CrearStock = true,  EditarStock = true,  AjustarStock = true,
                     VerFacturacion = true, CrearFacturas = true,
-                    VerReportes = true
+                    VerReportes = true,
+                    VerBackups = true, GestionarBackups = true,
+                    VerAuditoria = true,
+                    VerServiciosFijos = true,
+                    GestionarServiciosFijos = true
                 },
                 "Recepcionista" => new UserPermission
                 {
@@ -42,7 +46,9 @@ namespace AutoSys.Services
                     VerReparaciones = false,
                     VerStock = false,    CrearStock = false, EditarStock = false, AjustarStock = false,
                     VerFacturacion = true, CrearFacturas = true,
-                    VerReportes = false
+                    VerReportes = false,
+                    VerServiciosFijos = true,
+                    GestionarServiciosFijos = true
                 },
                 "Mecanico" => new UserPermission
                 {
@@ -100,6 +106,11 @@ namespace AutoSys.Services
                 VerFacturacion            = rp.VerFacturacion,
                 CrearFacturas             = rp.CrearFacturas,
                 VerReportes               = rp.VerReportes,
+                VerBackups                = rp.VerBackups,
+                GestionarBackups          = rp.GestionarBackups,
+                VerAuditoria              = rp.VerAuditoria,
+                VerServiciosFijos         = rp.VerServiciosFijos,
+                GestionarServiciosFijos   = rp.GestionarServiciosFijos,
             };
         }
 
@@ -149,6 +160,11 @@ namespace AutoSys.Services
                 existente.VerFacturacion           = permisos.VerFacturacion;
                 existente.CrearFacturas            = permisos.CrearFacturas;
                 existente.VerReportes              = permisos.VerReportes;
+                existente.VerBackups               = permisos.VerBackups;
+                existente.GestionarBackups         = permisos.GestionarBackups;
+                existente.VerAuditoria             = permisos.VerAuditoria;
+                existente.VerServiciosFijos        = permisos.VerServiciosFijos;
+                existente.GestionarServiciosFijos  = permisos.GestionarServiciosFijos;
                 existente.UltimaModificacion       = permisos.UltimaModificacion;
                 existente.ModificadoPor            = permisos.ModificadoPor;
 
@@ -199,6 +215,11 @@ namespace AutoSys.Services
                 existente.VerFacturacion            = permisos.VerFacturacion;
                 existente.CrearFacturas             = permisos.CrearFacturas;
                 existente.VerReportes               = permisos.VerReportes;
+                existente.VerBackups                = permisos.VerBackups;
+                existente.GestionarBackups          = permisos.GestionarBackups;
+                existente.VerAuditoria              = permisos.VerAuditoria;
+                existente.VerServiciosFijos         = permisos.VerServiciosFijos;
+                existente.GestionarServiciosFijos   = permisos.GestionarServiciosFijos;
                 existente.UltimaModificacion        = permisos.UltimaModificacion;
                 existente.ModificadoPor             = permisos.ModificadoPor;
                 _logger.LogInformation("Permisos de rol {Rol} actualizados por {Admin}",
