@@ -104,7 +104,7 @@ namespace AutoSys.Patterns.Factory
         {
             var ingresos = _context.Ingresos
                 .Include(i => i.Vehiculo!)
-                .ThenInclude(v => v.Cliente)
+                .Include(i => i.Cliente)
                 .Where(i => i.FechaIngreso >= _desde && i.FechaIngreso <= _hasta)
                 .ToList();
 
@@ -174,7 +174,7 @@ namespace AutoSys.Patterns.Factory
         {
             var ingresos = _context.Ingresos
                 .Include(i => i.Vehiculo!)
-                .ThenInclude(v => v.Cliente)
+                .Include(i => i.Cliente)
                 .Where(i => i.FechaEgreso.HasValue)
                 .ToList();
 
@@ -352,7 +352,7 @@ namespace AutoSys.Patterns.Factory
             // Cruzar: Ingresos (volumen de trabajo) + Facturas (facturación) por mes
             var ingresos = _context.Ingresos
                 .Include(i => i.Vehiculo!)
-                    .ThenInclude(v => v.Cliente)
+                .Include(i => i.Cliente)
                 .Where(i => i.FechaIngreso >= fechaDesde)
                 .ToList();
 

@@ -158,12 +158,17 @@
                                 </td>
                                 <td style="text-align: right;">
                                     <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
+                                        <a asp-action="Details" asp-route-id="@v.Id" 
+                                           class="btn btn-sm btn-info"
+                                           title="Ver detalles completos e historial">
+                                            <i class="fas fa-eye"></i> Detalles
+                                        </a>
                                         @if (_p.VerIngresos)
                                         {
                                             <a asp-action="ReparacionesDelVehiculo" asp-route-id="@v.Id" 
-                                               class="btn btn-sm btn-primary"
+                                               class="btn btn-sm btn-outline-primary"
                                                title="Ver historial de reparaciones">
-                                                <i class="fas fa-tools"></i> Reparaciones
+                                                <i class="fas fa-tools"></i>
                                             </a>
                                         }
                                         @if (_p.EditarVehiculos)

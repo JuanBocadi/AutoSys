@@ -24,6 +24,7 @@ namespace AutoSys.Controllers
             var reparaciones = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                     .ThenInclude(v => v.Cliente)
+                .Include(i => i.Cliente)
                 .OrderByDescending(i => i.FechaIngreso)
                 .ToListAsync();
 

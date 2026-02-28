@@ -80,13 +80,14 @@ namespace AutoSys.Controllers
                 var ingreso = await _context.Ingresos
                     .Include(i => i.Vehiculo!)
                         .ThenInclude(v => v.Cliente)
+                    .Include(i => i.Cliente)
                     .Include(i => i.ServiciosFijos)
                     .FirstOrDefaultAsync(i => i.Id == ingresoId.Value);
 
                 if (ingreso != null)
                 {
                     factura.IngresoId = ingreso.Id;
-                    factura.ClienteId = ingreso.Vehiculo!.ClienteId;
+                    factura.ClienteId = ingreso.ClienteId ?? ingreso.Vehiculo!.ClienteId;
                     ViewBag.IngresoSeleccionado = ingreso;
                     
                     if (ingreso.ServiciosFijos != null && ingreso.ServiciosFijos.Any())
@@ -146,7 +147,7 @@ namespace AutoSys.Controllers
                         var vehiculo = dbIngreso.Vehiculo ?? await _context.Vehiculos.FindAsync(dbIngreso.VehiculoId.Value);
                         if (vehiculo != null)
                         {
-                            factura.ClienteId = vehiculo.ClienteId;
+                            factura.ClienteId = dbIngreso.ClienteId ?? vehiculo.ClienteId;
                         }
                     }
                 }

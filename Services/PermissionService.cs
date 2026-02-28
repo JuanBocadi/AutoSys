@@ -26,7 +26,7 @@ namespace AutoSys.Services
                 {
                     UserId = userId,
                     VerClientes = true,  CrearClientes = true,  EditarClientes = true,
-                    VerVehiculos = true, CrearVehiculos = true, EditarVehiculos = true,
+                    VerVehiculos = true, CrearVehiculos = true, EditarVehiculos = true, TransferirVehiculo = true,
                     VerIngresos = true,  CrearIngresos = true,  ActualizarEstadoIngresos = true,
                     VerReparaciones = true,
                     VerStock = true,     CrearStock = true,  EditarStock = true,  AjustarStock = true,
@@ -41,7 +41,7 @@ namespace AutoSys.Services
                 {
                     UserId = userId,
                     VerClientes = true,  CrearClientes = true,  EditarClientes = true,
-                    VerVehiculos = true, CrearVehiculos = true, EditarVehiculos = true,
+                    VerVehiculos = true, CrearVehiculos = true, EditarVehiculos = true, TransferirVehiculo = true,
                     VerIngresos = true,  CrearIngresos = true,  ActualizarEstadoIngresos = true,
                     VerReparaciones = false,
                     VerStock = false,    CrearStock = false, EditarStock = false, AjustarStock = false,
@@ -95,6 +95,7 @@ namespace AutoSys.Services
                 VerVehiculos              = rp.VerVehiculos,
                 CrearVehiculos            = rp.CrearVehiculos,
                 EditarVehiculos           = rp.EditarVehiculos,
+                TransferirVehiculo        = rp.TransferirVehiculo,
                 VerIngresos               = rp.VerIngresos,
                 CrearIngresos             = rp.CrearIngresos,
                 ActualizarEstadoIngresos  = rp.ActualizarEstadoIngresos,
@@ -149,6 +150,7 @@ namespace AutoSys.Services
                 existente.VerVehiculos             = permisos.VerVehiculos;
                 existente.CrearVehiculos           = permisos.CrearVehiculos;
                 existente.EditarVehiculos          = permisos.EditarVehiculos;
+                existente.TransferirVehiculo        = permisos.TransferirVehiculo;
                 existente.VerIngresos              = permisos.VerIngresos;
                 existente.CrearIngresos            = permisos.CrearIngresos;
                 existente.ActualizarEstadoIngresos = permisos.ActualizarEstadoIngresos;
@@ -204,6 +206,7 @@ namespace AutoSys.Services
                 existente.VerVehiculos              = permisos.VerVehiculos;
                 existente.CrearVehiculos            = permisos.CrearVehiculos;
                 existente.EditarVehiculos           = permisos.EditarVehiculos;
+                existente.TransferirVehiculo         = permisos.TransferirVehiculo;
                 existente.VerIngresos               = permisos.VerIngresos;
                 existente.CrearIngresos             = permisos.CrearIngresos;
                 existente.ActualizarEstadoIngresos  = permisos.ActualizarEstadoIngresos;

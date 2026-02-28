@@ -53,6 +53,7 @@
                         <!-- Botón EDITAR (redirige al método EditarDesdeConfirmacion del controlador) --> 
                         <form asp-action="EditarDesdeConfirmacion" method="post" class="d-inline">
                             <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" /> 
+                            <input type="hidden" name="ClienteId" value="@Model.ClienteId" /> 
                             <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" /> 
                             @if (ViewBag.SelectedServicioIds != null)
                             {
@@ -73,6 +74,7 @@
                         <!-- Botón CONFIRMAR -->
                         <form asp-action="Confirmado" method="post" class="d-inline">
                             <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" />
+                            <input type="hidden" name="ClienteId" value="@Model.ClienteId" />
                             <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" />
                             @if (ViewBag.SelectedServicioIds != null)
                             {

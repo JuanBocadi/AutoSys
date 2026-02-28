@@ -37,10 +37,18 @@ namespace AutoSys.Controllers
         [RequirePermiso("CrearVehiculos")]
         public IActionResult Create()
         {
-            ViewBag.Clientes = _context.Clientes
+            var clientDataCreate = _context.Clientes
                 .OrderBy(c => c.Apellido)
                 .ThenBy(c => c.Nombre)
+                .Select(c => new { 
+                    Id = c.Id, 
+                    Nombre = c.Nombre, 
+                    Apellido = c.Apellido, 
+                    DNI = c.DNI 
+                })
                 .ToList();
+            ViewBag.Clientes = clientDataCreate;
+            ViewBag.ClientesJson = System.Text.Json.JsonSerializer.Serialize(clientDataCreate);
             
             ViewData["Breadcrumb"] = "Nuevo Vehículo";
             ViewData["BreadcrumbParent"] = "Vehículos";
@@ -85,6 +93,17 @@ namespace AutoSys.Controllers
                         _context.Add(vehiculo);
                         await _context.SaveChangesAsync();
                         
+                        // Crear primer registro de historial
+                        var historial = new HistorialPropietario
+                        {
+                            VehiculoId = vehiculo.Id,
+                            ClienteId = vehiculo.ClienteId,
+                            FechaDesde = DateTime.Now,
+                            EsPropietarioActual = true
+                        };
+                        _context.HistorialesPropietarios.Add(historial);
+                        await _context.SaveChangesAsync();
+                        
                         _logger.LogInformation("✅ Vehículo creado exitosamente: {Patente}", vehiculo.Patente);
 
                         // AUDITORÍA
@@ -109,10 +128,18 @@ namespace AutoSys.Controllers
                 TempData["ErrorMessage"] = "Ocurrió un error inesperado. Por favor, contacte al administrador.";
             }
 
-            ViewBag.Clientes = _context.Clientes
+            var clientDataCreateFail = _context.Clientes
                 .OrderBy(c => c.Apellido)
                 .ThenBy(c => c.Nombre)
+                .Select(c => new { 
+                    Id = c.Id, 
+                    Nombre = c.Nombre, 
+                    Apellido = c.Apellido, 
+                    DNI = c.DNI 
+                })
                 .ToList();
+            ViewBag.Clientes = clientDataCreateFail;
+            ViewBag.ClientesJson = System.Text.Json.JsonSerializer.Serialize(clientDataCreateFail);
             
             ViewData["Breadcrumb"] = "Nuevo Vehículo";
             ViewData["BreadcrumbParent"] = "Vehículos";
@@ -143,13 +170,23 @@ namespace AutoSys.Controllers
         {
             if (id == null) return NotFound();
 
-            var vehiculo = await _context.Vehiculos.FindAsync(id);
+            var vehiculo = await _context.Vehiculos
+                .Include(v => v.Cliente)
+                .FirstOrDefaultAsync(v => v.Id == id);
             if (vehiculo == null) return NotFound();
 
-            ViewBag.Clientes = _context.Clientes
+            var clientData = _context.Clientes
                 .OrderBy(c => c.Apellido)
                 .ThenBy(c => c.Nombre)
+                .Select(c => new { 
+                    Id = c.Id, 
+                    Nombre = c.Nombre, 
+                    Apellido = c.Apellido, 
+                    DNI = c.DNI 
+                })
                 .ToList();
+            ViewBag.Clientes = clientData;
+            ViewBag.ClientesJson = System.Text.Json.JsonSerializer.Serialize(clientData);
 
             return View(vehiculo);
         }
@@ -210,10 +247,18 @@ namespace AutoSys.Controllers
                 }
             }
 
-            ViewBag.Clientes = _context.Clientes
+            var clientDataEditFail = _context.Clientes
                 .OrderBy(c => c.Apellido)
                 .ThenBy(c => c.Nombre)
+                .Select(c => new { 
+                    Id = c.Id, 
+                    Nombre = c.Nombre, 
+                    Apellido = c.Apellido, 
+                    DNI = c.DNI 
+                })
                 .ToList();
+            ViewBag.Clientes = clientDataEditFail;
+            ViewBag.ClientesJson = System.Text.Json.JsonSerializer.Serialize(clientDataEditFail);
 
             return View(vehiculo);
         }
@@ -267,6 +312,97 @@ namespace AutoSys.Controllers
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequirePermiso("TransferirVehiculo")]
+        public async Task<IActionResult> TransferirVehiculo(int VehiculoId, int NuevoClienteId)
+        {
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var vehiculo = await _context.Vehiculos
+                    .Include(v => v.Cliente)
+                    .FirstOrDefaultAsync(v => v.Id == VehiculoId);
+
+                if (vehiculo == null) return NotFound();
+
+                var nuevoCliente = await _context.Clientes.FindAsync(NuevoClienteId);
+                if (nuevoCliente == null)
+                {
+                    TempData["ErrorMessage"] = "El nuevo cliente seleccionado no es válido.";
+                    return RedirectToAction("Edit", new { id = VehiculoId });
+                }
+
+                if (vehiculo.ClienteId == NuevoClienteId)
+                {
+                    TempData["ErrorMessage"] = "El vehículo ya pertenece a ese cliente.";
+                    return RedirectToAction("Edit", new { id = VehiculoId });
+                }
+
+                // 1. Cerrar historial actual
+                var historialActual = await _context.HistorialesPropietarios
+                    .FirstOrDefaultAsync(h => h.VehiculoId == VehiculoId && h.EsPropietarioActual);
+
+                if (historialActual != null)
+                {
+                    historialActual.FechaHasta = DateTime.Now;
+                    historialActual.EsPropietarioActual = false;
+                    _context.Update(historialActual);
+                }
+
+                // 2. Crear nuevo historial
+                var nuevoHistorial = new HistorialPropietario
+                {
+                    VehiculoId = VehiculoId,
+                    ClienteId = NuevoClienteId,
+                    FechaDesde = DateTime.Now,
+                    EsPropietarioActual = true
+                };
+                _context.HistorialesPropietarios.Add(nuevoHistorial);
+
+                // 3. Actualizar dueño actual en Vehiculo
+                string duenoAnterior = $"{vehiculo.Cliente?.Nombre} {vehiculo.Cliente?.Apellido}";
+                vehiculo.ClienteId = NuevoClienteId;
+                _context.Update(vehiculo);
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+
+                // AUDITORÍA
+                var rol = User.IsInRole("Administrador") ? "Administrador" : User.IsInRole("Recepcionista") ? "Recepcionista" : "Mecanico";
+                await _auditService.RegistrarAsync(User.Identity?.Name ?? "desconocido", rol, "Vehiculo", "Transferir",
+                    $"Vehículo {vehiculo.Patente} transferido de {duenoAnterior} a {nuevoCliente.Nombre} {nuevoCliente.Apellido}",
+                    vehiculo.Id, vehiculo.Patente, HttpContext.Connection.RemoteIpAddress?.ToString());
+
+                TempData["SuccessMessage"] = $"Vehículo transferido exitosamente a {nuevoCliente.Nombre} {nuevoCliente.Apellido}.";
+                return RedirectToAction("Details", new { id = VehiculoId });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Error al transferir vehículo {Id}", VehiculoId);
+                TempData["ErrorMessage"] = "Ocurrió un error al procesar la transferencia.";
+                return RedirectToAction("Edit", new { id = VehiculoId });
+            }
+        }
+
+        public async Task<IActionResult> Details(int? id)
+        {
+            if (id == null) return NotFound();
+
+            var vehiculo = await _context.Vehiculos
+                .Include(v => v.Cliente)
+                .Include(v => v.HistorialPropietarios.OrderByDescending(h => h.FechaDesde))
+                    .ThenInclude(h => h.Cliente)
+                .Include(v => v.Ingresos.OrderByDescending(i => i.FechaIngreso))
+                    .ThenInclude(i => i.Cliente)
+                .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (vehiculo == null) return NotFound();
+
+            return View(vehiculo);
         }
 
         private bool VehiculoExists(int id)

@@ -125,6 +125,7 @@ namespace AutoSys.Controllers
             }
 
             ingreso.Vehiculo = vehiculo;
+            ingreso.ClienteId = vehiculo.ClienteId;
 
             string? rutaTemp = FotoTempPath;
 
@@ -243,6 +244,7 @@ namespace AutoSys.Controllers
             var ingreso = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                 .ThenInclude(v => v.Cliente)
+                .Include(i => i.Cliente) // Incluir el cliente del snapshot
                 .Include(i => i.ServiciosFijos)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
@@ -299,6 +301,7 @@ namespace AutoSys.Controllers
             var ingreso = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                     .ThenInclude(v => v.Cliente)
+                .Include(i => i.Cliente) // Added this line as per instruction
                 .FirstOrDefaultAsync(i => i.Id == id);
             
             if (ingreso == null)

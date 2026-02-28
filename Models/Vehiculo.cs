@@ -24,5 +24,6 @@ namespace AutoSys.Models
         public Cliente? Cliente { get; set; }
         
         public ICollection<Ingreso> Ingresos { get; set; } = new List<Ingreso>();
+        public ICollection<HistorialPropietario> HistorialPropietarios { get; set; } = new List<HistorialPropietario>();
     }
 }

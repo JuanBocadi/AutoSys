@@ -30,17 +30,20 @@
                 <!-- Cliente -->
                 <div class="col-12">
                     <label asp-for="ClienteId" class="form-label">
-                        <i class="fas fa-user me-1"></i> Cliente
-                        <span class="text-danger">*</span>
+                        <i class="fas fa-user me-1"></i> Cliente (Propietario Actual)
                     </label>
-                    <select asp-for="ClienteId" class="form-select" required>
-                        <option value="">-- Seleccione un cliente --</option>
-                        @foreach (var cliente in ViewBag.Clientes)
-                        {
-                            <option value="@cliente.Id">@cliente.Apellido, @cliente.Nombre - DNI: @cliente.DNI</option>
-                        }
-                    </select>
-                    <span asp-validation-for="ClienteId" class="text-danger"></span>
+                    <div class="input-group">
+                        <select asp-for="ClienteId" class="form-select bg-light" disabled>
+                            @foreach (var cliente in ViewBag.Clientes)
+                            {
+                                <option value="@cliente.Id">@cliente.Apellido, @cliente.Nombre - DNI: @cliente.DNI</option>
+                            }
+                        </select>
+                        <input type="hidden" asp-for="ClienteId" />
+                    </div>
+                    <div class="form-text mt-1 text-info">
+                        <i class="fas fa-info-circle me-1"></i> Para cambiar el dueño, utilice el botón <strong>Transferir Vehículo</strong> abajo a la izquierda.
+                    </div>
                 </div>
 
                 <!-- Patente -->
@@ -80,7 +83,15 @@
             </div>
 
             <!-- Botones -->
-            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end; align-items: center;">
+                <div style="margin-right: auto;">
+                    @if (User.HasClaim("Permission", "TransferirVehiculo") || User.IsInRole("Administrador"))
+                    {
+                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#transferModal">
+                            <i class="fas fa-exchange-alt me-2"></i>Transferir Vehículo
+                        </button>
+                    }
+                </div>
                 <a asp-action="Index" class="btn btn-outline">
                     <i class="fas fa-times me-2"></i>Cancelar
                 </a>
@@ -92,11 +103,180 @@
     </div>
 </div>
 
+<!-- Modal de Transferencia -->
+<div class="modal fade" id="transferModal" tabindex="-1" aria-labelledby="transferModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-info text-white py-3">
+                <h5 class="modal-title fw-bold" id="transferModalLabel">
+                    <i class="fas fa-exchange-alt me-2"></i>Transferir Vehículo
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="TransferirVehiculo" method="post">
+                <div class="modal-body p-4">
+                    <input type="hidden" name="VehiculoId" value="@Model.Id" />
+                    
+                    <div class="alert alert-warning border-0 shadow-sm mb-4">
+                        <div class="d-flex">
+                            <i class="fas fa-exclamation-triangle mt-1 me-3 fs-4"></i>
+                            <div>
+                                <strong>Atención:</strong> Esta acción cambiará el propietario actual del vehículo. 
+                                Las reparaciones anteriores seguirán asociadas al dueño que las registró originalmente.
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold text-muted small uppercase">Propietario Actual</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0">
+                                <i class="fas fa-user-circle text-muted"></i>
+                            </span>
+                            <input type="text" class="form-control bg-light border-start-0" value="@Model.Cliente?.Apellido, @Model.Cliente?.Nombre" readonly disabled />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-primary">Nuevo Propietario</label>
+                        
+                        <!-- Buscador dinámico -->
+                        <div class="client-search-container mb-2" style="position: relative;">
+                            <div class="input-group shadow-sm border border-primary rounded">
+                                <span class="input-group-text bg-white border-0"><i class="fas fa-search text-primary"></i></span>
+                                <input type="text" id="buscarClienteInput" class="form-control border-0" placeholder="Buscar por Nombre, Apellido o DNI..." autocomplete="off">
+                                <button type="button" class="btn btn-white border-0" id="clearSearch" style="display:none;"><i class="fas fa-times text-muted"></i></button>
+                            </div>
+                            
+                            <!-- Resultados -->
+                            <div id="clientSearchResults" class="list-group shadow-lg mt-1" style="display:none; position:absolute; width:100%; z-index:1050; max-height:250px; overflow-y:auto;">
+                                <!-- Dinámico -->
+                            </div>
+                        </div>
+
+                        <!-- Cliente Seleccionado (Visual) -->
+                        <div id="clienteSeleccionadoInfo" class="alert alert-info py-2 mb-0" style="display:none;">
+                            <div class="d-flex align-items-center justify-content-between">
+                                <div class="d-flex align-items-center">
+                                    <i class="fas fa-user-check me-2 fs-5"></i>
+                                    <div>
+                                        <div class="fw-bold" id="selNombre"></div>
+                                        <div class="small" id="selDni"></div>
+                                    </div>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-link text-info" id="changeClient">Cambiar</button>
+                            </div>
+                        </div>
+
+                        <!-- ID Real para el Form -->
+                        <input type="hidden" id="NuevoClienteId" name="NuevoClienteId" required />
+                        
+                        <div class="form-text mt-2" id="searchHelp">
+                            <i class="fas fa-info-circle me-1"></i> Escriba al menos 2 caracteres para buscar.
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light border-top-0 py-3">
+                    <button type="button" class="btn btn-link text-muted text-decoration-none" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-info px-4 fw-bold shadow-sm">
+                        <i class="fas fa-check-circle me-2"></i>Confirmar Transferencia
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         document.querySelector('input[name="Patente"]').addEventListener('input', function() {
             this.value = this.value.toUpperCase();
         });
+
+        // LÓGICA DE BÚSQUEDA DE CLIENTES EN MODAL
+        (function() {
+            const clientes = @Html.Raw(ViewBag.ClientesJson);
+            const currentOwnerId = @Model.ClienteId;
+            
+            const input = document.getElementById('buscarClienteInput');
+            const results = document.getElementById('clientSearchResults');
+            const hiddenId = document.getElementById('NuevoClienteId');
+            const infoBox = document.getElementById('clienteSeleccionadoInfo');
+            const clearBtn = document.getElementById('clearSearch');
+            const helpText = document.getElementById('searchHelp');
+            const searchContainer = document.querySelector('.client-search-container');
+            
+            function renderResults(term) {
+                if (term.length < 2) {
+                    results.style.display = 'none';
+                    return;
+                }
+                
+                const filtered = clientes.filter(c => 
+                    c.Id !== currentOwnerId && 
+                    (c.Nombre.toLowerCase().includes(term.toLowerCase()) || 
+                     c.Apellido.toLowerCase().includes(term.toLowerCase()) || 
+                     c.DNI.includes(term))
+                ).slice(0, 5);
+                
+                if (filtered.length === 0) {
+                    results.innerHTML = '<div class="list-group-item text-muted">No se encontraron clientes</div>';
+                } else {
+                    results.innerHTML = filtered.map(c => `
+                        <button type="button" class="list-group-item list-group-item-action py-3" onclick="selectClient(${c.Id}, '${c.Apellido}, ${c.Nombre}', '${c.DNI}')">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <span class="fw-bold text-primary">${c.Apellido}, ${c.Nombre}</span>
+                                    <div class="small text-muted">DNI: ${c.DNI}</div>
+                                </div>
+                                <i class="fas fa-chevron-right text-light"></i>
+                            </div>
+                        </button>
+                    `).join('');
+                }
+                results.style.display = 'block';
+            }
+            
+            window.selectClient = function(id, name, dni) {
+                hiddenId.value = id;
+                document.getElementById('selNombre').textContent = name;
+                document.getElementById('selDni').textContent = 'DNI: ' + dni;
+                
+                searchContainer.style.display = 'none';
+                infoBox.style.display = 'block';
+                helpText.style.display = 'none';
+                results.style.display = 'none';
+            };
+            
+            document.getElementById('changeClient').addEventListener('click', () => {
+                hiddenId.value = '';
+                searchContainer.style.display = 'block';
+                infoBox.style.display = 'none';
+                helpText.style.display = 'block';
+                input.value = '';
+                input.focus();
+            });
+            
+            input.addEventListener('input', (e) => {
+                const val = e.target.value;
+                clearBtn.style.display = val ? 'block' : 'none';
+                renderResults(val);
+            });
+            
+            clearBtn.addEventListener('click', () => {
+                input.value = '';
+                clearBtn.style.display = 'none';
+                results.style.display = 'none';
+                input.focus();
+            });
+            
+            // Cerrar clics fuera
+            document.addEventListener('click', (e) => {
+                if (!e.target.closest('.client-search-container')) {
+                    results.style.display = 'none';
+                }
+            });
+        })();
     </script>
 }

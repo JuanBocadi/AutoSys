@@ -131,15 +131,22 @@
                                 <tr>
                                     <td>@ingreso.FechaIngreso.ToString("dd/MM/yyyy HH:mm")</td>
                                     <td>
-                                        @if (ingreso.Diagnostico.Length > 50)
+                                        @if (!string.IsNullOrEmpty(ingreso.Diagnostico))
                                         {
-                                            <span title="@ingreso.Diagnostico">
-                                                @ingreso.Diagnostico.Substring(0, 50)...
-                                            </span>
+                                            if (ingreso.Diagnostico.Length > 50)
+                                            {
+                                                <span title="@ingreso.Diagnostico">
+                                                    @ingreso.Diagnostico.Substring(0, 50)...
+                                                </span>
+                                            }
+                                            else
+                                            {
+                                                @ingreso.Diagnostico
+                                            }
                                         }
                                         else
                                         {
-                                            @ingreso.Diagnostico
+                                            <span class="text-muted italic">Sin diagnóstico especificado</span>
                                         }
                                     </td>
                                     <td>

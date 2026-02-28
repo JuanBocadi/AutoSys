@@ -153,11 +153,21 @@
                                         </div>
                                     </div>
                                 </td>
-                                <td>
-                                    <div>@ingreso.Vehiculo?.Cliente?.Nombre @ingreso.Vehiculo?.Cliente?.Apellido</div>
-                                    <div style="font-size: 0.875rem; color: var(--muted-foreground);">
-                                        <i class="fas fa-phone"></i> @ingreso.Vehiculo?.Cliente?.Telefono
-                                    </div>
+                                 <td>
+                                    @if (ingreso.Cliente != null)
+                                    {
+                                        <div>@ingreso.Cliente.Nombre @ingreso.Cliente.Apellido</div>
+                                        <div style="font-size: 0.875rem; color: var(--muted-foreground);">
+                                            <i class="fas fa-phone"></i> @ingreso.Cliente.Telefono
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div>@ingreso.Vehiculo?.Cliente?.Nombre @ingreso.Vehiculo?.Cliente?.Apellido</div>
+                                        <div style="font-size: 0.875rem; color: var(--muted-foreground);">
+                                            <i class="fas fa-phone"></i> @ingreso.Vehiculo?.Cliente?.Telefono
+                                        </div>
+                                    }
                                 </td>
                                 <td>
                                     <div style="font-size: 0.875rem;">@ingreso.FechaIngreso.ToString("dd/MM/yyyy")</div>

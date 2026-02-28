@@ -25,6 +25,10 @@ namespace AutoSys.Models
         public int? VehiculoId { get; set; }
         public Vehiculo? Vehiculo { get; set; }
 
+        // Snapshot del cliente en el momento del ingreso
+        public int? ClienteId { get; set; }
+        public Cliente? Cliente { get; set; }
+
         // [REFACCION]: Relación N:M con Servicios Fijos
         public ICollection<ServicioFijo> ServiciosFijos { get; set; } = new List<ServicioFijo>();
 

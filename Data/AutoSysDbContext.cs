@@ -20,6 +20,7 @@ namespace AutoSys.Data
         public DbSet<RolePermission> RolePermissions { get; set; }
         public DbSet<AuditLog> AuditLogs { get; set; }
         public DbSet<ServicioFijo> ServiciosFijos { get; set; }
+        public DbSet<HistorialPropietario> HistorialesPropietarios { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -66,6 +67,11 @@ namespace AutoSys.Data
                 entity.HasOne(i => i.Vehiculo)
                     .WithMany(v => v.Ingresos)
                     .HasForeignKey(i => i.VehiculoId)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(i => i.Cliente)
+                    .WithMany()
+                    .HasForeignKey(i => i.ClienteId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 // [REFACCION]: Relación N:M Many-to-Many
@@ -177,6 +183,20 @@ namespace AutoSys.Data
                 entity.HasIndex(e => e.Fecha);
                 entity.HasIndex(e => e.Categoria);
                 entity.HasIndex(e => e.Usuario);
+            });
+
+            // HistorialPropietario
+            modelBuilder.Entity<HistorialPropietario>(entity =>
+            {
+                entity.HasOne(h => h.Vehiculo)
+                    .WithMany(v => v.HistorialPropietarios)
+                    .HasForeignKey(h => h.VehiculoId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(h => h.Cliente)
+                    .WithMany()
+                    .HasForeignKey(h => h.ClienteId)
+                    .OnDelete(DeleteBehavior.Restrict);
             });
         }
     }

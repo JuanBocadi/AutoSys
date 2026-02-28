@@ -32,10 +32,10 @@
                         <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--muted-foreground); margin: 0;">Cliente</h3>
                     </div>
                     <p style="font-size: 1.125rem; font-weight: 700; margin: 0;">
-                        @Model.Vehiculo?.Cliente?.Nombre @Model.Vehiculo?.Cliente?.Apellido
+                        @(Model.Cliente?.Nombre ?? Model.Vehiculo?.Cliente?.Nombre) @(Model.Cliente?.Apellido ?? Model.Vehiculo?.Cliente?.Apellido)
                     </p>
                     <p style="font-size: 0.875rem; color: var(--muted-foreground); margin: 0;">
-                        <i class="fas fa-phone"></i> @Model.Vehiculo?.Cliente?.Telefono
+                        <i class="fas fa-phone"></i> @(Model.Cliente?.Telefono ?? Model.Vehiculo?.Cliente?.Telefono)
                     </p>
                 </div>
             </div>
@@ -63,7 +63,16 @@
                         <i class="fas fa-stethoscope" style="color: var(--muted-foreground);"></i>
                         <h3 style="font-size: 0.875rem; font-weight: 600; color: var(--muted-foreground); margin: 0;">Diagnóstico</h3>
                     </div>
-                    <p style="font-size: 1rem; margin: 0;">@Model.Diagnostico</p>
+                    @if (!string.IsNullOrEmpty(Model.Diagnostico))
+                    {
+                        <p style="font-size: 1rem; margin: 0;">@Model.Diagnostico</p>
+                    }
+                    else
+                    {
+                        <p style="font-size: 1rem; margin: 0; color: var(--muted-foreground); font-style: italic;">
+                            Sin diagnóstico manual (Servicios predefinidos seleccionados)
+                        </p>
+                    }
                     
                     @if (Model.ServiciosFijos != null && Model.ServiciosFijos.Any())
                     {
