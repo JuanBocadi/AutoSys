@@ -80,7 +80,7 @@ namespace AutoSys.Controllers
                 var ingreso = await _context.Ingresos
                     .Include(i => i.Vehiculo!)
                         .ThenInclude(v => v.Cliente)
-                    .Include(i => i.ServicioFijo)
+                    .Include(i => i.ServiciosFijos)
                     .FirstOrDefaultAsync(i => i.Id == ingresoId.Value);
 
                 if (ingreso != null)
@@ -89,16 +89,18 @@ namespace AutoSys.Controllers
                     factura.ClienteId = ingreso.Vehiculo!.ClienteId;
                     ViewBag.IngresoSeleccionado = ingreso;
                     
-                    if (ingreso.ServicioFijo != null)
+                    if (ingreso.ServiciosFijos != null && ingreso.ServiciosFijos.Any())
                     {
-                        ViewBag.ServicioFijoNombre = ingreso.ServicioFijo.Nombre;
-                        ViewBag.ServicioFijoPrecio = ingreso.ServicioFijo.PrecioSugerido;
+                        ViewBag.ServiciosPredefinidos = ingreso.ServiciosFijos.Select(s => new {
+                            Nombre = s.Nombre,
+                            Precio = s.PrecioSugerido ?? 0m
+                        }).ToList();
                     }
                     else
                     {
-                        // Si no hay servicio fijo, usamos el diagnóstico como descripción
-                        ViewBag.ServicioFijoNombre = "Servicio: " + ingreso.Diagnostico;
-                        ViewBag.ServicioFijoPrecio = 0m;
+                        ViewBag.ServiciosPredefinidos = new List<object> { 
+                            new { Nombre = "Servicio: " + (ingreso.Diagnostico ?? "Diagnóstico general"), Precio = 0m } 
+                        };
                     }
                 }
             }

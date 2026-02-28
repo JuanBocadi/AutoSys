@@ -95,13 +95,19 @@ namespace AutoSys.Controllers
         [HttpPost]
         [ValidateAntiForgeryToken]
         [RequirePermiso("CrearIngresos")]
-        public async Task<IActionResult> Create(Ingreso ingreso, IFormFile? Foto, string? FotoTempPath)
+        public async Task<IActionResult> Create(Ingreso ingreso, List<int>? SelectedServicioIds, IFormFile? Foto, string? FotoTempPath)
         {
             bool ingresoActivo = await _context.Ingresos
                 .AnyAsync(i => i.VehiculoId == ingreso.VehiculoId && i.FechaEgreso == null);
 
             if (ingresoActivo)
                 ModelState.AddModelError("VehiculoId", "Este vehículo ya tiene una orden de ingreso activa.");
+
+            // [REFACCION]: Validación condicional del diagnóstico
+            if ((SelectedServicioIds == null || !SelectedServicioIds.Any()) && string.IsNullOrWhiteSpace(ingreso.Diagnostico))
+            {
+                ModelState.AddModelError("Diagnostico", "Debe ingresar un diagnóstico si no selecciona ningún servicio.");
+            }
 
             var vehiculo = await _context.Vehiculos
                 .Include(v => v.Cliente)
@@ -113,7 +119,8 @@ namespace AutoSys.Controllers
             if (!ModelState.IsValid)
             {
                 ViewBag.ServiciosFijos = await _context.ServiciosFijos.ToListAsync();
-                ViewBag.FotoTempPath = FotoTempPath; // Por si vuelve con errores y ya tenía una imagen temporal
+                ViewBag.SelectedServicioIds = SelectedServicioIds;
+                ViewBag.FotoTempPath = FotoTempPath;
                 return View(ingreso);
             }
 
@@ -153,12 +160,22 @@ namespace AutoSys.Controllers
             }
 
             ViewBag.FotoTempPath = rutaTemp;
+            
+            // Cargar servicios seleccionados para mostrar en la confirmación
+            if (SelectedServicioIds != null && SelectedServicioIds.Any())
+            {
+                ViewBag.ServiciosSeleccionados = await _context.ServiciosFijos
+                    .Where(s => SelectedServicioIds.Contains(s.Id))
+                    .ToListAsync();
+                ViewBag.SelectedServicioIds = SelectedServicioIds;
+            }
+
             return View("Confirmar", ingreso);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Confirmado(Ingreso ingreso, string? FotoTempPath)
+        public async Task<IActionResult> Confirmado(Ingreso ingreso, List<int>? SelectedServicioIds, string? FotoTempPath)
         {
             ingreso.FechaIngreso = DateTime.Now;
             ingreso.FechaEgreso = null;
@@ -180,6 +197,17 @@ namespace AutoSys.Controllers
                 {
                     System.IO.File.Move(rutaTempCompleta, rutaFinal);
                     ingreso.FotoPath = "/uploads/" + nombreArchivo;
+                }
+            }
+
+            if (SelectedServicioIds != null && SelectedServicioIds.Any())
+            {
+                var servicios = await _context.ServiciosFijos
+                    .Where(s => SelectedServicioIds.Contains(s.Id))
+                    .ToListAsync();
+                foreach (var s in servicios)
+                {
+                    ingreso.ServiciosFijos.Add(s);
                 }
             }
 
@@ -215,7 +243,7 @@ namespace AutoSys.Controllers
             var ingreso = await _context.Ingresos
                 .Include(i => i.Vehiculo!)
                 .ThenInclude(v => v.Cliente)
-                .Include(i => i.ServicioFijo)
+                .Include(i => i.ServiciosFijos)
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (ingreso == null)
@@ -332,14 +360,16 @@ namespace AutoSys.Controllers
             return View(items);
         }
 
-        public async Task<IActionResult> EditarDesdeConfirmacion(int VehiculoId, string Diagnostico, int? ServicioFijoId, string? FotoTempPath)
+        public async Task<IActionResult> EditarDesdeConfirmacion(int VehiculoId, string? Diagnostico, List<int>? SelectedServicioIds, string? FotoTempPath)
         {
             var ingreso = new Ingreso
             {
                 VehiculoId = VehiculoId,
-                Diagnostico = Diagnostico,
-                ServicioFijoId = ServicioFijoId
+                Diagnostico = Diagnostico
             };
+            
+            // SelectedServicioIds se pasará a la vista para pre-seleccionarlos
+            ViewBag.SelectedServicioIds = SelectedServicioIds;
 
             ViewBag.ServiciosFijos = await _context.ServiciosFijos.ToListAsync();
             ViewBag.FotoTempPath = FotoTempPath;

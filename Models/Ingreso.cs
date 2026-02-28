@@ -8,10 +8,10 @@ namespace AutoSys.Models
         public int Id { get; set; }
         public DateTime FechaIngreso { get; set; } = DateTime.Now;
 
-        [Required(ErrorMessage = "Debe ingresar un diagnóstico.")]
+        // [REFACCION]: Diagnóstico ahora es condicionalmente obligatorio (se valida en el controlador).
         [Column("DiagnosticoInicial")]
         [StringLength(2000)]
-        public string Diagnostico { get; set; } = string.Empty;
+        public string? Diagnostico { get; set; }
 
         [StringLength(512, ErrorMessage = "La ruta de la foto no puede exceder los 512 caracteres.")]
         public string? FotoPath { get; set; }
@@ -25,8 +25,8 @@ namespace AutoSys.Models
         public int? VehiculoId { get; set; }
         public Vehiculo? Vehiculo { get; set; }
 
-        public int? ServicioFijoId { get; set; }
-        public ServicioFijo? ServicioFijo { get; set; }
+        // [REFACCION]: Relación N:M con Servicios Fijos
+        public ICollection<ServicioFijo> ServiciosFijos { get; set; } = new List<ServicioFijo>();
 
         public ICollection<FotoVehiculo>? Fotos { get; set; }
 

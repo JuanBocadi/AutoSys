@@ -25,14 +25,18 @@
                         <dt class="col-sm-4">Diagnóstico</dt>
                         <dd class="col-sm-8">@Model.Diagnostico</dd>
 
-                        @if (Model.ServicioFijoId.HasValue)
+                        @if (ViewBag.ServiciosSeleccionados != null)
                         {
-                            <dt class="col-sm-4">Servicio Fijo</dt>
+                            <dt class="col-sm-4">Servicios Seleccionados</dt>
                             <dd class="col-sm-8">
-                                <span class="badge bg-info">
-                                    <i class="fas fa-list-check me-1"></i> 
-                                    @(Model.ServicioFijo?.Nombre ?? "Servicio Seleccionado")
-                                </span>
+                                <div style="display: flex; flex-wrap: wrap; gap: 0.5rem;">
+                                    @foreach (var s in (IEnumerable<AutoSys.Models.ServicioFijo>)ViewBag.ServiciosSeleccionados)
+                                    {
+                                        <span class="badge bg-info">
+                                            <i class="fas fa-list-check me-1"></i> @s.Nombre
+                                        </span>
+                                    }
+                                </div>
                             </dd>
                         }
 
@@ -50,7 +54,13 @@
                         <form asp-action="EditarDesdeConfirmacion" method="post" class="d-inline">
                             <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" /> 
                             <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" /> 
-                            <input type="hidden" name="ServicioFijoId" value="@Model.ServicioFijoId" />
+                            @if (ViewBag.SelectedServicioIds != null)
+                            {
+                                foreach (var id in (List<int>)ViewBag.SelectedServicioIds)
+                                {
+                                    <input type="hidden" name="SelectedServicioIds" value="@id" />
+                                }
+                            }
                             @if (ViewBag.FotoTempPath != null) {
                             <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
                             }
@@ -64,7 +74,13 @@
                         <form asp-action="Confirmado" method="post" class="d-inline">
                             <input type="hidden" name="VehiculoId" value="@Model.VehiculoId" />
                             <input type="hidden" name="Diagnostico" value="@Model.Diagnostico" />
-                            <input type="hidden" name="ServicioFijoId" value="@Model.ServicioFijoId" />
+                            @if (ViewBag.SelectedServicioIds != null)
+                            {
+                                foreach (var id in (List<int>)ViewBag.SelectedServicioIds)
+                                {
+                                    <input type="hidden" name="SelectedServicioIds" value="@id" />
+                                }
+                            }
                             <input type="hidden" name="FotoTempPath" value="@ViewBag.FotoTempPath" />
 
                             <button type="submit" class="btn btn-primary btn-lg">

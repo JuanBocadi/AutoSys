@@ -56,7 +56,10 @@ namespace AutoSys.Data
             // Ingresos
             modelBuilder.Entity<Ingreso>(entity =>
             {
-                entity.Property(e => e.Diagnostico).HasColumnName("DiagnosticoInicial").HasMaxLength(2000).IsRequired();
+                entity.Property(e => e.Diagnostico)
+                    .HasColumnName("DiagnosticoInicial")
+                    .HasMaxLength(2000)
+                    .IsRequired(false); // [REFACCION]: Ahora es condicional
                 entity.Property(e => e.Estado).HasMaxLength(50).IsRequired();
                 entity.Property(e => e.FotoPath).HasMaxLength(512);
 
@@ -65,10 +68,14 @@ namespace AutoSys.Data
                     .HasForeignKey(i => i.VehiculoId)
                     .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(i => i.ServicioFijo)
+                // [REFACCION]: Relación N:M Many-to-Many
+                entity.HasMany(i => i.ServiciosFijos)
                     .WithMany(s => s.Ingresos)
-                    .HasForeignKey(i => i.ServicioFijoId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .UsingEntity<Dictionary<string, object>>(
+                        "IngresoServicio",
+                        j => j.HasOne<ServicioFijo>().WithMany().HasForeignKey("ServicioFijoId"),
+                        j => j.HasOne<Ingreso>().WithMany().HasForeignKey("IngresoId")
+                    );
 
                 entity.HasIndex(e => new { e.VehiculoId, e.FechaIngreso });
             });

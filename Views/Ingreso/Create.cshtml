@@ -66,32 +66,60 @@
                     </div>
                 </div>
 
-                <!-- Servicio Fijo (Nuevo) -->
+                <!-- Servicios Fijos (Múltiples con Buscador) -->
                 <div class="col-12">
-                    <label asp-for="ServicioFijoId" class="form-label">
-                        <i class="fas fa-list-check me-1"></i> Servicio Fijo (Opcional)
+                    <label class="form-label">
+                        <i class="fas fa-list-check me-1"></i> Servicios Fijos (Opcional)
                     </label>
-                    <select asp-for="ServicioFijoId" class="form-select" id="servicioFijoSelect">
-                        <option value="">-- Seleccione un servicio predefinido (opcional) --</option>
-                        @if (ViewBag.ServiciosFijos != null)
-                        {
-                            foreach (var s in (IEnumerable<AutoSys.Models.ServicioFijo>)ViewBag.ServiciosFijos)
+
+                    <div class="servicio-search-container" style="position: relative;">
+                        <!-- Contenedor de Servicios Seleccionados (Tags) -->
+                        <div id="serviciosSeleccionadosContainer" class="mb-2 d-flex flex-wrap gap-2">
+                            <!-- Los tags se agregan aquí dinámicamente -->
+                        </div>
+
+                        <!-- Input de búsqueda -->
+                        <div class="input-group">
+                            <span class="input-group-text"><i class="fas fa-search"></i></span>
+                            <input type="text"
+                                   id="buscarServicioInput"
+                                   class="form-control"
+                                   placeholder="Escriba para buscar un servicio (ej: aceite, frenos...)"
+                                   autocomplete="off" />
+                        </div>
+
+                        <!-- Dropdown de resultados -->
+                        <div id="servicioResultadosDropdown" class="vehiculo-search-results" style="display: none; padding-top: 0; padding-bottom: 0;">
+                            <!-- Los resultados se cargan dinámicamente -->
+                        </div>
+
+                        <!-- Inputs ocultos para el POST -->
+                        <div id="hiddenServiciosInputs">
+                            @if (ViewBag.SelectedServicioIds != null)
                             {
-                                <option value="@s.Id" data-desc="@s.DescripcionPredeterminada">@s.Nombre</option>
+                                foreach (var id in (List<int>)ViewBag.SelectedServicioIds)
+                                {
+                                    <input type="hidden" name="SelectedServicioIds" value="@id" />
+                                }
                             }
-                        }
-                    </select>
-                    <div class="form-text">Seleccionar un servicio autocompletará el diagnóstico inicial.</div>
+                        </div>
+                    </div>
+
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i> 
+                        Busque y seleccione los servicios predefinidos que desea realizar.
+                    </div>
                 </div>
 
                 <!-- Diagnóstico -->
                 <div class="col-12">
-                    <label asp-for="Diagnostico" class="form-label">
+                    <label asp-for="Diagnostico" class="form-label" id="labelDiagnostico">
                         <i class="fas fa-stethoscope me-1"></i> Diagnóstico Inicial
-                        <span class="text-danger">*</span>
+                        <span class="text-danger" id="reqDiagnostico">*</span>
                     </label>
-                    <textarea asp-for="Diagnostico" class="form-control" rows="4" placeholder="Describa el problema o la solicitud del cliente..." required></textarea>
+                    <textarea asp-for="Diagnostico" class="form-control" rows="4" placeholder="Describa el problema o la solicitud del cliente..." id="Diagnostico"></textarea>
                     <span asp-validation-for="Diagnostico" class="text-danger"></span>
+                    <div class="form-text" id="helpDiagnostico">El diagnóstico es obligatorio si no selecciona ningún servicio.</div>
                 </div>
 
                 <!-- Foto -->
@@ -369,30 +397,158 @@
         });
 
         // ══════════════════════════════════════════════════════
-        // LÓGICA DE SERVICIOS FIJOS
+        // LÓGICA DE SERVICIOS FIJOS (Buscador y Tags)
         // ══════════════════════════════════════════════════════
-        document.getElementById('servicioFijoSelect').addEventListener('change', function() {
-            const selectedOption = this.options[this.selectedIndex];
-            const descripcion = selectedOption.getAttribute('data-desc');
-            const diagnosticoTextarea = document.getElementById('Diagnostico');
-            
-            if (descripcion && descripcion.trim() !== "") {
-                const currentVal = diagnosticoTextarea.value.trim();
-                if (currentVal === "") {
-                    diagnosticoTextarea.value = descripcion;
+        (function() {
+            // Datos iniciales desde ViewBag
+            const todosLosServicios = @Html.Raw(Json.Serialize(ViewBag.ServiciosFijos));
+            const containerTags = document.getElementById('serviciosSeleccionadosContainer');
+            const dropdown = document.getElementById('servicioResultadosDropdown');
+            const inputBuscar = document.getElementById('buscarServicioInput');
+            const containerHidden = document.getElementById('hiddenServiciosInputs');
+            const textarea = document.getElementById('Diagnostico');
+            const reqStar = document.getElementById('reqDiagnostico');
+            const helpText = document.getElementById('helpDiagnostico');
+
+            let seleccionadosIds = [];
+            @if (ViewBag.SelectedServicioIds != null)
+            {
+                <text>seleccionadosIds = @Html.Raw(Json.Serialize(ViewBag.SelectedServicioIds));</text>
+            }
+
+            function actualizarUI() {
+                // 1. Limpiar container de tags e inputs ocultos
+                containerTags.innerHTML = '';
+                containerHidden.innerHTML = '';
+
+                // 2. Generar Tags y Hidden Inputs
+                seleccionadosIds.forEach(id => {
+                    const serv = todosLosServicios.find(s => s.id === id);
+                    if (serv) {
+                        // Crear Tag
+                        const tag = document.createElement('span');
+                        tag.className = 'badge bg-info d-inline-flex align-items-center gap-1 p-2';
+                        tag.style.fontSize = '0.9rem';
+                        tag.innerHTML = `<i class="fas fa-list-check me-1"></i> ${serv.nombre} 
+                                        <button type="button" class="btn-close btn-close-white" style="font-size: 0.6rem; padding: 0.2rem;" onclick="quitarServicio(${serv.id})"></button>`;
+                        containerTags.appendChild(tag);
+
+                        // Crear Hidden Input
+                        const hidden = document.createElement('input');
+                        hidden.type = 'hidden';
+                        hidden.name = 'SelectedServicioIds';
+                        hidden.value = serv.id;
+                        containerHidden.appendChild(hidden);
+                    }
+                });
+
+                // 3. Actualizar validación de diagnóstico
+                const tieneServicios = seleccionadosIds.length > 0;
+                if (tieneServicios) {
+                    textarea.required = false;
+                    reqStar.style.display = 'none';
+                    helpText.style.color = 'var(--muted-foreground)';
                 } else {
-                    // Evitar duplicados si ya contiene la descripción
-                    if (!currentVal.includes(descripcion)) {
-                        diagnosticoTextarea.value = currentVal + "\n- " + descripcion;
+                    textarea.required = true;
+                    reqStar.style.display = 'inline';
+                    helpText.style.color = 'var(--danger)';
+                }
+            }
+
+            // Exponer función de quitar a nivel global para el onclick del botón close
+            window.quitarServicio = function(id) {
+                seleccionadosIds = seleccionadosIds.filter(sid => sid !== id);
+                actualizarUI();
+            };
+
+            function agregarServicio(id) {
+                if (!seleccionadosIds.includes(id)) {
+                    seleccionadosIds.push(id);
+                    actualizarUI();
+                    
+                    // Lógica de autocompletado en diagnóstico
+                    const serv = todosLosServicios.find(s => s.id === id);
+                    if (serv && serv.descripcionPredeterminada) {
+                        let currentVal = textarea.value.trim();
+                        if (!currentVal.includes(serv.descripcionPredeterminada)) {
+                            if (currentVal !== "") currentVal += "\n";
+                            currentVal += "- " + serv.descripcionPredeterminada;
+                            textarea.value = currentVal;
+                            
+                            textarea.style.backgroundColor = '#ecfdf5';
+                            setTimeout(() => textarea.style.backgroundColor = '', 500);
+                        }
                     }
                 }
-                
-                // Efecto visual sutil para indicar el cambio
-                diagnosticoTextarea.style.backgroundColor = '#ecfdf5';
-                setTimeout(() => {
-                    diagnosticoTextarea.style.backgroundColor = '';
-                }, 500);
+                cerrarDropdown();
+                inputBuscar.value = '';
             }
-        });
+
+            function renderResultados(termino) {
+                const filtrados = todosLosServicios.filter(s => 
+                    !seleccionadosIds.includes(s.id) && 
+                    (s.nombre.toLowerCase().includes(termino.toLowerCase()) || 
+                     (s.descripcionPredeterminada && s.descripcionPredeterminada.toLowerCase().includes(termino.toLowerCase())))
+                ).slice(0, 10); // Limitar a 10 resultados
+
+                if (filtrados.length === 0) {
+                    dropdown.innerHTML = '<div class="vehiculo-search-empty"><i class="fas fa-search me-1"></i>No se encontraron servicios</div>';
+                } else {
+                    let html = '';
+                    filtrados.forEach(s => {
+                        html += `
+                            <div class="vehiculo-search-item" onclick="agregarServicioDesdeUI(${s.id})">
+                                <div class="vehiculo-search-item-main">
+                                    <i class="fas fa-list-check vehiculo-search-item-icon"></i>
+                                    <div>
+                                        <div class="vehiculo-search-item-patente">${s.nombre}</div>
+                                        <div class="vehiculo-search-item-detalle">${s.descripcionPredeterminada || ''}</div>
+                                    </div>
+                                </div>
+                                <div class="vehiculo-search-item-cliente">${s.precioSugerido ? '$' + s.precioSugerido.toLocaleString('es-AR') : ''}</div>
+                            </div>`;
+                    });
+                    dropdown.innerHTML = html;
+                }
+                dropdown.style.display = 'block';
+            }
+
+            window.agregarServicioDesdeUI = function(id) {
+                agregarServicio(id);
+            };
+
+            function cerrarDropdown() {
+                dropdown.style.display = 'none';
+            }
+
+            inputBuscar.addEventListener('focus', function() {
+                renderResultados(this.value.trim());
+            });
+
+            inputBuscar.addEventListener('click', function(e) {
+                e.stopPropagation();
+                renderResultados(this.value.trim());
+            });
+
+            inputBuscar.addEventListener('input', function() {
+                renderResultados(this.value.trim());
+            });
+
+            // Hacer que todo el contenedor de búsqueda sea clickeable para enfocar el input
+            inputBuscar.closest('.servicio-search-container').addEventListener('click', function(e) {
+                if (e.target !== inputBuscar) {
+                    inputBuscar.focus();
+                }
+            });
+
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('.servicio-search-container')) {
+                    cerrarDropdown();
+                }
+            });
+
+            // Inicializar al cargar
+            actualizarUI();
+        })();
     </script>
 }

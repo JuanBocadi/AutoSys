@@ -42,43 +42,89 @@
 
                 <h4 class="mt-4 mb-3">Detalles de la Factura</h4>
                 <div id="detallesContainer">
-                    <!-- Detalle 1 -->
-                    <div class="detalle-item card mb-3">
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-4 mb-2">
-                                    <label>Descripción</label>
-                                    <input type="text" name="detalles[0].Descripcion" 
-                                           class="form-control" required 
-                                           value="@(ViewBag.ServicioFijoNombre ?? "")"
-                                           placeholder="Ej: Cambio de aceite">
+                    @if (ViewBag.ServiciosPredefinidos != null)
+                    {
+                        var servicios = (IEnumerable<dynamic>)ViewBag.ServiciosPredefinidos;
+                        int index = 0;
+                        foreach (var s in servicios)
+                        {
+                            <div class="detalle-item card mb-3">
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-4 mb-2">
+                                            <label>Descripción</label>
+                                            <input type="text" name="detalles[@index].Descripcion" 
+                                                   class="form-control" required 
+                                                   value="@s.Nombre"
+                                                   placeholder="Ej: Cambio de aceite">
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label>Tipo</label>
+                                            <select name="detalles[@index].Tipo" class="form-select">
+                                                <option value="Servicio">Servicio</option>
+                                                <option value="Repuesto">Repuesto</option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label>Cantidad</label>
+                                            <input type="number" name="detalles[@index].Cantidad" 
+                                                   class="form-control cantidad" min="1" value="1" required>
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label>Precio Unit.</label>
+                                            <input type="number" name="detalles[@index].PrecioUnitario" 
+                                                   class="form-control precio" step="0.01" min="0" required
+                                                   value="@(((decimal)s.Precio).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
+                                        </div>
+                                        <div class="col-md-2 mb-2">
+                                            <label>Subtotal</label>
+                                            <input type="number" name="detalles[@index].Subtotal" 
+                                                   class="form-control subtotal" readonly value="0">
+                                        </div>
+                                    </div>
                                 </div>
-                                <div class="col-md-2 mb-2">
-                                    <label>Tipo</label>
-                                    <select name="detalles[0].Tipo" class="form-select">
-                                        <option value="Servicio">Servicio</option>
-                                        <option value="Repuesto">Repuesto</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <label>Cantidad</label>
-                                    <input type="number" name="detalles[0].Cantidad" 
-                                           class="form-control cantidad" min="1" value="1" required>
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <label>Precio Unit.</label>
-                                    <input type="number" name="detalles[0].PrecioUnitario" 
-                                           class="form-control precio" step="0.01" min="0" required
-                                           value="@(ViewBag.ServicioFijoPrecio != null ? ((decimal)ViewBag.ServicioFijoPrecio).ToString("F2", System.Globalization.CultureInfo.InvariantCulture) : "")">
-                                </div>
-                                <div class="col-md-2 mb-2">
-                                    <label>Subtotal</label>
-                                    <input type="number" name="detalles[0].Subtotal" 
-                                           class="form-control subtotal" readonly value="0">
+                            </div>
+                            index++;
+                        }
+                    }
+                    else
+                    {
+                        <!-- Fallback si no hay nada (aunque el controlador asegura que haya) -->
+                        <div class="detalle-item card mb-3">
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4 mb-2">
+                                        <label>Descripción</label>
+                                        <input type="text" name="detalles[0].Descripcion" 
+                                               class="form-control" required 
+                                               placeholder="Ej: Cambio de aceite">
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label>Tipo</label>
+                                        <select name="detalles[0].Tipo" class="form-select">
+                                            <option value="Servicio">Servicio</option>
+                                            <option value="Repuesto">Repuesto</option>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label>Cantidad</label>
+                                        <input type="number" name="detalles[0].Cantidad" 
+                                               class="form-control cantidad" min="1" value="1" required>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label>Precio Unit.</label>
+                                        <input type="number" name="detalles[0].PrecioUnitario" 
+                                               class="form-control precio" step="0.01" min="0" required>
+                                    </div>
+                                    <div class="col-md-2 mb-2">
+                                        <label>Subtotal</label>
+                                        <input type="number" name="detalles[0].Subtotal" 
+                                               class="form-control subtotal" readonly value="0">
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    }
                 </div>
 
                 <button type="button" class="btn btn-outline-primary mb-3" id="agregarDetalle">
@@ -147,7 +193,7 @@
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
-        let detalleCount = 1;
+        let detalleCount = document.querySelectorAll('.detalle-item').length;
 
         // Agregar nueva línea de detalle
         document.getElementById('agregarDetalle').addEventListener('click', function() {

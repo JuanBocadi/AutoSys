@@ -65,18 +65,23 @@
                     </div>
                     <p style="font-size: 1rem; margin: 0;">@Model.Diagnostico</p>
                     
-                    @if (Model.ServicioFijo != null)
+                    @if (Model.ServiciosFijos != null && Model.ServiciosFijos.Any())
                     {
                         <div style="margin-top: 1rem; padding-top: 0.75rem; border-top: 1px dotted var(--border);">
-                            <span class="badge bg-info" style="font-size: 0.85rem;">
-                                <i class="fas fa-list-check me-1"></i> Servicio: @Model.ServicioFijo.Nombre
-                            </span>
-                            @if (Model.ServicioFijo.PrecioSugerido.HasValue)
-                            {
-                                <span class="badge bg-success ms-2" style="font-size: 0.85rem;">
-                                    Precio Sugerido: @Model.ServicioFijo.PrecioSugerido.Value.ToString("C")
-                                </span>
-                            }
+                            <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
+                                @foreach (var s in Model.ServiciosFijos)
+                                {
+                                    <span class="badge bg-info" style="font-size: 0.85rem;">
+                                        <i class="fas fa-list-check me-1"></i> @s.Nombre
+                                        @if (s.PrecioSugerido.HasValue)
+                                        {
+                                            <span style="border-left: 1px solid rgba(255,255,255,0.3); margin-left: 0.5rem; padding-left: 0.5rem;">
+                                                @s.PrecioSugerido.Value.ToString("C")
+                                            </span>
+                                        }
+                                    </span>
+                                }
+                            </div>
                         </div>
                     }
                 </div>
