@@ -167,6 +167,12 @@ namespace AutoSys.Data
                     .WithMany(f => f.Detalles)
                     .HasForeignKey(d => d.FacturaId)
                     .OnDelete(DeleteBehavior.Cascade);
+
+                entity.HasOne(d => d.Stock)
+                    .WithMany()
+                    .HasForeignKey(d => d.StockId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .IsRequired(false);
             });
 
             // AuditLogs

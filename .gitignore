@@ -15,6 +15,12 @@ appsettings.Development.json
 # Logs
 *.log
 
+# Diffs
+*.diff
+
+# Build logs basura
+build_log*.txt
+
 # Paquetes NuGet
 *.nupkg
 packages/

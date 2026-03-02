@@ -22,201 +22,442 @@
 <!-- Formulario -->
 <div class="card">
     <div class="card-body">
-            <form asp-action="Create" method="post" id="facturaForm">
-                <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
-                <input type="hidden" asp-for="ClienteId" />
+        <form asp-action="Create" method="post" id="facturaForm">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+            <input type="hidden" asp-for="ClienteId" />
 
-                <div class="row">
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="NumeroFactura" class="form-label"></label>
-                        <input asp-for="NumeroFactura" class="form-control" readonly />
-                    </div>
-                    <div class="col-md-6 mb-3">
-                        <label asp-for="IngresoId" class="form-label">Ingreso/Reparación</label>
-                        <select asp-for="IngresoId" class="form-select" asp-items="ViewBag.Ingresos" required>
-                            <option value="">Seleccione un ingreso...</option>
-                        </select>
-                        <span asp-validation-for="IngresoId" class="text-danger"></span>
-                    </div>
+            <div class="row g-3">
+                <!-- Número de Factura -->
+                <div class="col-md-6">
+                    <label asp-for="NumeroFactura" class="form-label">
+                        <i class="fas fa-hashtag me-1"></i> Número de Factura
+                    </label>
+                    <input asp-for="NumeroFactura" class="form-control" readonly />
                 </div>
 
-                <h4 class="mt-4 mb-3">Detalles de la Factura</h4>
-                <div id="detallesContainer">
-                    @if (ViewBag.ServiciosPredefinidos != null)
+                <!-- Ingreso/Reparación -->
+                <div class="col-md-6">
+                    <label asp-for="IngresoId" class="form-label">
+                        <i class="fas fa-clipboard-list me-1"></i> Ingreso/Reparación
+                        <span class="text-danger">*</span>
+                    </label>
+                    <select asp-for="IngresoId" class="form-select" asp-items="ViewBag.Ingresos" required>
+                        <option value="">Seleccione un ingreso...</option>
+                    </select>
+                    <span asp-validation-for="IngresoId" class="text-danger"></span>
+                </div>
+
+                <!-- Sección: Detalles de la Factura -->
+                <div class="col-12">
+                    <hr style="margin: 0.5rem 0;" />
+                    <h5 style="font-weight: 600; margin-bottom: 0;">
+                        <i class="fas fa-list-ol me-1" style="color: #10b981;"></i> Detalles de la Factura
+                    </h5>
+                </div>
+
+                <!-- Buscador de repuestos -->
+                <div class="col-12">
+                    <label class="form-label">
+                        <i class="fas fa-search me-1"></i> Buscar repuesto en Stock
+                    </label>
+                    <div style="position: relative;">
+                        <input type="text" id="buscarRepuesto" class="form-control" 
+                               placeholder="Escribí al menos 2 caracteres para buscar por nombre o código..." 
+                               autocomplete="off" />
+                        <div id="repuestoResults" class="list-group shadow" 
+                             style="display:none; position:absolute; width:100%; z-index:1050; max-height:250px; overflow-y:auto;">
+                        </div>
+                    </div>
+                    <div class="form-text">
+                        <i class="fas fa-info-circle me-1"></i> Al seleccionar un repuesto se agregará una nueva línea con los datos pre-cargados.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Líneas de detalle -->
+            <div id="detallesContainer" style="margin-top: 1rem;">
+                @if (ViewBag.ServiciosPredefinidos != null)
+                {
+                    var servicios = (IEnumerable<dynamic>)ViewBag.ServiciosPredefinidos;
+                    int index = 0;
+                    foreach (var s in servicios)
                     {
-                        var servicios = (IEnumerable<dynamic>)ViewBag.ServiciosPredefinidos;
-                        int index = 0;
-                        foreach (var s in servicios)
-                        {
-                            <div class="detalle-item card mb-3">
-                                <div class="card-body">
-                                    <div class="row">
-                                        <div class="col-md-4 mb-2">
-                                            <label>Descripción</label>
-                                            <input type="text" name="detalles[@index].Descripcion" 
-                                                   class="form-control" required 
-                                                   value="@s.Nombre"
-                                                   placeholder="Ej: Cambio de aceite">
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <label>Tipo</label>
-                                            <select name="detalles[@index].Tipo" class="form-select">
-                                                <option value="Servicio">Servicio</option>
-                                                <option value="Repuesto">Repuesto</option>
-                                            </select>
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <label>Cantidad</label>
-                                            <input type="number" name="detalles[@index].Cantidad" 
-                                                   class="form-control cantidad" min="1" value="1" required>
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <label>Precio Unit.</label>
-                                            <input type="number" name="detalles[@index].PrecioUnitario" 
-                                                   class="form-control precio" step="0.01" min="0" required
-                                                   value="@(((decimal)s.Precio).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
-                                        </div>
-                                        <div class="col-md-2 mb-2">
-                                            <label>Subtotal</label>
-                                            <input type="number" name="detalles[@index].Subtotal" 
-                                                   class="form-control subtotal" readonly value="0">
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                            index++;
-                        }
-                    }
-                    else
-                    {
-                        <!-- Fallback si no hay nada (aunque el controlador asegura que haya) -->
                         <div class="detalle-item card mb-3">
                             <div class="card-body">
-                                <div class="row">
-                                    <div class="col-md-4 mb-2">
-                                        <label>Descripción</label>
-                                        <input type="text" name="detalles[0].Descripcion" 
-                                               class="form-control" required 
+                                <input type="hidden" name="detalles[@index].StockId" class="stockId" value="" />
+                                <div class="row align-items-center g-2">
+                                    <div class="col-md-3">
+                                        <label class="form-label">
+                                            <i class="fas fa-align-left me-1"></i> Descripción
+                                        </label>
+                                        <input type="text" name="detalles[@index].Descripcion" 
+                                               class="form-control bg-light" required readonly
+                                               value="@s.Nombre"
                                                placeholder="Ej: Cambio de aceite">
                                     </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label>Tipo</label>
-                                        <select name="detalles[0].Tipo" class="form-select">
-                                            <option value="Servicio">Servicio</option>
-                                            <option value="Repuesto">Repuesto</option>
+                                    <div class="col-md-2">
+                                        <label class="form-label">
+                                            <i class="fas fa-tag me-1"></i> Tipo
+                                        </label>
+                                        <input type="hidden" name="detalles[@index].Tipo" value="Servicio" />
+                                        <select class="form-select bg-light" disabled>
+                                            <option value="Servicio" selected>Servicio</option>
                                         </select>
                                     </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label>Cantidad</label>
-                                        <input type="number" name="detalles[0].Cantidad" 
+                                    <div class="col-md-2">
+                                        <label class="form-label">
+                                            <i class="fas fa-sort-numeric-up me-1"></i> Cantidad
+                                        </label>
+                                        <input type="number" name="detalles[@index].Cantidad" 
                                                class="form-control cantidad" min="1" value="1" required>
                                     </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label>Precio Unit.</label>
-                                        <input type="number" name="detalles[0].PrecioUnitario" 
-                                               class="form-control precio" step="0.01" min="0" required>
+                                    <div class="col-md-2">
+                                        <label class="form-label">
+                                            <i class="fas fa-dollar-sign me-1"></i> Precio Unit. <i class="fas fa-lock fa-xs text-muted"></i>
+                                        </label>
+                                        <input type="number" name="detalles[@index].PrecioUnitario" 
+                                               class="form-control precio bg-light" step="0.01" min="0" required readonly
+                                               value="@(((decimal)s.Precio).ToString("F2", System.Globalization.CultureInfo.InvariantCulture))">
                                     </div>
-                                    <div class="col-md-2 mb-2">
-                                        <label>Subtotal</label>
-                                        <input type="number" name="detalles[0].Subtotal" 
-                                               class="form-control subtotal" readonly value="0">
+                                    <div class="col-md-2">
+                                        <label class="form-label">
+                                            <i class="fas fa-calculator me-1"></i> Subtotal
+                                        </label>
+                                        <input type="number" name="detalles[@index].Subtotal" 
+                                               class="form-control subtotal bg-light" readonly value="0">
+                                    </div>
+                                    <div class="col-md-1 text-end" style="padding-top: 1.75rem;">
+                                        <button type="button" class="btn btn-outline-danger btn-eliminar-linea" title="Eliminar línea">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
                         </div>
+                        index++;
                     }
-                </div>
-
-                <button type="button" class="btn btn-outline-primary mb-3" id="agregarDetalle">
-                    <i class="fas fa-plus me-1"></i>Agregar Línea
-                </button>
-
-                <div class="card bg-light mb-3">
-                    <div class="card-body">
-                        <div class="row">
-                            <div class="col-md-8"></div>
-                            <div class="col-md-4">
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>Subtotal:</strong>
-                                    <span id="subtotalTotal">$0.00</span>
+                }
+                else
+                {
+                    <div class="detalle-item card mb-3">
+                        <div class="card-body">
+                            <input type="hidden" name="detalles[0].StockId" class="stockId" value="" />
+                            <div class="row align-items-center g-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">
+                                        <i class="fas fa-align-left me-1"></i> Descripción
+                                    </label>
+                                    <input type="text" name="detalles[0].Descripcion" 
+                                           class="form-control desc-servicio" required 
+                                           placeholder="Ej: Cambio de aceite" autocomplete="off" />
                                 </div>
-                                <div class="d-flex justify-content-between mb-2">
-                                    <strong>IVA (21%):</strong>
-                                    <span id="ivaTotal">$0.00</span>
+                                <div class="col-md-2">
+                                    <label class="form-label">
+                                        <i class="fas fa-tag me-1"></i> Tipo
+                                    </label>
+                                    <select name="detalles[0].Tipo" class="form-select">
+                                        <option value="Servicio">Servicio</option>
+                                        <option value="Repuesto">Repuesto</option>
+                                    </select>
                                 </div>
-                                <hr>
-                                <div class="d-flex justify-content-between">
-                                    <h4>Total:</h4>
-                                    <h4 class="text-success" id="totalFinal">$0.00</h4>
+                                <div class="col-md-2">
+                                    <label class="form-label">
+                                        <i class="fas fa-sort-numeric-up me-1"></i> Cantidad
+                                    </label>
+                                    <input type="number" name="detalles[0].Cantidad" 
+                                           class="form-control cantidad" min="1" value="1" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">
+                                        <i class="fas fa-dollar-sign me-1"></i> Precio Unit.
+                                    </label>
+                                    <input type="number" name="detalles[0].PrecioUnitario" 
+                                           class="form-control precio" step="0.01" min="0" required>
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">
+                                        <i class="fas fa-calculator me-1"></i> Subtotal
+                                    </label>
+                                    <input type="number" name="detalles[0].Subtotal" 
+                                           class="form-control subtotal bg-light" readonly value="0">
+                                </div>
+                                <div class="col-md-1 text-end" style="padding-top: 1.75rem;">
+                                    <button type="button" class="btn btn-outline-danger btn-eliminar-linea" title="Eliminar línea">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
+                }
+            </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label asp-for="MetodoPago" class="form-label"></label>
-                        <select asp-for="MetodoPago" class="form-select">
-                            <option value="">Seleccione...</option>
-                            <option value="Efectivo">Efectivo</option>
-                            <option value="Tarjeta">Tarjeta</option>
-                            <option value="Transferencia">Transferencia</option>
-                        </select>
+            <button type="button" class="btn btn-outline-primary mb-3" id="agregarDetalle">
+                <i class="fas fa-plus me-1"></i>Agregar Línea Manual
+            </button>
+
+            <!-- Resumen de Totales -->
+            <div class="card mb-3" style="border-left: 4px solid #10b981;">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8"></div>
+                        <div class="col-md-4">
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong><i class="fas fa-receipt me-1"></i> Subtotal:</strong>
+                                <span id="subtotalTotal">$0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <strong><i class="fas fa-percent me-1"></i> IVA (21%):</strong>
+                                <span id="ivaTotal">$0.00</span>
+                            </div>
+                            <hr>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 style="font-weight: 700; margin: 0;">
+                                    <i class="fas fa-coins me-1"></i> Total:
+                                </h5>
+                                <h5 style="font-weight: 700; margin: 0; color: #10b981;" id="totalFinal">$0.00</h5>
+                            </div>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label asp-for="Estado" class="form-label"></label>
-                        <select asp-for="Estado" class="form-select">
-                            <option value="Pendiente">Pendiente</option>
-                            <option value="Pagada">Pagada</option>
-                        </select>
-                    </div>
+                </div>
+            </div>
+
+            <div class="row g-3">
+                <!-- Método de Pago -->
+                <div class="col-md-6">
+                    <label asp-for="MetodoPago" class="form-label">
+                        <i class="fas fa-credit-card me-1"></i> Método de Pago
+                    </label>
+                    <select asp-for="MetodoPago" class="form-select">
+                        <option value="">Seleccione...</option>
+                        <option value="Efectivo">Efectivo</option>
+                        <option value="Tarjeta">Tarjeta</option>
+                        <option value="Transferencia">Transferencia</option>
+                    </select>
                 </div>
 
-                <div class="mb-3">
-                    <label asp-for="Observaciones" class="form-label"></label>
-                    <textarea asp-for="Observaciones" class="form-control" rows="2"></textarea>
+                <!-- Estado -->
+                <div class="col-md-6">
+                    <label asp-for="Estado" class="form-label">
+                        <i class="fas fa-info-circle me-1"></i> Estado
+                    </label>
+                    <select asp-for="Estado" class="form-select">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Pagada">Pagada</option>
+                    </select>
                 </div>
 
-                <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
-                    <a asp-action="Index" class="btn btn-outline">
-                        <i class="fas fa-times me-2"></i>Cancelar
-                    </a>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        <i class="fas fa-save me-2"></i>Crear Factura
-                    </button>
+                <!-- Observaciones -->
+                <div class="col-12">
+                    <label asp-for="Observaciones" class="form-label">
+                        <i class="fas fa-comment me-1"></i> Observaciones
+                    </label>
+                    <textarea asp-for="Observaciones" class="form-control" rows="2" placeholder="Notas adicionales sobre la factura..."></textarea>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Botones -->
+            <div style="margin-top: 2rem; display: flex; gap: 0.75rem; justify-content: flex-end;">
+                <a asp-action="Index" class="btn btn-outline">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary" id="submitBtn">
+                    <i class="fas fa-save me-2"></i>Crear Factura
+                </button>
+            </div>
+        </form>
     </div>
+</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
     <script>
         let detalleCount = document.querySelectorAll('.detalle-item').length;
 
-        // Agregar nueva línea de detalle
-        document.getElementById('agregarDetalle').addEventListener('click', function() {
-            const container = document.getElementById('detallesContainer');
-            const newDetalle = document.querySelector('.detalle-item').cloneNode(true);
-            
-            // Actualizar índices
-            newDetalle.querySelectorAll('input, select').forEach(input => {
-                const name = input.getAttribute('name');
-                if (name) {
-                    input.setAttribute('name', name.replace('[0]', `[${detalleCount}]`));
-                    if (input.type !== 'select-one' && input.type !== 'hidden') {
-                        input.value = input.classList.contains('cantidad') ? 1 : '';
-                    }
+        // ── BUSCADOR DE REPUESTOS (Autocomplete nativo) ──
+        (function() {
+            const input = document.getElementById('buscarRepuesto');
+            const resultsBox = document.getElementById('repuestoResults');
+            let debounceTimer = null;
+
+            input.addEventListener('input', function() {
+                clearTimeout(debounceTimer);
+                const term = this.value.trim();
+                if (term.length < 2) {
+                    resultsBox.style.display = 'none';
+                    return;
+                }
+                debounceTimer = setTimeout(() => {
+                    fetch(`/Facturacion/BuscarRepuestos?term=${encodeURIComponent(term)}`)
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.length === 0) {
+                                resultsBox.innerHTML = '<div class="list-group-item text-muted py-2">No se encontraron repuestos</div>';
+                            } else {
+                                resultsBox.innerHTML = data.map(item => `
+                                    <button type="button" class="list-group-item list-group-item-action py-2"
+                                            data-id="${item.id}" data-label="${item.label}" 
+                                            data-precio="${item.precio}" data-stock="${item.stockDisponible}">
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <div>
+                                                <span class="fw-bold text-primary">${item.label}</span>
+                                                <div class="small text-muted">Precio: $${parseFloat(item.precio).toFixed(2)} | Stock: ${item.stockDisponible}</div>
+                                            </div>
+                                            <i class="fas fa-plus-circle text-success"></i>
+                                        </div>
+                                    </button>
+                                `).join('');
+                            }
+                            resultsBox.style.display = 'block';
+                        });
+                }, 300);
+            });
+
+            // Al seleccionar un repuesto del dropdown
+            resultsBox.addEventListener('click', function(e) {
+                const btn = e.target.closest('[data-id]');
+                if (!btn) return;
+
+                const stockId = btn.dataset.id;
+                const label = btn.dataset.label;
+                const precio = btn.dataset.precio;
+                const stockDisp = btn.dataset.stock;
+
+                agregarLineaRepuesto(stockId, label, precio, stockDisp);
+                input.value = '';
+                resultsBox.style.display = 'none';
+            });
+
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.closest('#buscarRepuesto') && !e.target.closest('#repuestoResults')) {
+                    resultsBox.style.display = 'none';
                 }
             });
+        })();
+
+        // ── CREAR LÍNEA PRECARGADA DE REPUESTO (Precio Bloqueado) ──
+        function agregarLineaRepuesto(stockId, label, precio, stockDisp) {
+            const container = document.getElementById('detallesContainer');
+            const idx = detalleCount;
+
+            const html = `
+                <div class="detalle-item card mb-3 border-success">
+                    <div class="card-body">
+                        <input type="hidden" name="detalles[${idx}].StockId" class="stockId" value="${stockId}" />
+                        <div class="row align-items-center g-2">
+                            <div class="col-md-3">
+                                <label class="form-label"><i class="fas fa-align-left me-1"></i> Descripción</label>
+                                <input type="text" name="detalles[${idx}].Descripcion" 
+                                       class="form-control bg-light" required value="${label}" readonly>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-tag me-1"></i> Tipo</label>
+                                <input type="hidden" name="detalles[${idx}].Tipo" value="Repuesto" />
+                                <select class="form-select bg-light" disabled>
+                                    <option value="Repuesto" selected>Repuesto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-sort-numeric-up me-1"></i> Cantidad</label>
+                                <input type="number" name="detalles[${idx}].Cantidad" 
+                                       class="form-control cantidad" min="1" value="1" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-dollar-sign me-1"></i> Precio Unit. <i class="fas fa-lock fa-xs text-muted"></i></label>
+                                <input type="number" name="detalles[${idx}].PrecioUnitario" 
+                                       class="form-control precio bg-light" step="0.01" min="0" required
+                                       value="${parseFloat(precio).toFixed(2)}" readonly>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-calculator me-1"></i> Subtotal</label>
+                                <input type="number" name="detalles[${idx}].Subtotal" 
+                                       class="form-control subtotal bg-light" readonly value="${parseFloat(precio).toFixed(2)}">
+                            </div>
+                            <div class="col-md-1 text-end" style="padding-top: 1.75rem;">
+                                <button type="button" class="btn btn-outline-danger btn-eliminar-linea" title="Eliminar línea">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            container.insertAdjacentHTML('beforeend', html);
+            detalleCount++;
+            calcularTotales();
+        }
+
+        // ── AGREGAR LÍNEA DE DETALLE MANUAL ──
+        document.getElementById('agregarDetalle').addEventListener('click', function() {
+            const container = document.getElementById('detallesContainer');
+            const idx = detalleCount;
+
+            const html = `
+                <div class="detalle-item card mb-3">
+                    <div class="card-body">
+                        <input type="hidden" name="detalles[${idx}].StockId" class="stockId" value="" />
+                        <div class="row align-items-center g-2">
+                            <div class="col-md-3">
+                                <label class="form-label"><i class="fas fa-align-left me-1"></i> Descripción</label>
+                                <input type="text" name="detalles[${idx}].Descripcion" 
+                                       class="form-control desc-servicio" required 
+                                       placeholder="Ej: Mano de obra" autocomplete="off" />
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-tag me-1"></i> Tipo</label>
+                                <select name="detalles[${idx}].Tipo" class="form-select">
+                                    <option value="Servicio" selected>Servicio</option>
+                                    <option value="Repuesto">Repuesto</option>
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-sort-numeric-up me-1"></i> Cantidad</label>
+                                <input type="number" name="detalles[${idx}].Cantidad" 
+                                       class="form-control cantidad" min="1" value="1" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-dollar-sign me-1"></i> Precio Unit.</label>
+                                <input type="number" name="detalles[${idx}].PrecioUnitario" 
+                                       class="form-control precio" step="0.01" min="0" required>
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label"><i class="fas fa-calculator me-1"></i> Subtotal</label>
+                                <input type="number" name="detalles[${idx}].Subtotal" 
+                                       class="form-control subtotal bg-light" readonly value="0">
+                            </div>
+                            <div class="col-md-1 text-end" style="padding-top: 1.75rem;">
+                                <button type="button" class="btn btn-outline-danger btn-eliminar-linea" title="Eliminar línea">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
             
-            container.appendChild(newDetalle);
+            container.insertAdjacentHTML('beforeend', html);
             detalleCount++;
             calcularTotales();
         });
 
-        // Calcular subtotales y total
+        // ── ELIMINAR LÍNEA DE DETALLE ──
+        document.getElementById('detallesContainer').addEventListener('click', function(e) {
+            // Busca si se hizo click en el botón o en su ícono
+            const btnEliminar = e.target.closest('.btn-eliminar-linea');
+            if (btnEliminar) {
+                const itemsCount = document.querySelectorAll('.detalle-item').length;
+                if (itemsCount > 1) {
+                    btnEliminar.closest('.detalle-item').remove();
+                    calcularTotales();
+                } else {
+                    alert('La factura debe tener al menos una línea de detalle.');
+                }
+            }
+        });
+
+        // ── CALCULAR SUBTOTALES Y TOTAL ──
         function calcularTotales() {
             let subtotalAcumulado = 0;
             
@@ -252,7 +493,98 @@
             document.getElementById('totalFinal').textContent = formatter.format(total);
         }
 
-        // Event listeners para recalcular
+        // ── DATOS DE SERVICIOS FIJOS (para autocompletado) ──
+        const serviciosFijos = @Html.Raw(Json.Serialize(
+            (ViewBag.TodosServicios as IEnumerable<dynamic>)?.Select(s => new {
+                nombre = (string)s.Nombre,
+                precio = ((decimal)(s.PrecioSugerido ?? 0m)).ToString("F2", System.Globalization.CultureInfo.InvariantCulture)
+            }) ?? Enumerable.Empty<object>()
+        ));
+
+        // ── AUTOCOMPLETADO DE SERVICIOS (dropdown fijo global) ──
+        (function() {
+            // Crear un único dropdown global en el body
+            const dropdown = document.createElement('div');
+            dropdown.id = 'servicioDropdownGlobal';
+            dropdown.className = 'list-group shadow';
+            dropdown.style.cssText = 'display:none; position:fixed; z-index:9999; max-height:200px; overflow-y:auto; border-radius:0.375rem; background:var(--bg-card, #fff);';
+            document.body.appendChild(dropdown);
+
+            let activeInput = null;
+
+            function posicionarDropdown(input) {
+                const rect = input.getBoundingClientRect();
+                dropdown.style.top = (rect.bottom + 2) + 'px';
+                dropdown.style.left = rect.left + 'px';
+                dropdown.style.width = rect.width + 'px';
+            }
+
+            document.addEventListener('input', function(e) {
+                if (!e.target.classList.contains('desc-servicio')) return;
+
+                activeInput = e.target;
+                const term = activeInput.value.trim().toLowerCase();
+
+                if (term.length < 1) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                const matches = serviciosFijos.filter(s => s.nombre.toLowerCase().includes(term));
+
+                if (matches.length === 0) {
+                    dropdown.style.display = 'none';
+                    return;
+                }
+
+                dropdown.innerHTML = matches.map(item => `
+                    <button type="button" class="list-group-item list-group-item-action py-2"
+                            data-nombre="${item.nombre}" data-precio="${item.precio}">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <span class="fw-bold text-primary">${item.nombre}</span>
+                                <div class="small text-muted">Precio sugerido: $${parseFloat(item.precio).toFixed(2)}</div>
+                            </div>
+                            <i class="fas fa-check-circle text-success"></i>
+                        </div>
+                    </button>
+                `).join('');
+
+                posicionarDropdown(activeInput);
+                dropdown.style.display = 'block';
+            });
+
+            // Reposicionar en scroll
+            window.addEventListener('scroll', function() {
+                if (activeInput && dropdown.style.display === 'block') {
+                    posicionarDropdown(activeInput);
+                }
+            }, true);
+
+            // Al hacer clic en una sugerencia
+            dropdown.addEventListener('click', function(e) {
+                const btn = e.target.closest('[data-nombre]');
+                if (!btn || !activeInput) return;
+
+                activeInput.value = btn.dataset.nombre;
+                const row = activeInput.closest('.row');
+                const precioInput = row.querySelector('.precio');
+                if (precioInput) {
+                    precioInput.value = btn.dataset.precio;
+                }
+                dropdown.style.display = 'none';
+                calcularTotales();
+            });
+
+            // Cerrar dropdown al hacer clic fuera
+            document.addEventListener('click', function(e) {
+                if (!e.target.classList.contains('desc-servicio') && !dropdown.contains(e.target)) {
+                    dropdown.style.display = 'none';
+                }
+            });
+        })();
+
+        // Event listeners para recalcular totales
         document.addEventListener('input', function(e) {
             if (e.target.classList.contains('cantidad') || e.target.classList.contains('precio')) {
                 calcularTotales();
@@ -263,5 +595,13 @@
         document.addEventListener('DOMContentLoaded', calcularTotales);
         // Por las dudas si el DOM ya cargó
         setTimeout(calcularTotales, 100);
+
+        // Agregar loading state al guardar
+        document.getElementById('facturaForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('submitBtn');
+            if (this.checkValidity()) {
+                AutoSysUI.setButtonLoading(submitBtn, true);
+            }
+        });
     </script>
 }

@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
     [RequirePermiso("VerStock")]
     public class StockController : Controller
     {
@@ -219,7 +219,7 @@ namespace AutoSys.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("EliminarStock")]
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -232,7 +232,7 @@ namespace AutoSys.Controllers
 
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("EliminarStock")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try

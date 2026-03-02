@@ -1,6 +1,7 @@
 using AutoSys.Models;
 using AutoSys.Services;
 using AutoSys.ViewModels;
+using AutoSys.Filters;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -13,7 +14,8 @@ using System.Threading.Tasks;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador")]
+    [Authorize]
+    [RequirePermiso("GestionarUsuarios")]
     public class UsuariosController : Controller
     {
         private readonly UserManager<IdentityUser> _userManager;

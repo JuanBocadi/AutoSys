@@ -89,26 +89,20 @@
 <!-- Filters -->
 <div class="card" style="margin-bottom: 1.5rem;">
     <div class="card-body">
-        <form method="get" asp-action="Index">
-            <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 0.75rem;">
-                <div style="position: relative;">
-                    <input type="text" name="buscar" class="form-control" 
-                           placeholder="Buscar por número o cliente..." 
-                           value="@ViewBag.Buscar"
-                           style="padding-left: 2.5rem;">
-                    <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
-                </div>
-                <select name="estado" class="form-select">
-                    <option value="">Todos los estados</option>
-                    <option value="Pendiente" selected="@(ViewBag.EstadoFiltro == "Pendiente")">Pendientes</option>
-                    <option value="Pagada" selected="@(ViewBag.EstadoFiltro == "Pagada")">Pagadas</option>
-                    <option value="Anulada" selected="@(ViewBag.EstadoFiltro == "Anulada")">Anuladas</option>
-                </select>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
+        <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 0.75rem;">
+            <div style="position: relative;">
+                <input type="text" id="searchInput" class="form-control" 
+                       placeholder="Buscar por número, cliente, patente..." 
+                       style="padding-left: 2.5rem;">
+                <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
             </div>
-        </form>
+            <select id="estadoFilter" class="form-select">
+                <option value="">Todos los estados</option>
+                <option value="Pendiente">Pendientes</option>
+                <option value="Pagada">Pagadas</option>
+                <option value="Anulada">Anuladas</option>
+            </select>
+        </div>
     </div>
 </div>
 
@@ -118,7 +112,7 @@
         @if (Model != null && Model.Any())
         {
             <div class="table-responsive">
-                <table class="table">
+                <table class="table" id="facturasTable">
                     <thead>
                         <tr>
                             <th>Número Factura</th>
@@ -246,3 +240,27 @@
         }
     </div>
 </div>
+
+@section Scripts {
+    <script>
+        // Búsqueda en tiempo real + filtro por estado
+        function filtrarFacturas() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const estadoSel = document.getElementById('estadoFilter').value;
+            const rows = document.querySelectorAll('#facturasTable tbody tr');
+
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                const matchText = !searchTerm || text.includes(searchTerm);
+                // El estado está en la columna 7 (index 6)
+                const celdaEstado = row.cells[6];
+                const estadoRow = celdaEstado ? celdaEstado.textContent.trim() : '';
+                const matchEstado = !estadoSel || estadoRow.includes(estadoSel);
+                row.style.display = (matchText && matchEstado) ? '' : 'none';
+            });
+        }
+
+        document.getElementById('searchInput').addEventListener('keyup', filtrarFacturas);
+        document.getElementById('estadoFilter').addEventListener('change', filtrarFacturas);
+    </script>
+}

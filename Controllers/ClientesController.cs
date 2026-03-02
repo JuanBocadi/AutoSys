@@ -10,7 +10,7 @@ using Microsoft.Data.SqlClient;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
     [RequirePermiso("VerClientes")]
     public class ClientesController : Controller
     {

@@ -8,7 +8,7 @@ using System.Linq;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
     [RequirePermiso("VerReparaciones")]
     public class ReparacionesController : Controller
     {

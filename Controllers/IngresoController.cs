@@ -11,7 +11,8 @@ using System.Security.Claims;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
+    [RequirePermiso("VerIngresos")]
     public class IngresoController : Controller
     {
         private readonly AutoSysDbContext _context;
@@ -84,7 +85,6 @@ namespace AutoSys.Controllers
             return Json(resultados);
         }
 
-        [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
         [RequirePermiso("CrearIngresos")]
         public async Task<IActionResult> Create()
         {

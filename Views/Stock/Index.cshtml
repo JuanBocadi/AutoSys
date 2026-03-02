@@ -107,29 +107,15 @@
     </div>
 </div>
 
-<!-- Search Bar -->
+<!-- Search Bar (filtro en tiempo real) -->
 <div class="card" style="margin-bottom: 1.5rem;">
     <div class="card-body">
-        <form method="get" asp-action="Index">
-            <div style="display: flex; gap: 0.75rem;">
-                <div style="position: relative; flex: 1;">
-                    <input type="text" name="buscar" class="form-control" 
-                           placeholder="Buscar por nombre o descripción..." 
-                           value="@ViewBag.Buscar"
-                           style="padding-left: 2.5rem;">
-                    <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
-                </div>
-                <button class="btn btn-primary" type="submit">
-                    <i class="fas fa-search"></i> Buscar
-                </button>
-                @if (!string.IsNullOrEmpty(ViewBag.Buscar))
-                {
-                    <a asp-action="Index" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Limpiar
-                    </a>
-                }
-            </div>
-        </form>
+        <div style="position: relative;">
+            <input type="text" id="searchInput" class="form-control" 
+                   placeholder="Buscar por nombre, descripción o unidad..." 
+                   style="padding-left: 2.5rem;">
+            <i class="fas fa-search" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: var(--muted-foreground);"></i>
+        </div>
     </div>
 </div>
 
@@ -139,7 +125,7 @@
         @if (Model != null && Model.Any())
         {
             <div class="table-responsive">
-                <table class="table">
+                <table class="table" id="stockTable">
                     <thead>
                         <tr>
                             <th>Producto</th>
@@ -326,7 +312,16 @@
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="editUnidad" class="form-label">Unidad</label>
-                            <input type="text" id="editUnidad" name="Unidad" class="form-control" placeholder="ej: unid., kg, litros" />
+                            <select id="editUnidad" name="Unidad" class="form-select">
+                                <option value="">Seleccione una unidad...</option>
+                                <option value="Unidades">Unidades</option>
+                                <option value="Litros">Litros</option>
+                                <option value="Kilogramos">Kilogramos</option>
+                                <option value="Metros">Metros</option>
+                                <option value="Pares">Pares</option>
+                                <option value="Juegos">Juegos</option>
+                                <option value="Cajas">Cajas</option>
+                            </select>
                         </div>
                     </div>
                     <div class="mb-3">
@@ -414,4 +409,16 @@
 
 @section Scripts {
     <script src="~/js/stock.js" asp-append-version="true"></script>
+    <script>
+        // Búsqueda en tiempo real (como Vehículos/Clientes)
+        document.getElementById('searchInput').addEventListener('keyup', function() {
+            const searchTerm = this.value.toLowerCase();
+            const rows = document.querySelectorAll('#stockTable tbody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(searchTerm) ? '' : 'none';
+            });
+        });
+    </script>
 }

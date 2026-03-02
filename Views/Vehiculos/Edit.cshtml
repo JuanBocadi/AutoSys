@@ -33,13 +33,17 @@
                         <i class="fas fa-user me-1"></i> Cliente (Propietario Actual)
                     </label>
                     <div class="input-group">
-                        <select asp-for="ClienteId" class="form-select bg-light" disabled>
+                        <select asp-for="ClienteId" class="form-select" id="ClienteIdSelect">
                             @foreach (var cliente in ViewBag.Clientes)
                             {
                                 <option value="@cliente.Id">@cliente.Apellido, @cliente.Nombre - DNI: @cliente.DNI</option>
                             }
                         </select>
-                        <input type="hidden" asp-for="ClienteId" />
+                    </div>
+                    <!-- Alerta de cambio de propietario -->
+                    <div id="alertaCambioPropietario" class="alert alert-warning mt-2" style="display: none;">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Atención:</strong> Estás cambiando el propietario del vehículo. Esto generará un nuevo registro en el historial de propietarios y desvinculará al dueño anterior de las futuras reparaciones.
                     </div>
                     <div class="form-text mt-1 text-info">
                         <i class="fas fa-info-circle me-1"></i> Para cambiar el dueño, utilice el botón <strong>Transferir Vehículo</strong> abajo a la izquierda.
@@ -193,6 +197,21 @@
         document.querySelector('input[name="Patente"]').addEventListener('input', function() {
             this.value = this.value.toUpperCase();
         });
+
+        // Detectar cambio de propietario en el select de Cliente
+        (function() {
+            const selectCliente = document.getElementById('ClienteIdSelect');
+            const alerta = document.getElementById('alertaCambioPropietario');
+            const clienteIdOriginal = '@Model.ClienteId';
+
+            selectCliente.addEventListener('change', function() {
+                if (this.value !== clienteIdOriginal) {
+                    alerta.style.display = 'block';
+                } else {
+                    alerta.style.display = 'none';
+                }
+            });
+        })();
 
         // LÓGICA DE BÚSQUEDA DE CLIENTES EN MODAL
         (function() {

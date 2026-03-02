@@ -9,7 +9,7 @@ using System.Linq;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
     [RequirePermiso("VerVehiculos")]
     public class VehiculosController : Controller
     {
@@ -213,6 +213,38 @@ namespace AutoSys.Controllers
                     }
                     else
                     {
+                        // ── Detectar cambio de propietario ──
+                        var vehiculoOriginal = await _context.Vehiculos
+                            .AsNoTracking()
+                            .FirstOrDefaultAsync(v => v.Id == vehiculo.Id);
+
+                        if (vehiculoOriginal != null && vehiculoOriginal.ClienteId != vehiculo.ClienteId)
+                        {
+                            // Cerrar el historial del propietario anterior
+                            var historialActual = await _context.HistorialesPropietarios
+                                .FirstOrDefaultAsync(h => h.VehiculoId == vehiculo.Id && h.EsPropietarioActual);
+
+                            if (historialActual != null)
+                            {
+                                historialActual.FechaHasta = DateTime.Now;
+                                historialActual.EsPropietarioActual = false;
+                            }
+
+                            // Crear nuevo registro de historial para el nuevo propietario
+                            var nuevoHistorial = new HistorialPropietario
+                            {
+                                VehiculoId = vehiculo.Id,
+                                ClienteId = vehiculo.ClienteId,
+                                FechaDesde = DateTime.Now,
+                                EsPropietarioActual = true
+                            };
+                            _context.HistorialesPropietarios.Add(nuevoHistorial);
+
+                            _logger.LogInformation(
+                                "Cambio de propietario detectado para vehículo {Id}. ClienteId anterior: {AnteriorId}, nuevo: {NuevoId}",
+                                vehiculo.Id, vehiculoOriginal.ClienteId, vehiculo.ClienteId);
+                        }
+
                         _context.Update(vehiculo);
                         await _context.SaveChangesAsync();
                         _logger.LogInformation("Vehículo editado exitosamente: {Id} - {Patente}", vehiculo.Id, vehiculo.Patente);
@@ -267,7 +299,7 @@ namespace AutoSys.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("EliminarVehiculos")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
             try

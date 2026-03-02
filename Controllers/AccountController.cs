@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using AutoSys.ViewModels;
+using AutoSys.Filters;
 using AutoSys.Patterns.Composite;
 using AutoSys.Patterns.Singleton;
 using AutoSys.Services;
@@ -36,7 +37,7 @@ namespace AutoSys.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("GestionarUsuarios")]
         public IActionResult Register()
         {
             ViewBag.Roles = _roleManager.Roles.Select(r => r.Name).ToList();
@@ -44,7 +45,7 @@ namespace AutoSys.Controllers
         }
 
         [HttpPost]
-        [Authorize(Roles = "Administrador")]
+        [RequirePermiso("GestionarUsuarios")]
         public async Task<IActionResult> Register(RegisterViewModel model)
         {
             // PATRÓN COMPOSITE: Validación jerárquica de registro

@@ -36,6 +36,11 @@ namespace AutoSys.Models
         [Display(Name = "Subtotal")]
         public decimal Subtotal { get; set; }
 
+        // FK opcional hacia Stock (solo si la línea es un repuesto del inventario)
+        [Display(Name = "Repuesto")]
+        public int? StockId { get; set; }
+        public Stock? Stock { get; set; }
+
         // Navegación
         public Factura? Factura { get; set; }
     }

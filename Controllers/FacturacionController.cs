@@ -9,7 +9,7 @@ using AutoSys.Services;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
     [RequirePermiso("VerFacturacion")]
     public class FacturacionController : Controller
     {
@@ -113,6 +113,9 @@ namespace AutoSys.Controllers
             var numeroSecuencial = (ultimaFactura?.Id ?? 0) + 1;
             factura.NumeroFactura = $"F-{DateTime.Now:yyyyMM}-{numeroSecuencial:D4}";
 
+            // Obtener todos los servicios para el autocompletado de las líneas manuales
+            ViewBag.TodosServicios = await _context.ServiciosFijos.ToListAsync();
+
             return View(factura);
         }
 
@@ -170,6 +173,50 @@ namespace AutoSys.Controllers
                 }
 
                 factura.Subtotal = 0;
+
+                // ── Validación de stock antes de guardar ──
+                for (int i = 0; i < detalles.Count; i++)
+                {
+                    var d = detalles[i];
+
+                    // Leer StockId desde el form (puede ser vacío si es servicio manual)
+                    var stockIdStr = Request.Form[$"detalles[{i}].StockId"].ToString();
+                    if (int.TryParse(stockIdStr, out int stockIdParsed) && stockIdParsed > 0)
+                    {
+                        d.StockId = stockIdParsed;
+                    }
+                    else
+                    {
+                        d.StockId = null;
+                    }
+
+                    if (d.StockId.HasValue)
+                    {
+                        var itemStock = await _context.Stock.FindAsync(d.StockId.Value);
+                        if (itemStock == null)
+                        {
+                            ModelState.AddModelError("", $"El repuesto seleccionado en la línea {i + 1} ya no existe en el inventario.");
+                        }
+                        // No se valida cantidad de stock: la gestión de inventario es independiente de la facturación.
+                    }
+                }
+
+                if (!ModelState.IsValid)
+                {
+                    // Recargar datos necesarios para la vista
+                    ViewBag.Ingresos = new SelectList(await _context.Ingresos
+                        .Include(i => i.Vehiculo!).ThenInclude(v => v.Cliente)
+                        .Where(i => i.Id == factura.IngresoId ||
+                                   ((i.Estado == "Finalizado" || i.Estado == "Entregado") &&
+                                   !_context.Facturas.Any(f => f.IngresoId == i.Id)))
+                        .Select(i => new {
+                            i.Id,
+                            Texto = $"Ingreso #{i.Id} - {i.Vehiculo!.Patente}"
+                        }).ToListAsync(), "Id", "Texto", factura.IngresoId);
+                    return View(factura);
+                }
+
+                // ── Procesar detalles y descontar stock ──
                 for (int i = 0; i < detalles.Count; i++)
                 {
                     var d = detalles[i];
@@ -191,6 +238,8 @@ namespace AutoSys.Controllers
 
                     d.Subtotal = d.Cantidad * d.PrecioUnitario;
                     factura.Subtotal += d.Subtotal;
+
+                    // Stock desconectado de facturación: la gestión de inventario se maneja de forma independiente.
                     
                     // Agregamos el detalle limpio a la colección de la factura
                     factura.Detalles.Add(d);
@@ -226,6 +275,32 @@ namespace AutoSys.Controllers
                 }).ToListAsync(), "Id", "Texto", factura.IngresoId);
 
             return View(factura);
+        }
+
+        // ── BÚSQUEDA DE REPUESTOS (Autocomplete) ──────────────────────
+        [HttpGet]
+        public IActionResult BuscarRepuestos(string term)
+        {
+            if (string.IsNullOrWhiteSpace(term) || term.Length < 2)
+                return Json(Array.Empty<object>());
+
+            var termLower = term.Trim().ToLower();
+
+            var resultados = _context.Stock
+                .Where(s => s.Nombre.ToLower().Contains(termLower) ||
+                            s.Id.ToString().Contains(termLower))
+                .OrderBy(s => s.Nombre)
+                .Take(10)
+                .Select(s => new
+                {
+                    id = s.Id,
+                    label = "#" + s.Id + " - " + s.Nombre,
+                    precio = s.PrecioUnitario,
+                    stockDisponible = s.Cantidad
+                })
+                .ToList();
+
+            return Json(resultados);
         }
 
         public async Task<IActionResult> Detalle(int? id)

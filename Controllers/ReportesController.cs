@@ -11,7 +11,7 @@ using System.Text.Json;
 
 namespace AutoSys.Controllers
 {
-    [Authorize(Roles = "Administrador,Recepcionista,Mecanico")]
+    [Authorize]
     [RequirePermiso("VerReportes")]
     public class ReportesController : Controller
     {
