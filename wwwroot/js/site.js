@@ -33,17 +33,8 @@
 // ========================================================
 
 // ========== THEME MANAGEMENT WITH DARKREADER ==========
-// Inicializar DarkReader al cargar la página
-(function() {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    if (savedTheme === 'dark' && typeof DarkReader !== 'undefined') {
-        DarkReader.enable({
-            brightness: 100,
-            contrast: 90,
-            sepia: 10
-        });
-    }
-})();
+// DarkReader se carga de forma lazy desde _Layout.cshtml
+// La inicialización se maneja allí con requestIdleCallback
 
 document.addEventListener('DOMContentLoaded', function () {
     // ========== MOBILE MENU ==========
@@ -105,17 +96,21 @@ document.addEventListener('DOMContentLoaded', function () {
         const currentTheme = localStorage.getItem('theme') || 'light';
         const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
         
-        // Cambiar el tema con DarkReader
-        if (newTheme === 'dark') {
-            DarkReader.enable({
-                brightness: 100,
-                contrast: 90,
-                sepia: 10
-            });
-        } else {
-            DarkReader.disable();
+        // Cambiar el tema con DarkReader (si ya cargó)
+        if (typeof DarkReader !== 'undefined') {
+            if (newTheme === 'dark') {
+                DarkReader.setFetchMethod(window.fetch);
+                DarkReader.enable({
+                    brightness: 100,
+                    contrast: 90,
+                    sepia: 10
+                });
+            } else {
+                DarkReader.disable();
+            }
         }
         
+        document.documentElement.setAttribute('data-theme', newTheme);
         localStorage.setItem('theme', newTheme);
         
         // Actualizar ambos botones

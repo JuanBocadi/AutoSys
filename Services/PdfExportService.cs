@@ -72,7 +72,7 @@ namespace AutoSys.Services
                                     Celda(table, ingreso.FechaIngreso.ToString("dd/MM/yyyy"), bg);
                                     Celda(table, $"{ingreso.Vehiculo?.Cliente?.Nombre} {ingreso.Vehiculo?.Cliente?.Apellido}", bg);
                                     Celda(table, $"{ingreso.Vehiculo?.Patente}", bg);
-                                    Celda(table, ingreso.Diagnostico.Length > 40 ? ingreso.Diagnostico.Substring(0, 40) + "..." : ingreso.Diagnostico, bg);
+                                    Celda(table, (ingreso.Diagnostico ?? "").Length > 40 ? ingreso.Diagnostico!.Substring(0, 40) + "..." : ingreso.Diagnostico ?? string.Empty, bg);
                                 Celda(table, ingreso.Estado, bg);
                                     Celda(table, ingreso.FechaEgreso?.ToString("dd/MM/yyyy") ?? "-", bg);
                                     CeldaDerecha(table, ingreso.DiasEnTaller.ToString(), bg);
@@ -308,7 +308,7 @@ namespace AutoSys.Services
                                     Celda(table, ingreso.FechaIngreso.ToString("dd/MM/yyyy"), bg);
                                     Celda(table, $"{ingreso.Vehiculo?.Cliente?.Nombre} {ingreso.Vehiculo?.Cliente?.Apellido}", bg);
                                     Celda(table, $"{ingreso.Vehiculo?.Patente}", bg);
-                                    Celda(table, ingreso.Diagnostico.Length > 35 ? ingreso.Diagnostico.Substring(0, 35) + "..." : ingreso.Diagnostico, bg);
+                                    Celda(table, (ingreso.Diagnostico ?? "").Length > 35 ? ingreso.Diagnostico!.Substring(0, 35) + "..." : ingreso.Diagnostico ?? string.Empty, bg);
                                     Celda(table, ingreso.FechaEgreso?.ToString("dd/MM/yyyy") ?? "-", bg);
                                     CeldaDerecha(table, ingreso.DiasEnTaller.ToString(), bg);
                                 }

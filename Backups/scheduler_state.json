@@ -1,7 +1,7 @@
 {
   "Enabled": true,
   "NextFullBackup": "2026-03-02T21:23:45.1171585-03:00",
-  "NextDiffBackup": "2026-03-02T03:23:45.1171625-03:00",
+  "NextDiffBackup": "2026-03-02T14:29:31.0562391-03:00",
   "LastAutoFullBackup": "2026-03-01T21:23:45.1171581-03:00",
-  "LastAutoDiffBackup": "2026-02-28T04:36:17.2075921-03:00"
+  "LastAutoDiffBackup": "2026-03-02T08:29:31.0562386-03:00"
 }

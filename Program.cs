@@ -3,10 +3,21 @@ using AutoSys.Data;
 using AutoSys.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.ResponseCompression;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllersWithViews();
+
+// Compresión de respuestas (Gzip + Brotli)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+        new[] { "text/css", "application/javascript", "text/html", "application/json", "image/svg+xml" });
+});
 
 // Configurar antiforgery para admitir peticiones AJAX con header
 builder.Services.AddAntiforgery(options =>
@@ -86,8 +97,34 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseStaticFiles();
+app.UseResponseCompression();
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    OnPrepareResponse = ctx =>
+    {
+        // Cache estático por 7 días para imágenes, CSS, JS, fuentes
+        var path = ctx.File.Name.ToLowerInvariant();
+        if (path.EndsWith(".css") || path.EndsWith(".js") || path.EndsWith(".png") ||
+            path.EndsWith(".jpg") || path.EndsWith(".jpeg") || path.EndsWith(".webp") ||
+            path.EndsWith(".avif") || path.EndsWith(".gif") || path.EndsWith(".ico") ||
+            path.EndsWith(".woff") || path.EndsWith(".woff2") || path.EndsWith(".ttf"))
+        {
+            ctx.Context.Response.Headers.Append("Cache-Control", "public, max-age=604800, immutable");
+        }
+    }
+});
 app.UseRouting();
+
+// Headers de seguridad
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Append("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Append("X-Frame-Options", "SAMEORIGIN");
+    context.Response.Headers.Append("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Append("Cross-Origin-Opener-Policy", "same-origin");
+    await next();
+});
 app.UseAuthentication();
 app.UseAuthorization();
 

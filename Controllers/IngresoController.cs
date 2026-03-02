@@ -125,7 +125,7 @@ namespace AutoSys.Controllers
             }
 
             ingreso.Vehiculo = vehiculo;
-            ingreso.ClienteId = vehiculo.ClienteId;
+            ingreso.ClienteId = vehiculo!.ClienteId;
 
             string? rutaTemp = FotoTempPath;
 

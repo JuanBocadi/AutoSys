@@ -179,10 +179,10 @@
                                     <span style="color: var(--muted-foreground); font-size: 0.875rem;"> - @ingreso.Vehiculo?.Marca @ingreso.Vehiculo?.Modelo</span>
                                 </td>
                                 <td>
-                                    @if (ingreso.Diagnostico.Length > 40)
+                                    @if ((ingreso.Diagnostico ?? "").Length > 40)
                                     {
                                         <span title="@ingreso.Diagnostico" style="font-size: 0.875rem;">
-                                            @ingreso.Diagnostico.Substring(0, 40)...
+                                            @ingreso.Diagnostico!.Substring(0, 40)...
                                         </span>
                                     }
                                     else

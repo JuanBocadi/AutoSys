@@ -85,10 +85,10 @@
                                     <td>@ingreso.Vehiculo?.Cliente?.Nombre @ingreso.Vehiculo?.Cliente?.Apellido</td>
                                     <td>@ingreso.Vehiculo?.Patente - @ingreso.Vehiculo?.Marca @ingreso.Vehiculo?.Modelo</td>
                                     <td>
-                                        @if (ingreso.Diagnostico.Length > 50)
+                                        @if ((ingreso.Diagnostico ?? "").Length > 50)
                                         {
                                             <span title="@ingreso.Diagnostico">
-                                                @ingreso.Diagnostico.Substring(0, 50)...
+                                                @ingreso.Diagnostico!.Substring(0, 50)...
                                             </span>
                                         }
                                         else

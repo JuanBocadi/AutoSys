@@ -175,7 +175,7 @@ namespace AutoSys.Controllers
                 factura.Subtotal = 0;
 
                 // ── Validación de stock antes de guardar ──
-                for (int i = 0; i < detalles.Count; i++)
+                for (int i = 0; i < detalles!.Count; i++)
                 {
                     var d = detalles[i];
 
