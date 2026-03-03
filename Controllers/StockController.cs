@@ -69,6 +69,15 @@ namespace AutoSys.Controllers
         {
             if (ModelState.IsValid)
             {
+                // Validar nombre duplicado
+                var existeNombre = await _context.Stock
+                    .AnyAsync(s => s.Nombre == stock.Nombre);
+                if (existeNombre)
+                {
+                    ModelState.AddModelError("Nombre", "Ya existe un item en el inventario con ese nombre.");
+                    return View(stock);
+                }
+
                 stock.FechaActualizacion = DateTime.Now;
                 _context.Stock.Add(stock);
                 await _context.SaveChangesAsync();
@@ -105,6 +114,15 @@ namespace AutoSys.Controllers
 
             if (ModelState.IsValid)
             {
+                // Validar nombre duplicado (excluyendo el item actual)
+                var existeNombre = await _context.Stock
+                    .AnyAsync(s => s.Nombre == stock.Nombre && s.Id != stock.Id);
+                if (existeNombre)
+                {
+                    ModelState.AddModelError("Nombre", "Ya existe otro item en el inventario con ese nombre.");
+                    return View(stock);
+                }
+
                 try
                 {
                     stock.FechaActualizacion = DateTime.Now;

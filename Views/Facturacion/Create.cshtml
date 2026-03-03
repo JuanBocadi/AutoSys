@@ -291,6 +291,12 @@
                     fetch(`/Facturacion/BuscarRepuestos?term=${encodeURIComponent(term)}`)
                         .then(r => r.json())
                         .then(data => {
+                            // Filtrar repuestos ya agregados a la factura
+                            const idsAgregados = Array.from(document.querySelectorAll('#detallesContainer .stockId'))
+                                .map(el => el.value)
+                                .filter(v => v !== '');
+                            data = data.filter(item => !idsAgregados.includes(item.id.toString()));
+
                             if (data.length === 0) {
                                 resultsBox.innerHTML = '<div class="list-group-item text-muted py-2">No se encontraron repuestos</div>';
                             } else {

@@ -65,19 +65,6 @@
     "CreatedBy": "Sistema (Autom\u00E1tico)"
   },
   {
-    "Id": "a398a794-3f57-4095-b55d-a7a9123525e7",
-    "FileName": "AutoSysDB_DIFF_20260228_043616.bak",
-    "FilesZipName": null,
-    "CreatedAt": "2026-02-28T04:36:16.7500145-03:00",
-    "SizeBytes": 0,
-    "Type": "Diferencial",
-    "Status": "Fallido",
-    "Origin": "Autom\u00E1tico",
-    "IncludesFiles": false,
-    "Notes": "Backup diferencial autom\u00E1tico programado | Error: Cannot perform a differential backup for database \u0022AutoSysDB\u0022, because a current database backup does not exist. Perform a full database backup by reissuing BACKUP DATABASE, omitting the WITH DIFFERENTIAL option.\r\nBACKUP DATABASE is terminating abnormally.",
-    "CreatedBy": "Sistema (Autom\u00E1tico)"
-  },
-  {
     "Id": "cb8d51c7-bd04-4ea9-8345-d90d763e8651",
     "FileName": "AutoSysDB_20260301_212344.bak",
     "FilesZipName": null,
@@ -127,6 +114,19 @@
     "Origin": "Autom\u00E1tico",
     "IncludesFiles": false,
     "Notes": "Backup diferencial autom\u00E1tico programado",
+    "CreatedBy": "Sistema (Autom\u00E1tico)"
+  },
+  {
+    "Id": "d440d3dc-9541-4ab3-8d64-8ca96fe91f47",
+    "FileName": "AutoSysDB_20260302_214619.bak",
+    "FilesZipName": null,
+    "CreatedAt": "2026-03-02T21:46:19.3409781-03:00",
+    "SizeBytes": 7786496,
+    "Type": "Completo",
+    "Status": "Verificado",
+    "Origin": "Autom\u00E1tico",
+    "IncludesFiles": true,
+    "Notes": "Backup completo autom\u00E1tico programado",
     "CreatedBy": "Sistema (Autom\u00E1tico)"
   }
 ]
